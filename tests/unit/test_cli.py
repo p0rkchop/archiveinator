@@ -2,12 +2,18 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import click
 from pytest import MonkeyPatch
 from typer.testing import CliRunner
 
 from archiveinator.cli import app
 
-runner = CliRunner(env={"NO_COLOR": "1"})
+runner = CliRunner()
+
+
+def _plain(output: str) -> str:
+    """Strip ANSI escape codes from CLI output."""
+    return click.unstyle(output)
 
 
 # --- Basic CLI shape ---
@@ -28,8 +34,9 @@ def test_help() -> None:
 def test_archive_help() -> None:
     result = runner.invoke(app, ["archive", "--help"])
     assert result.exit_code == 0
-    assert "--output-dir" in result.output
-    assert "--verbose" in result.output
+    output = _plain(result.output)
+    assert "--output-dir" in output
+    assert "--verbose" in output
 
 
 def test_setup_help() -> None:
