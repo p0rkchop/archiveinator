@@ -8,71 +8,60 @@ Organizations face problems using archive.today. Its hosting is unstable and hos
 
 ## Solution
 
-archiveinator runs locally in a lightweight way, giving you full control over your archives.
+archiveinator runs locally in a lightweight way, giving you full control over your archives. It saves web pages as self-contained single-file HTML documents you can open offline forever, with no external dependencies.
 
 ## Features
 
-- Creates a self-contained local copy of a web page viewable offline
-- Blocks advertisements at the network and DOM level
-- Employs methods to bypass paywalls whenever possible
+- Creates self-contained `.html` archives viewable offline (via [monolith](https://github.com/Y2Z/monolith))
+- Blocks ads at the network level (EasyList + EasyPrivacy) and cleans ad DOM elements after load
+- Detects paywalls automatically and tries multiple bypass strategies in sequence
+- Collapses responsive images to a single reasonable size before archiving
+- Fully configurable pipeline — enable or disable any step in `config.yaml`
 
 ---
 
 ## Requirements
 
 - Python 3.11 or later
-- pip / pipx (or uv)
+- pip or [uv](https://github.com/astral-sh/uv)
+
+The monolith binary, Playwright Chromium, and ad-blocking rule sets are all installed automatically by `archiveinator setup`.
 
 ---
 
 ## Installation
 
-### Mac
+archiveinator is installed directly from the GitHub repository. There is no PyPI package.
 
 ```bash
-# 1. Install monolith (required for asset inlining)
-brew install monolith
+# Using pip
+pip install git+https://github.com/p0rkchop/archiveinator.git
 
-# 2. Install archiveinator
-pip install archiveinator
-# or, to isolate it from system Python:
-pipx install archiveinator
-```
+# Using pipx (keeps it isolated from system Python)
+pipx install git+https://github.com/p0rkchop/archiveinator.git
 
-### Linux
-
-```bash
-# Install archiveinator (monolith is downloaded automatically during setup)
-pip install archiveinator
-# or:
-pipx install archiveinator
-```
-
-### Windows
-
-```powershell
-# Install archiveinator (monolith is downloaded automatically during setup)
-pip install archiveinator
-# or:
-pipx install archiveinator
+# Using uv
+uv tool install git+https://github.com/p0rkchop/archiveinator.git
 ```
 
 ---
 
 ## First-time Setup
 
-After installation, run the setup command once. It will:
-
-1. Create the default config file
-2. Install Playwright's Chromium browser
-3. Install or download the monolith binary
-4. Download EasyList and EasyPrivacy ad-blocking rule sets
+After installation, run the setup command once:
 
 ```bash
 archiveinator setup
 ```
 
-> **Mac note:** If you installed monolith via Homebrew before running setup, it will be detected and used automatically — no download needed.
+This will:
+
+1. Create the default config file at the platform-appropriate path
+2. Install Playwright's Chromium browser
+3. Download the monolith binary for your platform from the [latest release](https://github.com/p0rkchop/archiveinator/releases/latest)
+4. Download EasyList and EasyPrivacy ad-blocking rule sets
+
+> **macOS note:** If you have `monolith` installed via Homebrew, setup will detect and use it automatically.
 
 ---
 
@@ -84,18 +73,28 @@ archiveinator setup
 archiveinator archive <url>
 ```
 
-The archive is saved as a self-contained `.html` file in your current directory (or the configured output directory).
+The archive is saved as a self-contained `.html` file in your current directory (or the configured `output_dir`). The filename includes the date, hostname, and page title:
+
+```
+2026-03-21_14-30_example.com_article-title.html
+```
 
 **Examples:**
 
 ```bash
-# Basic archive
+# Save to current directory
 archiveinator archive https://example.com/article
 
 # Save to a specific directory
 archiveinator archive https://example.com/article --output-dir ~/archives
 
-# Verbose output (shows pipeline steps and debug info)
+# Write HTML to stdout (status messages go to stderr)
+archiveinator archive https://example.com/article --stdout
+
+# Pipe to a file or another tool
+archiveinator archive https://example.com/article --stdout > article.html
+
+# Show verbose output (pipeline steps, paywall bypass attempts)
 archiveinator archive https://example.com/article --verbose
 ```
 
@@ -104,7 +103,18 @@ archiveinator archive https://example.com/article --verbose
 | Flag | Short | Description |
 |------|-------|-------------|
 | `--output-dir PATH` | `-o` | Directory to save the archive (overrides config) |
-| `--verbose` | `-v` | Show verbose/debug output |
+| `--stdout` | `-s` | Write HTML to stdout; status messages go to stderr |
+| `--verbose` | `-v` | Show pipeline step messages |
+
+`--stdout` and `--output-dir` are mutually exclusive.
+
+### Update ad-blocking rules
+
+```bash
+archiveinator update-blocklists
+```
+
+Downloads the latest EasyList and EasyPrivacy rules. Also runs automatically on a schedule via CI (every Monday at 03:00 UTC) if you fork the repository.
 
 ### Get help
 
@@ -115,32 +125,61 @@ archiveinator archive --help
 
 ---
 
+## Paywall Bypass
+
+archiveinator automatically detects paywalled pages and works through bypass strategies in sequence, stopping as soon as the page is accessible.
+
+### Detection
+
+A page is considered paywalled if any of the following are true:
+
+- **HTTP status** is 401, 402, 403, or 429
+- **DOM selectors** match known paywall elements (Piano/TinyPass modals, `.paywall`, `.content-gate`, `.tp-modal`, subscription walls, metered access overlays, and 30+ others)
+- **Word count** is suspiciously low (< 150 words), indicating a teaser stub
+
+### Bypass strategies (in order)
+
+1. **JS overlay removal** — Removes paywall modal elements from the live page DOM and restores body scroll before the page is serialized. No reload required; fires while the browser is still open.
+
+2. **UA cycling** — Retries the page load with the next user agent in the configured list. Requires `user_agents.cycle: true` in config. Successful agent/domain pairs are cached so future runs start with the known-good UA.
+
+3. **Header tricks** — Retries with Googlebot user agent, `Referer: https://www.google.com/`, and `X-Forwarded-For: 66.249.66.1`. Many publishers allow Googlebot through paywalls to stay indexed.
+
+4. **Google News referral** — Retries with Googlebot UA and `Referer: https://news.google.com/`, simulating a Google News click-through.
+
+5. **Content extraction fallback** — If the page is still paywalled after all retries, [trafilatura](https://trafilatura.readthedocs.io/) extracts the article body from the available HTML. The archive is saved as a clean, readable document containing the article text.
+
+If all strategies are exhausted without success, a partial archive of whatever HTML was retrieved is saved with `_partial` in the filename.
+
+---
+
 ## Configuration
 
-The config file is created automatically at first run. Its location depends on your platform:
+The config file is created automatically at first run.
 
 | Platform | Path |
 |----------|------|
-| Mac | `~/Library/Application Support/archiveinator/config.yaml` |
+| macOS | `~/Library/Application Support/archiveinator/config.yaml` |
 | Linux | `~/.config/archiveinator/config.yaml` |
 | Windows | `%APPDATA%\archiveinator\config.yaml` |
 
-### Default config
+### Full config reference
 
 ```yaml
 # Directory where archived files are saved (default: current working directory)
 output_dir: .
 
-# Maximum asset size to inline in MB (images, CSS, fonts — videos are always skipped)
+# Maximum asset size to inline in MB (images, CSS, fonts — audio/video always skipped)
 asset_size_limit_mb: 5
 
 # Page load timeout in seconds
 timeout_seconds: 30
 
-# How often to auto-update adblock blocklists (in days)
+# How often to auto-refresh adblock blocklists (in days)
 blocklist_update_interval_days: 7
 
 user_agents:
+  # Set to true to enable UA cycling as a paywall bypass strategy
   cycle: false
   agents:
     - name: chrome_desktop
@@ -154,13 +193,27 @@ user_agents:
       ua: "Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingcrawl.htm)"
 
 pipeline:
-  - step: network_ad_blocking
+  - step: network_ad_blocking   # Block ad requests before they're made
     enabled: true
-  - step: page_load
+  - step: page_load             # Load page in headless Chromium
     enabled: true
-  - step: dom_ad_cleanup
+  - step: paywall_detection     # Detect paywall (runs inside page_load)
     enabled: true
-  - step: asset_inlining
+  - step: js_overlay_removal    # Remove paywall modals from live page
+    enabled: true
+  - step: ua_cycling            # Retry with next UA (requires cycle: true)
+    enabled: true
+  - step: header_tricks         # Retry with Googlebot UA + Google referer
+    enabled: true
+  - step: google_news           # Retry with Google News referer
+    enabled: true
+  - step: dom_ad_cleanup        # Remove ad DOM elements (runs inside page_load)
+    enabled: true
+  - step: image_dedup           # Collapse responsive images to one size
+    enabled: true
+  - step: content_extraction    # trafilatura fallback if still paywalled
+    enabled: true
+  - step: asset_inlining        # Inline all assets into single HTML (must be last)
     enabled: true
 ```
 
@@ -168,12 +221,56 @@ pipeline:
 
 | Step | Description |
 |------|-------------|
-| `network_ad_blocking` | Blocks ad/tracker requests at the network level using EasyList rules |
-| `page_load` | Loads the page in a headless Chromium browser |
-| `dom_ad_cleanup` | Removes ad elements from the DOM after load |
-| `asset_inlining` | Inlines all assets (images, CSS, fonts) into a single HTML file |
+| `network_ad_blocking` | Intercepts network requests and blocks ads/trackers using EasyList + EasyPrivacy rules before they're fetched |
+| `page_load` | Loads the page in a headless Chromium browser and waits for network idle |
+| `paywall_detection` | Detects paywalls via HTTP status, DOM selectors, and word count — runs inside the browser before serializing |
+| `js_overlay_removal` | Removes JS-rendered paywall modals and overlays from the live DOM; restores body scroll |
+| `ua_cycling` | Retries page load with the next configured user agent (requires `user_agents.cycle: true`) |
+| `header_tricks` | Retries with Googlebot UA, Google referer, and X-Forwarded-For header |
+| `google_news` | Retries with Google News referer and Googlebot UA |
+| `dom_ad_cleanup` | Removes residual ad elements from the DOM (Google Ads, DFP slots, Taboola widgets, tracking pixels) |
+| `image_dedup` | Collapses `<picture>` and `srcset` responsive images to a single URL ≤ 1200px wide to avoid duplicating assets |
+| `content_extraction` | Last-resort: uses trafilatura to extract the article body if the page is still paywalled |
+| `asset_inlining` | Inlines CSS, images, fonts, and scripts into a single self-contained HTML file using monolith |
 
-`page_load` must always be present. `asset_inlining`, if included, must be the last step.
+`page_load` must always be present. `asset_inlining`, if included, must be last.
+
+### Enabling UA cycling for paywall bypass
+
+To enable user agent cycling:
+
+```yaml
+user_agents:
+  cycle: true       # enable cycling
+  agents:
+    - name: chrome_desktop
+      enabled: true
+      ua: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ..."
+    - name: googlebot
+      enabled: true   # enable Googlebot as a fallback UA
+      ua: "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
+```
+
+Successful agent/domain pairs are cached at:
+
+| Platform | Cache Path |
+|----------|-----------|
+| macOS | `~/Library/Application Support/archiveinator/ua_cache.yaml` |
+| Linux | `~/.config/archiveinator/ua_cache.yaml` |
+| Windows | `%APPDATA%\archiveinator\ua_cache.yaml` |
+
+---
+
+## Releases
+
+Each release publishes platform-specific [monolith](https://github.com/Y2Z/monolith) binaries compiled from source. These are what `archiveinator setup` downloads automatically — you do not need to manage them yourself.
+
+| Asset | Platform |
+|-------|----------|
+| `archiveinator-darwin-aarch64` | macOS Apple Silicon |
+| `archiveinator-linux-x86_64` | Linux x86_64 |
+| `archiveinator-linux-aarch64` | Linux aarch64 |
+| `archiveinator-windows-x86_64.exe` | Windows x86_64 |
 
 ---
 
@@ -184,25 +281,26 @@ pipeline:
 git clone https://github.com/p0rkchop/archiveinator.git
 cd archiveinator
 
-# Create and activate a virtual environment
-python -m venv .venv
-source .venv/bin/activate      # Mac / Linux
-.venv\Scripts\activate         # Windows
-
-# Install with dev dependencies
+# Install with dev dependencies (uv recommended)
+uv sync
+# or with pip
 pip install -e ".[dev]"
 
-# Run setup
+# Run setup (installs Chromium, monolith, blocklists)
 archiveinator setup
 
 # Run tests
-pytest
+.venv/bin/pytest tests/unit/
 
-# Run linter
-ruff check .
+# Lint and type check
+.venv/bin/ruff check .
+.venv/bin/mypy archiveinator/
+```
 
-# Run type checker
-mypy archiveinator
+Integration tests require a network connection and a running Playwright Chromium install:
+
+```bash
+.venv/bin/pytest tests/integration/
 ```
 
 ---
