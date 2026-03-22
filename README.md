@@ -35,11 +35,30 @@ archiveinator is installed directly from the GitHub repository into a Python vir
 ### Mac / Linux
 
 ```bash
-# 1. Create a virtual environment
-python3 -m venv ~/.venvs/archiveinator
+# 1. Create a directory for archiveinator and a virtual environment inside it
+mkdir archiveinator
+cd archiveinator
+python3 -m venv .venv
+```
 
+> **Using a specific Python version?** archiveinator requires Python 3.11+. If your system Python is older, you can point `venv` at a newer install:
+>
+> ```bash
+> # Option A: pyenv
+> brew install pyenv
+> pyenv install 3.12
+> ~/.pyenv/versions/3.12.*/bin/python3.12 -m venv .venv
+>
+> # Option B: Homebrew Python
+> brew install python@3.12
+> /opt/homebrew/opt/python@3.12/bin/python3.12 -m venv .venv
+> ```
+>
+> Your system Python is untouched either way.
+
+```bash
 # 2. Activate it
-source ~/.venvs/archiveinator/bin/activate
+source .venv/bin/activate
 
 # 3. Install archiveinator
 pip install git+https://github.com/p0rkchop/archiveinator.git
@@ -48,17 +67,19 @@ pip install git+https://github.com/p0rkchop/archiveinator.git
 ### Windows
 
 ```powershell
-# 1. Create a virtual environment
-python -m venv %USERPROFILE%\.venvs\archiveinator
+# 1. Create a directory for archiveinator and a virtual environment inside it
+mkdir archiveinator
+cd archiveinator
+python -m venv .venv
 
 # 2. Activate it
-%USERPROFILE%\.venvs\archiveinator\Scripts\activate.bat
+.venv\Scripts\activate.bat
 
 # 3. Install archiveinator
 pip install git+https://github.com/p0rkchop/archiveinator.git
 ```
 
-> You can place the virtual environment anywhere you like — `~/.venvs/archiveinator` is just a suggested location to keep it out of your project directories.
+> To uninstall, just delete the `archiveinator` folder — it contains everything.
 
 ---
 
@@ -87,11 +108,11 @@ You need to activate the virtual environment each time you open a new terminal s
 
 **Mac / Linux:**
 ```bash
-# Activate
-source ~/.venvs/archiveinator/bin/activate
+# Activate (from inside your archiveinator directory)
+source .venv/bin/activate
 
 # Your prompt will change to show the venv is active, e.g.:
-# (archiveinator) $
+# (.venv) $
 
 # Deactivate when done
 deactivate
@@ -99,8 +120,8 @@ deactivate
 
 **Windows:**
 ```powershell
-# Activate
-%USERPROFILE%\.venvs\archiveinator\Scripts\activate.bat
+# Activate (from inside your archiveinator directory)
+.venv\Scripts\activate.bat
 
 # Deactivate when done
 deactivate

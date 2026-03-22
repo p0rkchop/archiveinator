@@ -55,7 +55,7 @@ async def run(ctx: ArchiveContext) -> None:
                     "--no-video",
                     "--isolate",
                     "--insecure",
-                    "--silent",
+                    "--quiet",
                     "-o",
                     str(output_file),
                 ],
