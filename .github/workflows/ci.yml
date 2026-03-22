@@ -30,7 +30,7 @@ jobs:
         run: uv run playwright install chromium --with-deps
 
       - name: Run tests
-        run: uv run pytest tests/ -m "not e2e" -q --tb=short
+        run: uv run pytest tests/ -m "not e2e and not real_url" -q --tb=short
 
   lint:
     name: Lint & Type Check

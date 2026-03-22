@@ -56,4 +56,6 @@ asyncio_mode = "auto"
 testpaths = ["tests"]
 markers = [
     "e2e: end-to-end tests requiring network access (deselect with '-m not e2e')",
+    "real_url: QA tests against live sites (requires network + archiveinator setup)",
+    "mock_paywall: mock-server paywall/bot scenario tests (no network required)",
 ]

@@ -1,0 +1,80 @@
+name: QA — Paywall Bypass
+
+on:
+  schedule:
+    - cron: "0 6 * * 1" # Every Monday at 06:00 UTC
+  workflow_dispatch:
+    inputs:
+      sample_size:
+        description: "Number of sites to test (0 = all)"
+        default: "10"
+      extra_flags:
+        description: "Extra pytest flags (e.g. --qa-category finance --qa-difficulty hard)"
+        default: ""
+
+jobs:
+  qa-paywall:
+    name: Paywall bypass QA
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --python 3.12 --extra dev
+
+      - name: Install Playwright Chromium
+        run: uv run playwright install chromium --with-deps
+
+      - name: Run archiveinator setup
+        run: uv run archiveinator setup
+
+      - name: Run QA tests
+        id: qa
+        run: |
+          SAMPLE="${{ inputs.sample_size || '10' }}"
+          FLAGS="${{ inputs.extra_flags || '' }}"
+
+          uv run pytest tests/qa/test_real_urls.py \
+            -m real_url \
+            --qa-sample "$SAMPLE" \
+            $FLAGS \
+            -v --tb=short \
+            2>&1 | tee qa-output.txt
+
+      - name: Open issue on failure
+        if: failure() && steps.qa.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          BODY=$(cat <<'ISSUE_EOF'
+          ## QA Paywall Bypass — Weekly Run Failed
+
+          **Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          **Date:** $(date -u +%Y-%m-%d)
+          **Sample size:** ${{ inputs.sample_size || '10' }}
+          **Extra flags:** ${{ inputs.extra_flags || 'none' }}
+
+          <details>
+          <summary>Test output</summary>
+
+          ```
+          $(tail -60 qa-output.txt)
+          ```
+
+          </details>
+          ISSUE_EOF
+          )
+
+          gh issue create \
+            --title "QA: paywall bypass regression ($(date -u +%Y-%m-%d))" \
+            --body "$BODY" \
+            --label bug

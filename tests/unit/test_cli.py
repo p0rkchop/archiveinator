@@ -288,7 +288,7 @@ def test_paywall_detected_warning_shown(tmp_path: Path, monkeypatch: MonkeyPatch
     result = runner.invoke(app, ["archive", "https://example.com"])
 
     assert result.exit_code == 0
-    assert "Paywall detected" in result.output
+    assert "Paywall/block detected" in result.output
     assert "bypass strategies exhausted" in result.output
 
 

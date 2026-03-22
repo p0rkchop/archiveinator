@@ -12,8 +12,8 @@ async def test_detect_returns_none_for_clean_page() -> None:
     from archiveinator.steps.paywall import detect
 
     page = MagicMock()
-    # No paywall selector matched, word count is high
-    page.evaluate = AsyncMock(side_effect=[None, 800])
+    # Order: bot_selector, bot_title, paywall_selector, word_count
+    page.evaluate = AsyncMock(side_effect=[None, None, None, 800])
 
     result = await detect(page, http_status=200)
     assert result is None
@@ -53,8 +53,8 @@ async def test_detect_triggers_on_dom_selector() -> None:
     from archiveinator.steps.paywall import detect
 
     page = MagicMock()
-    # First evaluate (selector check) returns a matched selector
-    page.evaluate = AsyncMock(return_value=".tp-modal")
+    # Order: bot_selector → None, bot_title → None, paywall_selector → match
+    page.evaluate = AsyncMock(side_effect=[None, None, ".tp-modal"])
 
     result = await detect(page, http_status=200)
     assert result is not None
@@ -68,8 +68,8 @@ async def test_detect_triggers_on_low_word_count() -> None:
     from archiveinator.steps.paywall import detect
 
     page = MagicMock()
-    # No selector match, but word count is below threshold
-    page.evaluate = AsyncMock(side_effect=[None, 42])
+    # Order: bot_selector, bot_title, paywall_selector, word_count
+    page.evaluate = AsyncMock(side_effect=[None, None, None, 42])
 
     result = await detect(page, http_status=200)
     assert result is not None
@@ -84,7 +84,8 @@ async def test_detect_ignores_zero_word_count() -> None:
     from archiveinator.steps.paywall import detect
 
     page = MagicMock()
-    page.evaluate = AsyncMock(side_effect=[None, 0])
+    # Order: bot_selector, bot_title, paywall_selector, word_count
+    page.evaluate = AsyncMock(side_effect=[None, None, None, 0])
 
     result = await detect(page, http_status=200)
     assert result is None

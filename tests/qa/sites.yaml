@@ -1,0 +1,714 @@
+# archiveinator QA — paywalled site catalog
+#
+# Each entry has:
+#   name         — human-readable label
+#   url          — a stable article URL (old enough to stay online)
+#   tags:
+#     paywall_type — none | soft | metered | piano | perimeter-x | cloudflare | hard
+#     category     — finance | news | tech | sports | science | magazine | entertainment | policy | uk | australia | canada | regional
+#     difficulty   — easy | medium | hard
+#
+# Tags are overlapping so tests can slice by any dimension.
+# URLs chosen for longevity — prefer feature articles, not breaking news.
+
+sites:
+
+  # ──────────────────────────────────────────────────────────────
+  #  BASELINE — no paywall (difficulty: easy)
+  # ──────────────────────────────────────────────────────────────
+
+  - name: The Onion
+    url: https://theonion.com/political-profile-james-talarico/
+    tags:
+      paywall_type: none
+      category: entertainment
+      difficulty: easy
+
+  - name: BBC News
+    url: https://www.bbc.com/news/science-environment-56837908
+    tags:
+      paywall_type: none
+      category: news
+      difficulty: easy
+
+  - name: Reuters
+    url: https://www.reuters.com/investigates/special-report/usa-bodies-brokers/
+    tags:
+      paywall_type: none
+      category: news
+      difficulty: easy
+
+  - name: AP News
+    url: https://apnews.com/article/spacex-starship-launch-rocket-elon-musk-d9989401e2e07cdfc9753f352e44f6af
+    tags:
+      paywall_type: none
+      category: news
+      difficulty: easy
+
+  - name: NPR
+    url: https://www.npr.org/2023/10/05/1203728586/nobel-prize-physics-2023
+    tags:
+      paywall_type: none
+      category: news
+      difficulty: easy
+
+  - name: The Verge
+    url: https://www.theverge.com/23714340/chatgpt-ai-chatbot-artificial-intelligence-openai
+    tags:
+      paywall_type: none
+      category: tech
+      difficulty: easy
+
+  - name: Ars Technica
+    url: https://arstechnica.com/science/2023/09/the-first-satisfactory-explanation-for-why-the-night-sky-is-dark/
+    tags:
+      paywall_type: none
+      category: tech
+      difficulty: easy
+
+  - name: ProPublica
+    url: https://www.propublica.org/article/the-secret-irs-files-trove-of-never-before-seen-records-reveal-how-the-wealthiest-avoid-income-tax
+    tags:
+      paywall_type: none
+      category: news
+      difficulty: easy
+
+  - name: The Intercept
+    url: https://theintercept.com/2022/03/11/russia-open-source-intelligence/
+    tags:
+      paywall_type: none
+      category: news
+      difficulty: easy
+
+  - name: Axios
+    url: https://www.axios.com/2023/07/14/ai-artificial-intelligence-jobs-labor
+    tags:
+      paywall_type: none
+      category: news
+      difficulty: easy
+
+  - name: The Hill
+    url: https://thehill.com/policy/technology/4192640-ai-regulation-congress/
+    tags:
+      paywall_type: none
+      category: policy
+      difficulty: easy
+
+  - name: Smithsonian Magazine
+    url: https://www.smithsonianmag.com/history/the-true-story-behind-devil-in-the-white-city-702476/
+    tags:
+      paywall_type: none
+      category: magazine
+      difficulty: easy
+
+  - name: Vox
+    url: https://www.vox.com/future-perfect/2023/6/3/23747002/ai-artificial-intelligence-existential-risk
+    tags:
+      paywall_type: none
+      category: news
+      difficulty: easy
+
+  - name: Slate
+    url: https://slate.com/technology/2023/09/internet-enshittification-cory-doctorow.html
+    tags:
+      paywall_type: none
+      category: magazine
+      difficulty: easy
+
+  - name: HuffPost
+    url: https://www.huffpost.com/entry/ozempic-weight-loss-changing-america_l_6501fa3ae4b049707c517c9b
+    tags:
+      paywall_type: none
+      category: news
+      difficulty: easy
+
+  - name: Reason
+    url: https://reason.com/2023/12/11/a-libertarian-case-for-vaccine-mandates/
+    tags:
+      paywall_type: none
+      category: policy
+      difficulty: easy
+
+  - name: Common Dreams
+    url: https://www.commondreams.org/news/2023/08/23/watch-live-first-republican-debate
+    tags:
+      paywall_type: none
+      category: news
+      difficulty: easy
+
+  - name: TechCrunch
+    url: https://techcrunch.com/2023/11/17/openai-the-inside-story/
+    tags:
+      paywall_type: none
+      category: tech
+      difficulty: easy
+
+  - name: CNET
+    url: https://www.cnet.com/tech/services-and-software/best-vpn/
+    tags:
+      paywall_type: none
+      category: tech
+      difficulty: easy
+
+  - name: Salon
+    url: https://www.salon.com/2023/07/08/the-rise-of-the-new-authoritarian-right/
+    tags:
+      paywall_type: none
+      category: news
+      difficulty: easy
+
+  # ──────────────────────────────────────────────────────────────
+  #  SOFT PAYWALL — donation / registration walls (difficulty: easy–medium)
+  # ──────────────────────────────────────────────────────────────
+
+  - name: The Guardian
+    url: https://www.theguardian.com/technology/2023/mar/16/noam-chomsky-the-false-promise-of-chatgpt
+    tags:
+      paywall_type: soft
+      category: uk
+      difficulty: easy
+
+  - name: Mother Jones
+    url: https://www.motherjones.com/politics/2023/09/anti-trans-movement-overview/
+    tags:
+      paywall_type: soft
+      category: magazine
+      difficulty: easy
+
+  - name: The Nation
+    url: https://www.thenation.com/article/society/workers-strikes-labor-2023/
+    tags:
+      paywall_type: soft
+      category: magazine
+      difficulty: medium
+
+  - name: Jacobin
+    url: https://jacobin.com/2023/05/chatgpt-ai-labor-capital-automation
+    tags:
+      paywall_type: soft
+      category: policy
+      difficulty: medium
+
+  - name: Politico
+    url: https://www.politico.com/news/magazine/2023/08/10/kevin-mccarthy-gop-impeachment-00109920
+    tags:
+      paywall_type: soft
+      category: policy
+      difficulty: medium
+
+  - name: Fortune
+    url: https://fortune.com/2023/06/14/ai-ceo-artificial-intelligence-chatgpt-future/
+    tags:
+      paywall_type: soft
+      category: finance
+      difficulty: medium
+
+  - name: Inc
+    url: https://www.inc.com/jason-aten/apple-vision-pro-review.html
+    tags:
+      paywall_type: soft
+      category: tech
+      difficulty: medium
+
+  - name: Fast Company
+    url: https://www.fastcompany.com/90966484/the-end-of-the-office-as-we-know-it
+    tags:
+      paywall_type: soft
+      category: tech
+      difficulty: medium
+
+  - name: Business Insider
+    url: https://www.businessinsider.com/elon-musk-twitter-x-timeline-what-happened-2023-10
+    tags:
+      paywall_type: soft
+      category: finance
+      difficulty: medium
+
+  - name: Seeking Alpha
+    url: https://seekingalpha.com/article/4591320-nvidia-stock-is-it-too-late-to-buy
+    tags:
+      paywall_type: soft
+      category: finance
+      difficulty: medium
+
+  # ──────────────────────────────────────────────────────────────
+  #  METERED PAYWALL — limited free articles (difficulty: medium)
+  # ──────────────────────────────────────────────────────────────
+
+  - name: New York Times
+    url: https://www.nytimes.com/2023/04/16/technology/ai-chatbot-google-microsoft.html
+    tags:
+      paywall_type: metered
+      category: news
+      difficulty: medium
+
+  - name: Washington Post
+    url: https://www.washingtonpost.com/technology/2023/05/04/ai-artificial-intelligence-chatgpt-dangers/
+    tags:
+      paywall_type: metered
+      category: news
+      difficulty: medium
+
+  - name: LA Times
+    url: https://www.latimes.com/california/story/2023-09-18/lahaina-fire-investigation
+    tags:
+      paywall_type: metered
+      category: news
+      difficulty: medium
+
+  - name: Chicago Tribune
+    url: https://www.chicagotribune.com/2023/10/15/chicagos-rat-problem-is-getting-worse/
+    tags:
+      paywall_type: metered
+      category: regional
+      difficulty: medium
+
+  - name: Seattle Times
+    url: https://www.seattletimes.com/seattle-news/boeing-737-max-problems/
+    tags:
+      paywall_type: metered
+      category: regional
+      difficulty: medium
+
+  - name: Denver Post
+    url: https://www.denverpost.com/2023/04/13/colorado-river-water-crisis-explained/
+    tags:
+      paywall_type: metered
+      category: regional
+      difficulty: medium
+
+  - name: SF Chronicle
+    url: https://www.sfchronicle.com/projects/2023/san-francisco-drug-trade/
+    tags:
+      paywall_type: metered
+      category: regional
+      difficulty: medium
+
+  - name: Baltimore Sun
+    url: https://www.baltimoresun.com/2023/06/28/key-bridge-baltimore-history/
+    tags:
+      paywall_type: metered
+      category: regional
+      difficulty: medium
+
+  - name: Dallas Morning News
+    url: https://www.dallasnews.com/news/politics/2023/05/24/texas-border-security-operation/
+    tags:
+      paywall_type: metered
+      category: regional
+      difficulty: medium
+
+  - name: Houston Chronicle
+    url: https://www.houstonchronicle.com/projects/2023/houston-flooding-history/
+    tags:
+      paywall_type: metered
+      category: regional
+      difficulty: medium
+
+  - name: Atlanta Journal-Constitution
+    url: https://www.ajc.com/news/crime/atlanta-crime-rate-2023/
+    tags:
+      paywall_type: metered
+      category: regional
+      difficulty: medium
+
+  - name: Tampa Bay Times
+    url: https://www.tampabay.com/news/florida/2023/06/01/florida-homeowners-insurance-crisis/
+    tags:
+      paywall_type: metered
+      category: regional
+      difficulty: medium
+
+  - name: Miami Herald
+    url: https://www.miamiherald.com/news/local/community/miami-dade/article275643471.html
+    tags:
+      paywall_type: metered
+      category: regional
+      difficulty: medium
+
+  - name: Charlotte Observer
+    url: https://www.charlotteobserver.com/news/business/banking/article275642421.html
+    tags:
+      paywall_type: metered
+      category: regional
+      difficulty: medium
+
+  - name: Sacramento Bee
+    url: https://www.sacbee.com/news/politics-government/capitol-alert/article274521166.html
+    tags:
+      paywall_type: metered
+      category: regional
+      difficulty: medium
+
+  - name: Star-Telegram
+    url: https://www.star-telegram.com/news/local/fort-worth/article275638271.html
+    tags:
+      paywall_type: metered
+      category: regional
+      difficulty: medium
+
+  - name: Portland Oregonian
+    url: https://www.oregonlive.com/news/2023/08/portland-homeless-crisis.html
+    tags:
+      paywall_type: metered
+      category: regional
+      difficulty: medium
+
+  - name: Cleveland Plain Dealer
+    url: https://www.cleveland.com/metro/2023/06/cleveland-population-decline.html
+    tags:
+      paywall_type: metered
+      category: regional
+      difficulty: medium
+
+  - name: NJ.com
+    url: https://www.nj.com/news/2023/07/nj-property-taxes-highest-in-nation.html
+    tags:
+      paywall_type: metered
+      category: regional
+      difficulty: medium
+
+  - name: Scientific American
+    url: https://www.scientificamerican.com/article/the-universe-is-not-locally-real/
+    tags:
+      paywall_type: metered
+      category: science
+      difficulty: medium
+
+  - name: National Geographic
+    url: https://www.nationalgeographic.com/animals/article/worlds-rarest-animals
+    tags:
+      paywall_type: metered
+      category: science
+      difficulty: medium
+
+  # ──────────────────────────────────────────────────────────────
+  #  PIANO / TINYPASS (difficulty: medium–hard)
+  # ──────────────────────────────────────────────────────────────
+
+  - name: Boston Globe
+    url: https://www.bostonglobe.com/2023/04/14/business/boston-office-vacancy-rates/
+    tags:
+      paywall_type: piano
+      category: regional
+      difficulty: medium
+
+  - name: Pittsburgh Post-Gazette
+    url: https://www.post-gazette.com/news/transportation/2023/05/15/pittsburgh-bridges-infrastructure/stories/202305150080
+    tags:
+      paywall_type: piano
+      category: regional
+      difficulty: medium
+
+  - name: Des Moines Register
+    url: https://www.desmoinesregister.com/story/news/politics/2023/06/14/iowa-caucus-2024-republican/70316003007/
+    tags:
+      paywall_type: piano
+      category: regional
+      difficulty: medium
+
+  - name: Cincinnati Enquirer
+    url: https://www.cincinnati.com/story/news/2023/05/20/cincinnati-development-projects/70232003007/
+    tags:
+      paywall_type: piano
+      category: regional
+      difficulty: medium
+
+  - name: Hartford Courant
+    url: https://www.courant.com/2023/06/08/connecticut-economy-jobs-growth/
+    tags:
+      paywall_type: piano
+      category: regional
+      difficulty: medium
+
+  - name: Richmond Times-Dispatch
+    url: https://richmond.com/news/state-regional/virginia-education-reform-2023/article_a1b2c3d4.html
+    tags:
+      paywall_type: piano
+      category: regional
+      difficulty: medium
+
+  - name: Omaha World-Herald
+    url: https://omaha.com/news/local/warren-buffett-berkshire-hathaway-omaha/article_e5f6g7h8.html
+    tags:
+      paywall_type: piano
+      category: regional
+      difficulty: medium
+
+  - name: Albuquerque Journal
+    url: https://www.abqjournal.com/news/local/new-mexico-wildfire-prevention-2023
+    tags:
+      paywall_type: piano
+      category: regional
+      difficulty: medium
+
+  - name: National Post (Canada)
+    url: https://nationalpost.com/news/canada/canadian-housing-crisis-explained
+    tags:
+      paywall_type: piano
+      category: canada
+      difficulty: medium
+
+  - name: Toronto Star
+    url: https://www.thestar.com/news/gta/toronto-cost-of-living-crisis/article_a2b3c4d5.html
+    tags:
+      paywall_type: piano
+      category: canada
+      difficulty: medium
+
+  # ──────────────────────────────────────────────────────────────
+  #  PERIMETER-X — bot detection (difficulty: hard)
+  # ──────────────────────────────────────────────────────────────
+
+  - name: Bloomberg
+    url: https://www.bloomberg.com/news/features/2018-10-04/the-big-hack-how-china-used-a-tiny-chip-to-infiltrate-america-s-top-companies
+    tags:
+      paywall_type: perimeter-x
+      category: finance
+      difficulty: hard
+
+  - name: Barron's
+    url: https://www.barrons.com/articles/best-stocks-to-buy-2023-51672413608
+    tags:
+      paywall_type: perimeter-x
+      category: finance
+      difficulty: hard
+
+  - name: MarketWatch
+    url: https://www.marketwatch.com/story/the-stock-market-is-historically-expensive-11672165403
+    tags:
+      paywall_type: perimeter-x
+      category: finance
+      difficulty: hard
+
+  - name: Variety
+    url: https://variety.com/2023/film/news/barbie-oppenheimer-box-office-1235672384/
+    tags:
+      paywall_type: perimeter-x
+      category: entertainment
+      difficulty: hard
+
+  - name: Hollywood Reporter
+    url: https://www.hollywoodreporter.com/movies/movie-features/christopher-nolan-oppenheimer-interview-1235535099/
+    tags:
+      paywall_type: perimeter-x
+      category: entertainment
+      difficulty: hard
+
+  - name: Deadline
+    url: https://deadline.com/2023/07/writers-strike-wga-sag-aftra-history-1235427843/
+    tags:
+      paywall_type: perimeter-x
+      category: entertainment
+      difficulty: hard
+
+  - name: Billboard
+    url: https://www.billboard.com/music/music-news/taylor-swift-eras-tour-economic-impact-1235373707/
+    tags:
+      paywall_type: perimeter-x
+      category: entertainment
+      difficulty: hard
+
+  - name: Rolling Stone
+    url: https://www.rollingstone.com/music/music-features/beatles-now-and-then-story-1234871795/
+    tags:
+      paywall_type: perimeter-x
+      category: entertainment
+      difficulty: hard
+
+  - name: Pitchfork
+    url: https://pitchfork.com/features/article/the-500-best-songs-of-the-2000s/
+    tags:
+      paywall_type: perimeter-x
+      category: entertainment
+      difficulty: hard
+
+  - name: NME
+    url: https://www.nme.com/features/music-features/best-albums-2023-3533241
+    tags:
+      paywall_type: perimeter-x
+      category: entertainment
+      difficulty: hard
+
+  # ──────────────────────────────────────────────────────────────
+  #  CLOUDFLARE — challenge pages (difficulty: hard)
+  # ──────────────────────────────────────────────────────────────
+
+  - name: The Australian
+    url: https://www.theaustralian.com.au/nation/politics/australia-voice-referendum-explained/news-story/abc123
+    tags:
+      paywall_type: cloudflare
+      category: australia
+      difficulty: hard
+
+  - name: Australian Financial Review
+    url: https://www.afr.com/markets/equity-markets/asx-200-australian-share-market-2023-20230101-p5c9x1
+    tags:
+      paywall_type: cloudflare
+      category: australia
+      difficulty: hard
+
+  - name: Sydney Morning Herald
+    url: https://www.smh.com.au/national/nsw/sydney-housing-crisis-20230615-p5dgxa.html
+    tags:
+      paywall_type: cloudflare
+      category: australia
+      difficulty: hard
+
+  - name: Globe and Mail (Canada)
+    url: https://www.theglobeandmail.com/business/article-canadian-banks-housing-market/
+    tags:
+      paywall_type: cloudflare
+      category: canada
+      difficulty: hard
+
+  - name: New Scientist
+    url: https://www.newscientist.com/article/2370723-the-real-risks-of-artificial-intelligence/
+    tags:
+      paywall_type: cloudflare
+      category: science
+      difficulty: hard
+
+  # ──────────────────────────────────────────────────────────────
+  #  HARD PAYWALL — subscription required (difficulty: hard)
+  # ──────────────────────────────────────────────────────────────
+
+  - name: Wall Street Journal
+    url: https://www.wsj.com/articles/chatgpt-ai-chatbot-app-explained-11675865177
+    tags:
+      paywall_type: hard
+      category: finance
+      difficulty: hard
+
+  - name: Financial Times
+    url: https://www.ft.com/content/dd2c88a7-dcfa-47d0-a928-e1b1aa26f2a0
+    tags:
+      paywall_type: hard
+      category: finance
+      difficulty: hard
+
+  - name: The Economist
+    url: https://www.economist.com/leaders/2023/04/20/how-to-worry-wisely-about-artificial-intelligence
+    tags:
+      paywall_type: hard
+      category: finance
+      difficulty: hard
+
+  - name: The Atlantic
+    url: https://www.theatlantic.com/magazine/archive/2023/06/chatbot-ai-social-media-disinformation/673780/
+    tags:
+      paywall_type: hard
+      category: magazine
+      difficulty: hard
+
+  - name: The New Yorker
+    url: https://www.newyorker.com/magazine/2023/04/03/the-new-age-of-artificial-intelligence
+    tags:
+      paywall_type: hard
+      category: magazine
+      difficulty: hard
+
+  - name: Wired
+    url: https://www.wired.com/story/plaintext-fast-ai-chatgpt-openai-microsoft/
+    tags:
+      paywall_type: hard
+      category: tech
+      difficulty: hard
+
+  - name: Harvard Business Review
+    url: https://hbr.org/2023/04/how-to-use-chatgpt-at-work
+    tags:
+      paywall_type: hard
+      category: finance
+      difficulty: hard
+
+  - name: MIT Technology Review
+    url: https://www.technologyreview.com/2023/02/08/1068068/chatgpt-is-everywhere-heres-where-it-came-from/
+    tags:
+      paywall_type: hard
+      category: tech
+      difficulty: hard
+
+  - name: Foreign Policy
+    url: https://foreignpolicy.com/2023/06/14/ai-arms-race-china-united-states/
+    tags:
+      paywall_type: hard
+      category: policy
+      difficulty: hard
+
+  - name: Foreign Affairs
+    url: https://www.foreignaffairs.com/united-states/artificial-intelligence-geopolitics
+    tags:
+      paywall_type: hard
+      category: policy
+      difficulty: hard
+
+  - name: National Review
+    url: https://www.nationalreview.com/magazine/2023/06/26/the-ai-revolution/
+    tags:
+      paywall_type: hard
+      category: policy
+      difficulty: hard
+
+  - name: The Information
+    url: https://www.theinformation.com/articles/openai-and-the-race-to-build-the-next-google
+    tags:
+      paywall_type: hard
+      category: tech
+      difficulty: hard
+
+  - name: The Times (UK)
+    url: https://www.thetimes.co.uk/article/artificial-intelligence-future-of-work-uk-w75f0kz8t
+    tags:
+      paywall_type: hard
+      category: uk
+      difficulty: hard
+
+  - name: The Telegraph (UK)
+    url: https://www.telegraph.co.uk/technology/2023/05/17/ai-artificial-intelligence-uk-regulation/
+    tags:
+      paywall_type: hard
+      category: uk
+      difficulty: hard
+
+  - name: The Spectator (UK)
+    url: https://www.spectator.co.uk/article/the-real-risk-of-artificial-intelligence/
+    tags:
+      paywall_type: hard
+      category: uk
+      difficulty: hard
+
+  - name: Nature
+    url: https://www.nature.com/articles/d41586-023-00340-6
+    tags:
+      paywall_type: hard
+      category: science
+      difficulty: hard
+
+  - name: Consumer Reports
+    url: https://www.consumerreports.org/electronics/privacy/car-data-privacy-a1094768025/
+    tags:
+      paywall_type: hard
+      category: tech
+      difficulty: hard
+
+  - name: The Athletic
+    url: https://www.nytimes.com/athletic/4413476/2023/04/05/nfl-draft-2023-quarterback-rankings/
+    tags:
+      paywall_type: hard
+      category: sports
+      difficulty: hard
+
+  - name: Sports Illustrated
+    url: https://www.si.com/nfl/2023/09/05/nfl-power-rankings-week-1-2023
+    tags:
+      paywall_type: hard
+      category: sports
+      difficulty: hard
+
+  - name: ESPN+
+    url: https://www.espn.com/nfl/insider/story/_/id/38393015/2023-nfl-draft-best-available-players
+    tags:
+      paywall_type: hard
+      category: sports
+      difficulty: hard
