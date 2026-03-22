@@ -13,37 +13,37 @@ def _patch_platform(monkeypatch: MonkeyPatch, system: str, machine: str) -> None
 
 def test_macos_apple_silicon(monkeypatch: MonkeyPatch) -> None:
     _patch_platform(monkeypatch, "Darwin", "arm64")
-    assert pi.get_monolith_asset_name() == "monolith-darwin-aarch64"
+    assert pi.get_monolith_asset_name() == "archiveinator-darwin-aarch64"
 
 
 def test_macos_apple_silicon_aarch64_alias(monkeypatch: MonkeyPatch) -> None:
     _patch_platform(monkeypatch, "Darwin", "aarch64")
-    assert pi.get_monolith_asset_name() == "monolith-darwin-aarch64"
+    assert pi.get_monolith_asset_name() == "archiveinator-darwin-aarch64"
 
 
 def test_macos_intel(monkeypatch: MonkeyPatch) -> None:
     _patch_platform(monkeypatch, "Darwin", "x86_64")
-    assert pi.get_monolith_asset_name() == "monolith-darwin-x86_64"
+    assert pi.get_monolith_asset_name() == "archiveinator-darwin-x86_64"
 
 
 def test_linux_x86_64(monkeypatch: MonkeyPatch) -> None:
     _patch_platform(monkeypatch, "Linux", "x86_64")
-    assert pi.get_monolith_asset_name() == "monolith-linux-x86_64"
+    assert pi.get_monolith_asset_name() == "archiveinator-linux-x86_64"
 
 
 def test_linux_aarch64(monkeypatch: MonkeyPatch) -> None:
     _patch_platform(monkeypatch, "Linux", "aarch64")
-    assert pi.get_monolith_asset_name() == "monolith-linux-aarch64"
+    assert pi.get_monolith_asset_name() == "archiveinator-linux-aarch64"
 
 
 def test_linux_arm64_alias(monkeypatch: MonkeyPatch) -> None:
     _patch_platform(monkeypatch, "Linux", "arm64")
-    assert pi.get_monolith_asset_name() == "monolith-linux-aarch64"
+    assert pi.get_monolith_asset_name() == "archiveinator-linux-aarch64"
 
 
 def test_windows(monkeypatch: MonkeyPatch) -> None:
     _patch_platform(monkeypatch, "Windows", "x86_64")
-    assert pi.get_monolith_asset_name() == "monolith-windows-x86_64.exe"
+    assert pi.get_monolith_asset_name() == "archiveinator-windows-x86_64.exe"
 
 
 def test_unsupported_platform_raises(monkeypatch: MonkeyPatch) -> None:

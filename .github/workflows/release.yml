@@ -15,22 +15,22 @@ jobs:
         include:
           - os: macos-14               # Apple Silicon runner
             target: aarch64-apple-darwin
-            asset_name: monolith-darwin-aarch64
+            asset_name: archiveinator-darwin-aarch64
             binary: monolith
 
           - os: ubuntu-latest
             target: x86_64-unknown-linux-musl
-            asset_name: monolith-linux-x86_64
+            asset_name: archiveinator-linux-x86_64
             binary: monolith
 
           - os: ubuntu-24.04-arm       # GitHub ARM runner
             target: aarch64-unknown-linux-musl
-            asset_name: monolith-linux-aarch64
+            asset_name: archiveinator-linux-aarch64
             binary: monolith
 
           - os: windows-latest
             target: x86_64-pc-windows-msvc
-            asset_name: monolith-windows-x86_64.exe
+            asset_name: archiveinator-windows-x86_64.exe
             binary: monolith.exe
 
     steps:

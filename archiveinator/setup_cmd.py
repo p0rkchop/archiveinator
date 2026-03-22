@@ -13,15 +13,7 @@ from archiveinator.blocklist import easylist_path, easyprivacy_path
 from archiveinator.config import CONFIG_PATH, DATA_DIR, create_default, monolith_bin
 from archiveinator.platform_info import get_monolith_asset_name, is_windows
 
-MONOLITH_RELEASES_API = "https://api.github.com/repos/Y2Z/monolith/releases/latest"
-
-# Maps our platform asset names → Y2Z/monolith release asset names
-_UPSTREAM_ASSET_MAP: dict[str, str] = {
-    "monolith-linux-x86_64": "monolith-gnu-linux-x86_64",
-    "monolith-linux-aarch64": "monolith-gnu-linux-aarch64",
-    "monolith-windows-x86_64.exe": "monolith.exe",
-    # macOS binaries are not published upstream — handled via PATH check
-}
+ARCHIVEINATOR_RELEASES_API = "https://api.github.com/repos/p0rkchop/archiveinator/releases/latest"
 
 
 class SetupError(Exception):
@@ -52,36 +44,25 @@ def _find_monolith_in_path() -> Path | None:
 
 
 def _download_monolith_binary() -> None:
-    """Download the monolith binary from GitHub releases to our data dir."""
+    """Download the monolith binary from archiveinator GitHub releases."""
     our_asset = get_monolith_asset_name()
-    upstream_asset = _UPSTREAM_ASSET_MAP.get(our_asset)
 
-    if upstream_asset is None:
-        raise SetupError(
-            f"No upstream monolith binary available for this platform ({our_asset}).\n"
-            "On macOS, install via Homebrew:  brew install monolith"
-        )
-
-    console.info("Fetching monolith release info...")
+    console.info("Fetching archiveinator release info...")
     try:
-        resp = httpx.get(MONOLITH_RELEASES_API, follow_redirects=True, timeout=30)
+        resp = httpx.get(ARCHIVEINATOR_RELEASES_API, follow_redirects=True, timeout=30)
         resp.raise_for_status()
     except httpx.HTTPError as exc:
-        raise SetupError(f"Failed to fetch monolith release info: {exc}") from exc
+        raise SetupError(f"Failed to fetch release info: {exc}") from exc
 
     release = resp.json()
     asset_url = next(
-        (
-            a["browser_download_url"]
-            for a in release.get("assets", [])
-            if a["name"] == upstream_asset
-        ),
+        (a["browser_download_url"] for a in release.get("assets", []) if a["name"] == our_asset),
         None,
     )
     if not asset_url:
         raise SetupError(
-            f"Asset '{upstream_asset}' not found in latest monolith release. "
-            "Check https://github.com/Y2Z/monolith/releases"
+            f"Asset '{our_asset}' not found in latest archiveinator release.\n"
+            "On macOS, install monolith via Homebrew:  brew install monolith"
         )
 
     console.info(f"Downloading monolith {release['tag_name']}...")

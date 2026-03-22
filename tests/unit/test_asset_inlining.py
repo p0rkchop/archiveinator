@@ -150,6 +150,35 @@ async def test_run_passes_base_url_to_monolith(tmp_path: Path, monkeypatch: Monk
 
 
 @pytest.mark.asyncio
+async def test_run_passes_required_flags_to_monolith(
+    tmp_path: Path, monkeypatch: MonkeyPatch
+) -> None:
+    import archiveinator.steps.asset_inlining as ai_mod
+
+    bin_path = tmp_path / "monolith"
+    bin_path.touch()
+    monkeypatch.setattr(ai_mod, "monolith_bin", lambda: bin_path)
+
+    captured_cmd: list[list[str]] = []
+
+    def fake_run(cmd: list[str], **kwargs: object) -> subprocess.CompletedProcess[bytes]:
+        captured_cmd.append(cmd)
+        out_file = Path(cmd[cmd.index("-o") + 1])
+        out_file.write_text("<html></html>", encoding="utf-8")
+        return subprocess.CompletedProcess(cmd, returncode=0, stdout=b"", stderr=b"")
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    await run(_ctx())
+
+    cmd = captured_cmd[0]
+    assert "--no-audio" in cmd
+    assert "--no-video" in cmd
+    assert "--isolate" in cmd
+    assert "--insecure" in cmd
+
+
+@pytest.mark.asyncio
 async def test_run_uses_ctx_url_when_no_final_url(tmp_path: Path, monkeypatch: MonkeyPatch) -> None:
     import archiveinator.steps.asset_inlining as ai_mod
 

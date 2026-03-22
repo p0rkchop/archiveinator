@@ -52,6 +52,7 @@ DEFAULT_PIPELINE: list[PipelineStep] = [
     PipelineStep(step="network_ad_blocking"),
     PipelineStep(step="page_load"),
     PipelineStep(step="dom_ad_cleanup"),
+    PipelineStep(step="image_dedup"),
     PipelineStep(step="asset_inlining"),
 ]
 
@@ -168,6 +169,8 @@ pipeline:
   - step: page_load
     enabled: true
   - step: dom_ad_cleanup
+    enabled: true
+  - step: image_dedup
     enabled: true
   - step: asset_inlining
     enabled: true

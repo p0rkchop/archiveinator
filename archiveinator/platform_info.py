@@ -10,14 +10,14 @@ def get_monolith_asset_name() -> str:
 
     if system == "darwin":
         if machine in ("arm64", "aarch64"):
-            return "monolith-darwin-aarch64"
-        return "monolith-darwin-x86_64"
+            return "archiveinator-darwin-aarch64"
+        return "archiveinator-darwin-x86_64"
     elif system == "linux":
         if machine in ("arm64", "aarch64"):
-            return "monolith-linux-aarch64"
-        return "monolith-linux-x86_64"
+            return "archiveinator-linux-aarch64"
+        return "archiveinator-linux-x86_64"
     elif system == "windows":
-        return "monolith-windows-x86_64.exe"
+        return "archiveinator-windows-x86_64.exe"
     else:
         raise RuntimeError(f"Unsupported platform: {system}/{machine}")
 

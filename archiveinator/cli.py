@@ -78,6 +78,12 @@ def archive(
     if last_page_error is not None:
         _abort(f"Failed to load page: {last_page_error}")
 
+    # --- Image deduplication (optional) ---
+    if "image_dedup" in config.active_pipeline_steps():
+        from archiveinator.steps.image_dedup import run as image_dedup_run
+
+        asyncio.run(image_dedup_run(ctx))
+
     # --- Asset inlining (optional — degrades to partial save on failure) ---
     is_partial = False
     if "asset_inlining" in config.active_pipeline_steps():

@@ -92,17 +92,10 @@ def test_setup_monolith_downloads_when_not_in_path(
 # --- _download_monolith_binary ---
 
 
-def test_download_raises_on_unsupported_platform(monkeypatch: MonkeyPatch) -> None:
-    monkeypatch.setattr(setup_mod, "get_monolith_asset_name", lambda: "monolith-darwin-aarch64")
-    # darwin not in _UPSTREAM_ASSET_MAP → should raise
-    with pytest.raises(SetupError, match="brew install monolith"):
-        setup_mod._download_monolith_binary()
-
-
 def test_download_raises_when_asset_not_in_release(
     monkeypatch: MonkeyPatch, tmp_path: Path
 ) -> None:
-    monkeypatch.setattr(setup_mod, "get_monolith_asset_name", lambda: "monolith-linux-x86_64")
+    monkeypatch.setattr(setup_mod, "get_monolith_asset_name", lambda: "archiveinator-linux-x86_64")
 
     mock_resp = MagicMock()
     mock_resp.json.return_value = _fake_release(["other-asset"])
@@ -112,18 +105,18 @@ def test_download_raises_when_asset_not_in_release(
 
     monkeypatch.setattr(httpx, "get", lambda *a, **kw: mock_resp)
 
-    with pytest.raises(SetupError, match="not found in latest monolith release"):
+    with pytest.raises(SetupError, match="not found in latest archiveinator release"):
         setup_mod._download_monolith_binary()
 
 
 def test_download_success(monkeypatch: MonkeyPatch, tmp_path: Path) -> None:
     dest = tmp_path / "monolith"
     monkeypatch.setattr(setup_mod, "monolith_bin", lambda: dest)
-    monkeypatch.setattr(setup_mod, "get_monolith_asset_name", lambda: "monolith-linux-x86_64")
+    monkeypatch.setattr(setup_mod, "get_monolith_asset_name", lambda: "archiveinator-linux-x86_64")
     monkeypatch.setattr(setup_mod, "is_windows", lambda: False)
 
     mock_resp = MagicMock()
-    mock_resp.json.return_value = _fake_release(["monolith-gnu-linux-x86_64"])
+    mock_resp.json.return_value = _fake_release(["archiveinator-linux-x86_64"])
     mock_resp.raise_for_status = lambda: None
 
     fake_binary = b"\x7fELF fake binary"
