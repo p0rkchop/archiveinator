@@ -23,7 +23,6 @@ archiveinator runs locally in a lightweight way, giving you full control over yo
 ## Requirements
 
 - Python 3.11 or later
-- pip or [uv](https://github.com/astral-sh/uv)
 
 The monolith binary, Playwright Chromium, and ad-blocking rule sets are all installed automatically by `archiveinator setup`.
 
@@ -31,24 +30,41 @@ The monolith binary, Playwright Chromium, and ad-blocking rule sets are all inst
 
 ## Installation
 
-archiveinator is installed directly from the GitHub repository. There is no PyPI package.
+archiveinator is installed directly from the GitHub repository into a Python virtual environment. There is no PyPI package.
+
+### Mac / Linux
 
 ```bash
-# Using pip
+# 1. Create a virtual environment
+python3 -m venv ~/.venvs/archiveinator
+
+# 2. Activate it
+source ~/.venvs/archiveinator/bin/activate
+
+# 3. Install archiveinator
 pip install git+https://github.com/p0rkchop/archiveinator.git
-
-# Using pipx (keeps it isolated from system Python)
-pipx install git+https://github.com/p0rkchop/archiveinator.git
-
-# Using uv
-uv tool install git+https://github.com/p0rkchop/archiveinator.git
 ```
+
+### Windows
+
+```powershell
+# 1. Create a virtual environment
+python -m venv %USERPROFILE%\.venvs\archiveinator
+
+# 2. Activate it
+%USERPROFILE%\.venvs\archiveinator\Scripts\activate.bat
+
+# 3. Install archiveinator
+pip install git+https://github.com/p0rkchop/archiveinator.git
+```
+
+> You can place the virtual environment anywhere you like — `~/.venvs/archiveinator` is just a suggested location to keep it out of your project directories.
 
 ---
 
 ## First-time Setup
 
-After installation, run the setup command once:
+With the virtual environment **active**, run the setup command once:
 
 ```bash
 archiveinator setup
@@ -57,11 +73,44 @@ archiveinator setup
 This will:
 
 1. Create the default config file at the platform-appropriate path
-2. Install Playwright's Chromium browser
+2. Install Playwright's Chromium browser into the virtual environment
 3. Download the monolith binary for your platform from the [latest release](https://github.com/p0rkchop/archiveinator/releases/latest)
 4. Download EasyList and EasyPrivacy ad-blocking rule sets
 
 > **macOS note:** If you have `monolith` installed via Homebrew, setup will detect and use it automatically.
+
+---
+
+## Activating and Deactivating
+
+You need to activate the virtual environment each time you open a new terminal session before using archiveinator.
+
+**Mac / Linux:**
+```bash
+# Activate
+source ~/.venvs/archiveinator/bin/activate
+
+# Your prompt will change to show the venv is active, e.g.:
+# (archiveinator) $
+
+# Deactivate when done
+deactivate
+```
+
+**Windows:**
+```powershell
+# Activate
+%USERPROFILE%\.venvs\archiveinator\Scripts\activate.bat
+
+# Deactivate when done
+deactivate
+```
+
+Once activated, `archiveinator` is available as a command:
+
+```bash
+archiveinator archive https://example.com/article
+```
 
 ---
 
@@ -281,26 +330,32 @@ Each release publishes platform-specific [monolith](https://github.com/Y2Z/monol
 git clone https://github.com/p0rkchop/archiveinator.git
 cd archiveinator
 
-# Install with dev dependencies (uv recommended)
-uv sync
-# or with pip
+# Create and activate a virtual environment
+python3 -m venv .venv
+source .venv/bin/activate        # Mac / Linux
+.venv\Scripts\activate.bat       # Windows
+
+# Install with dev dependencies
 pip install -e ".[dev]"
 
 # Run setup (installs Chromium, monolith, blocklists)
 archiveinator setup
 
 # Run tests
-.venv/bin/pytest tests/unit/
+pytest tests/unit/
 
 # Lint and type check
-.venv/bin/ruff check .
-.venv/bin/mypy archiveinator/
+ruff check .
+mypy archiveinator/
+
+# Deactivate when done
+deactivate
 ```
 
-Integration tests require a network connection and a running Playwright Chromium install:
+Integration tests require a network connection and a Playwright Chromium install (done by `archiveinator setup`):
 
 ```bash
-.venv/bin/pytest tests/integration/
+pytest tests/integration/
 ```
 
 ---
