@@ -28,8 +28,8 @@ jobs:
             asset_name: archiveinator-linux-aarch64
             binary: monolith
 
-          - os: windows-latest
-            target: x86_64-pc-windows-msvc
+          - os: ubuntu-latest
+            target: x86_64-pc-windows-gnu
             asset_name: archiveinator-windows-x86_64.exe
             binary: monolith.exe
 
@@ -77,17 +77,17 @@ jobs:
           sudo apt-get install -y musl-tools
           echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER=musl-gcc" >> "$GITHUB_ENV"
 
+      - name: Install MinGW (Windows cross-compile)
+        if: matrix.target == 'x86_64-pc-windows-gnu'
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y mingw-w64
+
       - name: Build
         run: cargo build --release --target ${{ matrix.target }}
 
-      - name: Stage binary (Unix)
-        if: runner.os != 'Windows'
+      - name: Stage binary
         run: cp target/${{ matrix.target }}/release/${{ matrix.binary }} ${{ matrix.asset_name }}
-
-      - name: Stage binary (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: Copy-Item "target/${{ matrix.target }}/release/${{ matrix.binary }}" "${{ matrix.asset_name }}"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
