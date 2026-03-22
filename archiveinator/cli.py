@@ -167,10 +167,13 @@ def archive(
 
     # --- Paywall bypass suite ---
     if ctx.paywalled:
-        console.warning(f"Paywall detected: {ctx.paywall_reason}")
+        console.warning(f"Paywall/block detected ({ctx.paywall_reason}) — trying bypass strategies")
         _run_paywall_bypass(ctx, active_steps)
         if ctx.paywalled:
-            console.warning("All bypass strategies exhausted — archive may be incomplete")
+            console.warning(
+                "All bypass strategies exhausted — saving partial archive.\n"
+                "  Tip: try --verbose to see each bypass attempt in detail."
+            )
 
     # --- Image deduplication (optional) ---
     if "image_dedup" in active_steps:

@@ -8,6 +8,18 @@ from archiveinator.pipeline import ArchiveContext
 
 STEP = "page_load"
 
+# These statuses indicate access restrictions (paywall, bot detection, rate limiting).
+# They are NOT raised as PageLoadError — instead they flow through to paywall
+# detection so the bypass suite can attempt to recover.
+_SOFT_BLOCK_STATUSES: frozenset[int] = frozenset({401, 402, 403, 429})
+
+_SOFT_BLOCK_REASONS: dict[int, str] = {
+    401: "authentication required",
+    402: "payment required",
+    403: "access denied — likely bot detection or subscription wall",
+    429: "rate limited — too many requests",
+}
+
 
 class PageLoadError(Exception):
     pass
@@ -58,8 +70,12 @@ async def run(ctx: ArchiveContext) -> None:
             if response is None:
                 raise PageLoadError(f"No response received for {ctx.url}")
 
-            if response.status >= 400:
+            if response.status >= 400 and response.status not in _SOFT_BLOCK_STATUSES:
                 raise PageLoadError(f"HTTP {response.status} for {ctx.url}")
+
+            if response.status in _SOFT_BLOCK_STATUSES:
+                reason = _SOFT_BLOCK_REASONS.get(response.status, f"HTTP {response.status}")
+                console.warning(f"HTTP {response.status}: {reason}")
 
             ctx.response_status = response.status
 
