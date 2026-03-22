@@ -102,6 +102,22 @@ This will:
 
 ---
 
+## Upgrading
+
+With the virtual environment active, run:
+
+```bash
+pip install --upgrade git+https://github.com/p0rkchop/archiveinator.git
+```
+
+Then re-run setup to update the monolith binary and blocklists:
+
+```bash
+archiveinator setup
+```
+
+---
+
 ## Activating and Deactivating
 
 You need to activate the virtual environment each time you open a new terminal session before using archiveinator.
