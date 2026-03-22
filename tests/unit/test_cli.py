@@ -62,6 +62,15 @@ def test_archive_invalid_output_dir(tmp_path: Path) -> None:
     assert "does not exist" in result.output
 
 
+def test_archive_stdout_and_output_dir_are_mutually_exclusive(tmp_path: Path) -> None:
+    result = runner.invoke(
+        app,
+        ["archive", "https://example.com", "--stdout", "--output-dir", str(tmp_path)],
+    )
+    assert result.exit_code == 1
+    assert "mutually exclusive" in result.output
+
+
 # --- Successful archive ---
 
 
@@ -185,6 +194,49 @@ def test_archive_partial_save_on_inlining_failure(tmp_path: Path, monkeypatch: M
     assert len(html_files) == 1
     assert "_partial" in html_files[0].name
     assert "Partial" in result.output
+
+
+def test_archive_stdout_writes_html_to_output(monkeypatch: MonkeyPatch) -> None:
+    import archiveinator.steps.asset_inlining as ai_mod
+    import archiveinator.steps.page_load as pl_mod
+
+    monkeypatch.setattr(pl_mod, "run", _async_mock_page_load)
+    monkeypatch.setattr(ai_mod, "run", _async_noop)
+
+    result = runner.invoke(app, ["archive", "https://example.com", "--stdout"])
+
+    assert result.exit_code == 0
+    assert "<html>" in result.output
+    assert "Test Page" in result.output
+
+
+def test_archive_stdout_does_not_create_files(tmp_path: Path, monkeypatch: MonkeyPatch) -> None:
+    import archiveinator.steps.asset_inlining as ai_mod
+    import archiveinator.steps.page_load as pl_mod
+
+    monkeypatch.setattr(pl_mod, "run", _async_mock_page_load)
+    monkeypatch.setattr(ai_mod, "run", _async_noop)
+
+    runner.invoke(app, ["archive", "https://example.com", "--stdout"])
+
+    # No file should be written to CWD or any path
+    assert list(tmp_path.glob("*.html")) == []
+
+
+def test_update_blocklists_command(monkeypatch: MonkeyPatch) -> None:
+    import archiveinator.cli as cli_mod
+
+    called = []
+    monkeypatch.setattr(cli_mod, "_setup_blocklists", lambda: called.append(True), raising=False)
+
+    # Patch at the import site inside the command
+    import archiveinator.setup_cmd as setup_mod
+
+    monkeypatch.setattr(setup_mod, "_setup_blocklists", lambda: called.append(True))
+
+    result = runner.invoke(app, ["update-blocklists"])
+    assert result.exit_code == 0
+    assert called
 
 
 def test_archive_partial_file_contains_page_html(tmp_path: Path, monkeypatch: MonkeyPatch) -> None:

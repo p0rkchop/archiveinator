@@ -19,10 +19,12 @@ _verbose: bool = False
 _debug: bool = False
 
 
-def configure(verbose: bool = False, debug: bool = False) -> None:
-    global _verbose, _debug
+def configure(verbose: bool = False, debug: bool = False, stderr: bool = False) -> None:
+    global _console, _verbose, _debug
     _verbose = verbose
     _debug = debug
+    if stderr:
+        _console = Console(theme=_theme, stderr=True)
 
 
 def info(msg: str) -> None:
