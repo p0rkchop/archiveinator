@@ -257,29 +257,34 @@ async def _async_mock_page_load_paywalled(ctx: object) -> None:
     _mock_page_load_paywalled(ctx)
 
 
+def _make_config(tmp_path: Path, steps: list[str]) -> "Config":
+    """Build a Config with a specific pipeline — bypasses YAML file on disk."""
+    from archiveinator.config import Config, PipelineStep
+
+    cfg = Config()
+    cfg.output_dir = tmp_path
+    cfg.pipeline = [PipelineStep(step=s) for s in steps]
+    return cfg
+
+
 def test_paywall_detected_warning_shown(tmp_path: Path, monkeypatch: MonkeyPatch) -> None:
     """CLI warns when paywall is detected and all bypasses fail."""
+    import archiveinator.cli as cli_mod
     import archiveinator.steps.asset_inlining as ai_mod
     import archiveinator.steps.page_load as pl_mod
 
     monkeypatch.setattr(pl_mod, "run", _async_mock_page_load_paywalled)
     monkeypatch.setattr(ai_mod, "run", _async_noop)
 
-    # Disable all bypass strategies so we can test the warning path
-    import archiveinator.config as cfg_mod
-    from archiveinator.config import PipelineStep
-
-    monkeypatch.setattr(
-        cfg_mod,
-        "DEFAULT_PIPELINE",
-        [
-            PipelineStep(step="page_load"),
-            PipelineStep(step="paywall_detection"),
-            PipelineStep(step="asset_inlining"),
-        ],
+    # Return a controlled config with no bypass strategies so none fire.
+    # Mocking load_config avoids the YAML file on disk overriding the pipeline.
+    cfg = _make_config(
+        tmp_path,
+        steps=["page_load", "paywall_detection", "asset_inlining"],
     )
+    monkeypatch.setattr(cli_mod, "load_config", lambda: cfg)
 
-    result = runner.invoke(app, ["archive", "https://example.com", "--output-dir", str(tmp_path)])
+    result = runner.invoke(app, ["archive", "https://example.com"])
 
     assert result.exit_code == 0
     assert "Paywall detected" in result.output
@@ -288,6 +293,7 @@ def test_paywall_detected_warning_shown(tmp_path: Path, monkeypatch: MonkeyPatch
 
 def test_paywall_bypass_via_content_extraction(tmp_path: Path, monkeypatch: MonkeyPatch) -> None:
     """Content extraction fallback clears paywalled flag and saves a file."""
+    import archiveinator.cli as cli_mod
     import archiveinator.steps.asset_inlining as ai_mod
     import archiveinator.steps.content_extraction as ce_mod
     import archiveinator.steps.page_load as pl_mod
@@ -305,22 +311,13 @@ def test_paywall_bypass_via_content_extraction(tmp_path: Path, monkeypatch: Monk
 
     monkeypatch.setattr(ce_mod, "run", mock_content_extract)
 
-    # Enable only page_load + paywall_detection + content_extraction
-    import archiveinator.config as cfg_mod
-    from archiveinator.config import PipelineStep
-
-    monkeypatch.setattr(
-        cfg_mod,
-        "DEFAULT_PIPELINE",
-        [
-            PipelineStep(step="page_load"),
-            PipelineStep(step="paywall_detection"),
-            PipelineStep(step="content_extraction"),
-            PipelineStep(step="asset_inlining"),
-        ],
+    cfg = _make_config(
+        tmp_path,
+        steps=["page_load", "paywall_detection", "content_extraction", "asset_inlining"],
     )
+    monkeypatch.setattr(cli_mod, "load_config", lambda: cfg)
 
-    result = runner.invoke(app, ["archive", "https://example.com", "--output-dir", str(tmp_path)])
+    result = runner.invoke(app, ["archive", "https://example.com"])
 
     assert result.exit_code == 0
     html_files = list(tmp_path.glob("*.html"))
