@@ -61,7 +61,7 @@ python3 -m venv .venv
 source .venv/bin/activate
 
 # 3. Install archiveinator
-pip install git+https://github.com/p0rkchop/archiveinator.git
+pip3 install git+https://github.com/p0rkchop/archiveinator.git
 ```
 
 ### Windows
@@ -76,7 +76,7 @@ python -m venv .venv
 .venv\Scripts\activate.bat
 
 # 3. Install archiveinator
-pip install git+https://github.com/p0rkchop/archiveinator.git
+pip3 install git+https://github.com/p0rkchop/archiveinator.git
 ```
 
 > To uninstall, just delete the `archiveinator` folder — it contains everything.
@@ -107,7 +107,7 @@ This will:
 With the virtual environment active, run:
 
 ```bash
-pip install --upgrade git+https://github.com/p0rkchop/archiveinator.git
+pip3 install --upgrade git+https://github.com/p0rkchop/archiveinator.git
 ```
 
 Then re-run setup to update the monolith binary and blocklists:
@@ -373,7 +373,7 @@ source .venv/bin/activate        # Mac / Linux
 .venv\Scripts\activate.bat       # Windows
 
 # Install with dev dependencies
-pip install -e ".[dev]"
+pip3 install -e ".[dev]"
 
 # Run setup (installs Chromium, monolith, blocklists)
 archiveinator setup
