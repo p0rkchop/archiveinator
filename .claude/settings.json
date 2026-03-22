@@ -1,0 +1,18 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "asyncRewake": true,
+            "timeout": 300,
+            "statusMessage": "Monitoring GitHub Actions...",
+            "command": "INPUT=$(cat); COMMAND=$(echo \"$INPUT\" | jq -r '.tool_input.command // \"\"'); if ! echo \"$COMMAND\" | grep -qE 'git push'; then exit 0; fi; sleep 8; RUN_ID=$(gh run list --limit 1 --json databaseId -q '.[0].databaseId' 2>/dev/null); if [ -z \"$RUN_ID\" ]; then exit 0; fi; gh run watch \"$RUN_ID\" --exit-status >/dev/null 2>&1 && exit 0; DETAILS=$(gh run view \"$RUN_ID\" --log-failed 2>&1 | head -100); jq -n --arg id \"$RUN_ID\" --arg d \"$DETAILS\" '{\"hookSpecificOutput\":{\"hookEventName\":\"PostToolUse\",\"additionalContext\":\"GitHub Actions run \\($id) FAILED. Investigate the logs and propose fixes:\\n\\($d)\"}}'; exit 2"
+          }
+        ]
+      }
+    ]
+  }
+}
