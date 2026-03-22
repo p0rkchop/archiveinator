@@ -7,6 +7,7 @@ from pytest import MonkeyPatch
 from typer.testing import CliRunner
 
 from archiveinator.cli import app
+from archiveinator.config import Config
 
 runner = CliRunner()
 
@@ -257,7 +258,7 @@ async def _async_mock_page_load_paywalled(ctx: object) -> None:
     _mock_page_load_paywalled(ctx)
 
 
-def _make_config(tmp_path: Path, steps: list[str]) -> "Config":
+def _make_config(tmp_path: Path, steps: list[str]) -> Config:
     """Build a Config with a specific pipeline — bypasses YAML file on disk."""
     from archiveinator.config import Config, PipelineStep
 
