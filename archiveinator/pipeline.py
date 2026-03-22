@@ -16,9 +16,17 @@ class ArchiveContext:
     page_html: str | None = None
     page_title: str | None = None
     final_url: str | None = None
+    response_status: int | None = None
     # Populated by naming / output steps
     output_path: Path | None = None
     is_partial: bool = False
+    # Paywall bypass state
+    paywalled: bool = False
+    paywall_reason: str | None = None
+    bypass_method: str | None = None
+    # Per-attempt overrides (set by bypass strategies before each page_load retry)
+    ua_override: str | None = None
+    extra_headers: dict[str, str] = field(default_factory=dict)
     # Diagnostics — steps append notes here
     step_log: list[str] = field(default_factory=list)
 

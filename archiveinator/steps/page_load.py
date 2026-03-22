@@ -14,18 +14,28 @@ class PageLoadError(Exception):
 
 
 async def run(ctx: ArchiveContext) -> None:
-    """Load the page with Playwright and populate ctx.page_html, page_title, final_url."""
-    ua = ctx.config.active_user_agent()
+    """Load the page with Playwright and populate ctx.page_html, page_title, final_url.
+
+    Respects ctx.ua_override and ctx.extra_headers when set by bypass strategies.
+    Runs paywall detection and JS overlay removal inline (before serializing) when
+    the corresponding pipeline steps are enabled.
+    """
+    ua = ctx.ua_override or ctx.config.active_user_agent()
     timeout_ms = ctx.config.timeout_seconds * 1000
     active_steps = ctx.config.active_pipeline_steps()
 
     console.step(f"Loading page: {ctx.url}")
     console.debug(f"User-agent: {ua}")
+    if ctx.extra_headers:
+        console.debug(f"Extra headers: {list(ctx.extra_headers.keys())}")
 
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
         try:
-            browser_context = await browser.new_context(user_agent=ua)
+            browser_context = await browser.new_context(
+                user_agent=ua,
+                extra_http_headers=ctx.extra_headers,
+            )
             page = await browser_context.new_page()
 
             # Wire in network-level ad blocking before navigation if enabled
@@ -51,12 +61,44 @@ async def run(ctx: ArchiveContext) -> None:
             if response.status >= 400:
                 raise PageLoadError(f"HTTP {response.status} for {ctx.url}")
 
+            ctx.response_status = response.status
+
             # DOM ad cleanup — runs in live browser context before serializing
             if "dom_ad_cleanup" in active_steps:
                 from archiveinator.steps.dom_cleanup import apply as dom_cleanup
 
                 removed = await dom_cleanup(page)
                 ctx.log(STEP, f"dom_cleanup removed {removed} element(s)")
+
+            # Paywall detection — inline, while browser is still open
+            if "paywall_detection" in active_steps:
+                from archiveinator.steps.paywall import detect
+
+                reason = await detect(page, response.status)
+                if reason:
+                    ctx.paywalled = True
+                    ctx.paywall_reason = reason
+                    console.debug(f"Paywall detected: {reason}")
+
+                    # JS overlay removal — attempt to clear the wall in-page
+                    if "js_overlay_removal" in active_steps:
+                        from archiveinator.steps.js_overlay import remove
+
+                        removed = await remove(page)
+                        ctx.log(STEP, f"js_overlay removed {removed} element(s)")
+
+                        # Re-detect after removal
+                        reason_after = await detect(page, response.status)
+                        if reason_after is None:
+                            ctx.paywalled = False
+                            ctx.paywall_reason = None
+                            ctx.bypass_method = "js_overlay_removal"
+                            console.step("Paywall cleared by JS overlay removal")
+                        else:
+                            console.debug(f"Paywall persists after overlay removal: {reason_after}")
+                else:
+                    ctx.paywalled = False
+                    ctx.paywall_reason = None
 
             ctx.page_title = await page.title()
             ctx.page_html = await page.content()

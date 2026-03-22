@@ -51,8 +51,14 @@ class UserAgentConfig:
 DEFAULT_PIPELINE: list[PipelineStep] = [
     PipelineStep(step="network_ad_blocking"),
     PipelineStep(step="page_load"),
+    PipelineStep(step="paywall_detection"),
+    PipelineStep(step="js_overlay_removal"),
+    PipelineStep(step="ua_cycling"),
+    PipelineStep(step="header_tricks"),
+    PipelineStep(step="google_news"),
     PipelineStep(step="dom_ad_cleanup"),
     PipelineStep(step="image_dedup"),
+    PipelineStep(step="content_extraction"),
     PipelineStep(step="asset_inlining"),
 ]
 
@@ -168,9 +174,26 @@ pipeline:
     enabled: true
   - step: page_load
     enabled: true
+  # Paywall detection runs inside page_load while the browser is still open
+  - step: paywall_detection
+    enabled: true
+  # JS overlay removal: clears paywall modals in-page before serializing HTML
+  - step: js_overlay_removal
+    enabled: true
+  # Bypass strategies — tried in order when paywall_detection fires
+  # ua_cycling requires user_agents.cycle: true to take effect
+  - step: ua_cycling
+    enabled: true
+  - step: header_tricks
+    enabled: true
+  - step: google_news
+    enabled: true
   - step: dom_ad_cleanup
     enabled: true
   - step: image_dedup
+    enabled: true
+  # Last-resort content extraction via trafilatura (strips to article body)
+  - step: content_extraction
     enabled: true
   - step: asset_inlining
     enabled: true
