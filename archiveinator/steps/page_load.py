@@ -50,6 +50,12 @@ async def run(ctx: ArchiveContext) -> None:
             )
             page = await browser_context.new_page()
 
+            # Apply stealth anti-fingerprinting if requested by bypass suite
+            if ctx.use_stealth and "stealth_browser" in active_steps:
+                from archiveinator.steps.stealth_browser import apply as stealth_apply
+
+                await stealth_apply(page)
+
             # Wire in network-level ad blocking before navigation if enabled
             if "network_ad_blocking" in active_steps:
                 from archiveinator.blocklist import load_engine
@@ -64,8 +70,18 @@ async def run(ctx: ArchiveContext) -> None:
                     wait_until="networkidle",
                     timeout=timeout_ms,
                 )
-            except PlaywrightTimeout as exc:
-                raise PageLoadError(f"Timed out loading {ctx.url}") from exc
+            except PlaywrightTimeout:
+                console.warning(
+                    "networkidle timed out, falling back to domcontentloaded"
+                )
+                try:
+                    response = await page.goto(
+                        ctx.url,
+                        wait_until="domcontentloaded",
+                        timeout=timeout_ms,
+                    )
+                except PlaywrightTimeout as exc:
+                    raise PageLoadError(f"Timed out loading {ctx.url}") from exc
 
             if response is None:
                 raise PageLoadError(f"No response received for {ctx.url}")

@@ -342,3 +342,72 @@ def test_archive_partial_file_contains_page_html(tmp_path: Path, monkeypatch: Mo
     html_files = list(tmp_path.glob("*.html"))
     content = html_files[0].read_text()
     assert "Test Page" in content
+
+
+# --- Cache subcommands ---
+
+
+def test_cache_list_empty(tmp_path: Path, monkeypatch: MonkeyPatch) -> None:
+    """cache list shows 'No cached entries' when the cache is empty."""
+    monkeypatch.setattr(
+        "archiveinator.bypass_cache.CACHE_PATH", tmp_path / "bypass_cache.yaml"
+    )
+    result = runner.invoke(app, ["cache", "list"])
+    assert result.exit_code == 0
+    assert "No cached entries" in result.output
+
+
+def test_cache_list_with_entries(tmp_path: Path, monkeypatch: MonkeyPatch) -> None:
+    """cache list shows entries in a table."""
+    monkeypatch.setattr(
+        "archiveinator.bypass_cache.CACHE_PATH", tmp_path / "bypass_cache.yaml"
+    )
+    from archiveinator.bypass_cache import record_success
+
+    record_success("https://example.com/page", "header_tricks")
+    record_success("https://news.site.org/article", "ua_cycling", ua_name="googlebot")
+
+    result = runner.invoke(app, ["cache", "list"])
+    assert result.exit_code == 0
+    output = _plain(result.output)
+    assert "example.com" in output
+    assert "header_tricks" in output
+    assert "news.site.org" in output
+    assert "ua_cycling" in output
+    assert "googlebot" in output
+
+
+def test_cache_clear_all(tmp_path: Path, monkeypatch: MonkeyPatch) -> None:
+    """cache clear removes all entries."""
+    monkeypatch.setattr(
+        "archiveinator.bypass_cache.CACHE_PATH", tmp_path / "bypass_cache.yaml"
+    )
+    from archiveinator.bypass_cache import list_entries, record_success
+
+    record_success("https://a.com/p", "ua_cycling")
+    record_success("https://b.com/p", "header_tricks")
+    assert len(list_entries()) == 2
+
+    result = runner.invoke(app, ["cache", "clear"])
+    assert result.exit_code == 0
+    assert "Cleared 2 cache entry(ies)" in result.output
+    assert len(list_entries()) == 0
+
+
+def test_cache_clear_domain(tmp_path: Path, monkeypatch: MonkeyPatch) -> None:
+    """cache clear --domain removes only the specified domain."""
+    monkeypatch.setattr(
+        "archiveinator.bypass_cache.CACHE_PATH", tmp_path / "bypass_cache.yaml"
+    )
+    from archiveinator.bypass_cache import list_entries, record_success
+
+    record_success("https://a.com/p", "ua_cycling")
+    record_success("https://b.com/p", "header_tricks")
+
+    result = runner.invoke(app, ["cache", "clear", "--domain", "a.com"])
+    assert result.exit_code == 0
+    assert "Cleared cache entry for a.com" in result.output
+
+    entries = list_entries()
+    assert len(entries) == 1
+    assert entries[0][0] == "b.com"

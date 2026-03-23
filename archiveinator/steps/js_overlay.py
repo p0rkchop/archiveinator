@@ -9,12 +9,19 @@ STEP = "js_overlay_removal"
 # Selectors targeting paywall overlays and modal backdrops that JS renders
 # on top of the article body. Ordered most-specific → most-general.
 _OVERLAY_SELECTORS: list[str] = [
-    # Piano / TinyPass overlays
+    # Piano / TinyPass overlays – explicit classes
     ".tp-modal",
     "#tp-container",
     ".tp-backdrop",
     ".piano-offer",
     "#piano-inline",
+    # Catch-all for any element whose class contains "tp-" (TinyPass prefix)
+    "[class*='tp-']",
+    # Script tags that load Piano / TinyPass JS
+    "script[src*='tinypass']",
+    "script[src*='piano.io']",
+    # Link tags referencing Piano stylesheets / resources
+    "link[href*='piano']",
     # Generic paywall overlays
     ".paywall",
     "#paywall",
@@ -49,9 +56,10 @@ _JS_REMOVE_OVERLAYS = """
             }
         } catch (e) {}
     }
-    // Restore scroll if overlays locked the body
-    document.body.style.overflow = '';
+    // Restore scroll/position if overlays locked the body
     document.documentElement.style.overflow = '';
+    document.body.style.overflow = '';
+    document.body.style.position = '';
     return count;
 }
 """

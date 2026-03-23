@@ -46,6 +46,7 @@ jobs:
           uv run pytest tests/qa/test_real_urls.py \
             -m real_url \
             --qa-sample "$SAMPLE" \
+            -n auto \
             $FLAGS \
             -v --tb=short \
             2>&1 | tee qa-output.txt

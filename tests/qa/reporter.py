@@ -9,8 +9,9 @@ Provides:
 
 from __future__ import annotations
 
+import json
 import re
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
 from rich.console import Console
@@ -19,23 +20,24 @@ from rich.table import Table
 # Bot challenge / paywall selectors to scan for in the saved HTML.
 # Mirrors the lists in archiveinator/steps/paywall.py — kept flat here
 # so the QA suite has no import dependency on the application code.
-_BLOCK_PATTERNS: list[str] = [
-    # PerimeterX
+
+# Patterns that already include attribute context — safe for substring match.
+_EXACT_BLOCK_PATTERNS: list[str] = [
     'id="px-captcha"',
     'id="px-loader"',
-    # Cloudflare
     'id="challenge-form"',
-    "cf-browser-verification",
-    # Akamai
     'id="ak_bmsc"',
-    # DataDome
     'id="datadome-captcha"',
-    # Piano / TinyPass
+]
+
+# Patterns checked only inside class/id attributes to avoid false positives
+# on articles that merely *discuss* paywalls or bot detection.
+_ATTRIBUTE_BLOCK_PATTERNS: list[str] = [
+    "cf-browser-verification",
     "tp-modal",
     "tp-container",
     "tp-backdrop",
     "piano-offer",
-    # Generic paywall
     "paywall",
     "content-gate",
     "subscription-wall",
@@ -73,6 +75,35 @@ class QAResult:
 
 # Module-level list that tests append results to; printed at end of session.
 results: list[QAResult] = []
+
+# Directory for persisting results across xdist workers (set by conftest).
+_results_dir: Path | None = None
+
+
+def set_results_dir(path: Path) -> None:
+    """Set the shared directory for persisting QA results across workers."""
+    global _results_dir
+    _results_dir = path
+    path.mkdir(parents=True, exist_ok=True)
+
+
+def save_result(result: QAResult) -> None:
+    """Append result to in-memory list and persist to disk for xdist collection."""
+    results.append(result)
+    if _results_dir is not None:
+        dest = _results_dir / f"{result.site_name.replace(' ', '_').replace('/', '_')}.json"
+        dest.write_text(json.dumps(asdict(result)), encoding="utf-8")
+
+
+def collect_results() -> list[QAResult]:
+    """Collect all persisted results from disk (for xdist controller)."""
+    if _results_dir is None or not _results_dir.exists():
+        return results
+    all_results: list[QAResult] = []
+    for f in sorted(_results_dir.glob("*.json")):
+        data = json.loads(f.read_text(encoding="utf-8"))
+        all_results.append(QAResult(**data))
+    return all_results or results
 
 
 def _extract_text(html: str) -> str:
@@ -129,10 +160,24 @@ def validate_archive(
 
     # 3. Bot/paywall selectors in HTML
     html_lower = html.lower()
-    for pattern in _BLOCK_PATTERNS:
+    found_block = False
+    # 3a. Exact attribute patterns — specific enough for substring match
+    for pattern in _EXACT_BLOCK_PATTERNS:
         if pattern.lower() in html_lower:
             result.failure_reasons.append(f"block pattern found: {pattern}")
+            found_block = True
             break
+    # 3b. Generic terms — only flag if they appear in a class="" or id="" attribute,
+    #     not in article body text (avoids false positives on articles about paywalls)
+    if not found_block:
+        for pattern in _ATTRIBUTE_BLOCK_PATTERNS:
+            attr_re = re.compile(
+                rf'(?:class|id)\s*=\s*["\'][^"\']*{re.escape(pattern)}[^"\']*["\']',
+                re.IGNORECASE,
+            )
+            if attr_re.search(html):
+                result.failure_reasons.append(f"block pattern found: {pattern}")
+                break
 
     # 4. Bot-challenge title
     title = _extract_title(html).lower()
@@ -147,7 +192,8 @@ def validate_archive(
 
 def print_summary(console: Console | None = None) -> None:
     """Render a rich table summarising all QA results collected so far."""
-    if not results:
+    all_results = collect_results()
+    if not all_results:
         return
 
     con = console or Console()
@@ -162,7 +208,7 @@ def print_summary(console: Console | None = None) -> None:
 
     passed = 0
     failed = 0
-    for r in results:
+    for r in all_results:
         if r.passed:
             passed += 1
             result_str = "[green]PASS[/green]"

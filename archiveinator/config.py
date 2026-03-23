@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -53,12 +54,14 @@ DEFAULT_PIPELINE: list[PipelineStep] = [
     PipelineStep(step="page_load"),
     PipelineStep(step="paywall_detection"),
     PipelineStep(step="js_overlay_removal"),
+    PipelineStep(step="stealth_browser"),
     PipelineStep(step="ua_cycling"),
     PipelineStep(step="header_tricks"),
     PipelineStep(step="google_news"),
     PipelineStep(step="dom_ad_cleanup"),
     PipelineStep(step="image_dedup"),
     PipelineStep(step="content_extraction"),
+    PipelineStep(step="archive_fallback"),
     PipelineStep(step="asset_inlining"),
 ]
 
@@ -111,6 +114,80 @@ def _parse_pipeline(data: list[dict[str, Any]]) -> list[PipelineStep]:
     return steps
 
 
+def _migrate_pipeline(steps: list[PipelineStep], path: Path) -> list[PipelineStep]:
+    """Insert any default pipeline steps missing from the user's config.
+
+    When new steps are added to DEFAULT_PIPELINE, existing config files lack
+    them.  This inserts each missing step at the correct position relative to
+    the steps that *are* present, then rewrites the config file so the change
+    is visible and persistent.
+    """
+    user_step_names = {s.step for s in steps}
+    default_names = [s.step for s in DEFAULT_PIPELINE]
+    missing = [s for s in DEFAULT_PIPELINE if s.step not in user_step_names]
+
+    if not missing:
+        return steps
+
+    merged = list(steps)
+    for new_step in missing:
+        # Find the correct insertion point: right after the last existing step
+        # that precedes this one in the default order.
+        default_idx = default_names.index(new_step.step)
+        preceding = default_names[:default_idx]
+        insert_at = 0
+        for i, s in enumerate(merged):
+            if s.step in preceding:
+                insert_at = i + 1
+        merged.insert(insert_at, PipelineStep(step=new_step.step, enabled=True))
+
+    added = [s.step for s in missing]
+    print(
+        f"Config migration: added pipeline steps {added} — "
+        f"edit {path} to customise.",
+        file=sys.stderr,
+    )
+
+    # Rewrite the pipeline section of the config file on disk.
+    _rewrite_pipeline_in_config(merged, path)
+
+    return merged
+
+
+def _rewrite_pipeline_in_config(steps: list[PipelineStep], path: Path) -> None:
+    """Rewrite only the pipeline section of the YAML config on disk."""
+    if not path.exists():
+        return
+
+    lines = path.read_text().splitlines(keepends=True)
+    # Find the pipeline section and replace it
+    start = None
+    end = len(lines)
+    for i, line in enumerate(lines):
+        if line.rstrip() == "pipeline:":
+            start = i
+        elif start is not None and line and not line[0].isspace() and line[0] != "#":
+            end = i
+            break
+
+    if start is None:
+        # No pipeline section — append one
+        new_lines = lines + ["\npipeline:\n"] + _pipeline_yaml_lines(steps)
+    else:
+        new_lines = lines[:start] + ["pipeline:\n"] + _pipeline_yaml_lines(steps) + lines[end:]
+
+    path.write_text("".join(new_lines))
+
+
+def _pipeline_yaml_lines(steps: list[PipelineStep]) -> list[str]:
+    """Generate YAML lines for the pipeline section."""
+    lines: list[str] = []
+    for s in steps:
+        lines.append(f"  - step: {s.step}\n")
+        lines.append(f"    enabled: {'true' if s.enabled else 'false'}\n")
+    return lines
+
+
 def load(path: Path = CONFIG_PATH) -> Config:
     """Load config from YAML file. Creates default config if not present."""
     if not path.exists():
@@ -132,7 +209,9 @@ def load(path: Path = CONFIG_PATH) -> Config:
     if "user_agents" in data:
         config.user_agents = _parse_user_agents(data["user_agents"])
     if "pipeline" in data:
-        config.pipeline = _parse_pipeline(data["pipeline"])
+        config.pipeline = _migrate_pipeline(
+            _parse_pipeline(data["pipeline"]), path
+        )
 
     return config
 
@@ -180,6 +259,10 @@ pipeline:
   # JS overlay removal: clears paywall modals in-page before serializing HTML
   - step: js_overlay_removal
     enabled: true
+  # Stealth browser: retries page load with anti-fingerprinting patches
+  # Effective against Cloudflare "Just a moment" and DataDome challenges
+  - step: stealth_browser
+    enabled: true
   # Bypass strategies — tried in order when paywall_detection fires
   # ua_cycling requires user_agents.cycle: true to take effect
   - step: ua_cycling
@@ -194,6 +277,9 @@ pipeline:
     enabled: true
   # Last-resort content extraction via trafilatura (strips to article body)
   - step: content_extraction
+    enabled: true
+  # Archive service fallback: try Wayback Machine when all else fails
+  - step: archive_fallback
     enabled: true
   - step: asset_inlining
     enabled: true

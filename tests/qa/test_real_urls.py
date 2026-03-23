@@ -7,10 +7,13 @@ Invoked via subprocess to mirror the exact end-user experience:
     archiveinator archive <url> --output-dir <tmp> --verbose
 
 Usage:
-    pytest tests/qa/test_real_urls.py -m real_url --qa-sample 10 -v
-    pytest tests/qa/test_real_urls.py -m real_url --qa-difficulty easy -v
+    pytest tests/qa/test_real_urls.py -m real_url --qa-sample 10 -n auto -v
+    pytest tests/qa/test_real_urls.py -m real_url --qa-difficulty easy -n 3 -v
     pytest tests/qa/test_real_urls.py -m real_url --qa-paywall-type piano -v
     pytest tests/qa/test_real_urls.py -m real_url --qa-category finance -v
+
+Use ``-n auto`` (or ``-n N``) for parallel execution via pytest-xdist.
+Results are persisted to disk so the summary table works across workers.
 """
 
 from __future__ import annotations
@@ -20,7 +23,7 @@ import sys
 
 import pytest
 
-from tests.qa.reporter import QAResult, results, validate_archive
+from tests.qa.reporter import save_result, validate_archive
 
 # Timeout per site in seconds — generous to accommodate slow pages + monolith
 _ARCHIVE_TIMEOUT = 180
@@ -68,13 +71,14 @@ def test_archive_site(qa_site: dict, tmp_path: pytest.TempPathFactory) -> None:
         "google_news",
         "content_extraction",
     ]:
-        if method.replace("_", " ") in output.lower() or method in output.lower():
-            if "bypassed" in output.lower() or "bypass" in output.lower():
-                result.bypass_method = method
-                break
+        if (method.replace("_", " ") in output.lower() or method in output.lower()) and (
+            "bypassed" in output.lower() or "bypass" in output.lower()
+        ):
+            result.bypass_method = method
+            break
 
-    # Append to global results for the summary table
-    results.append(result)
+    # Persist result for summary table (works across xdist workers)
+    save_result(result)
 
     # For easy/no-paywall sites, expect a clean pass
     if tags.get("difficulty") == "easy":

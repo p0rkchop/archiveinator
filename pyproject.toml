@@ -4,13 +4,14 @@ build-backend = "hatchling.build"
 
 [project]
 name = "archiveinator"
-version = "0.2.2"
+version = "0.3.0"
 description = "A local, self-hosted web page archiver with ad blocking and paywall bypass"
 readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.11"
 dependencies = [
     "playwright>=1.40.0",
+    "playwright-stealth>=1.0.6",
     "adblock>=0.6.0",
     "trafilatura>=1.8.0",
     "typer>=0.12.0",
@@ -29,6 +30,7 @@ dev = [
     "pytest>=8.0.0",
     "pytest-asyncio>=0.23.0",
     "pytest-httpserver>=1.0.0",
+    "pytest-xdist>=3.5.0",
     "ruff>=0.4.0",
     "mypy>=1.10.0",
     "types-PyYAML>=6.0.0",

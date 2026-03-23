@@ -27,6 +27,7 @@ class ArchiveContext:
     # Per-attempt overrides (set by bypass strategies before each page_load retry)
     ua_override: str | None = None
     extra_headers: dict[str, str] = field(default_factory=dict)
+    use_stealth: bool = False
     # Diagnostics — steps append notes here
     step_log: list[str] = field(default_factory=list)
 

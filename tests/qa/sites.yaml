@@ -32,35 +32,35 @@ sites:
       difficulty: easy
 
   - name: Reuters
-    url: https://www.reuters.com/investigates/special-report/usa-bodies-brokers/
+    url: https://www.reuters.com/technology/artificial-intelligence/what-is-artificial-general-intelligence-agi-2024-11-13/
     tags:
-      paywall_type: none
+      paywall_type: hard
       category: news
-      difficulty: easy
+      difficulty: hard
 
   - name: AP News
-    url: https://apnews.com/article/spacex-starship-launch-rocket-elon-musk-d9989401e2e07cdfc9753f352e44f6af
+    url: https://apnews.com/article/flesheating-screwworm-fly-factory-cattle-texas-dca5a51ae8ba30559ccfa8991c2e9a97
     tags:
       paywall_type: none
       category: news
-      difficulty: easy
+      difficulty: medium
 
   - name: NPR
-    url: https://www.npr.org/2023/10/05/1203728586/nobel-prize-physics-2023
+    url: https://www.npr.org/2024/12/10/nx-s1-5222574/nobel-prize-physics-2024-hopfield-hinton
     tags:
-      paywall_type: none
+      paywall_type: piano
       category: news
-      difficulty: easy
+      difficulty: medium
 
   - name: The Verge
-    url: https://www.theverge.com/23714340/chatgpt-ai-chatbot-artificial-intelligence-openai
+    url: https://www.theverge.com/c/24070570/google-antitrust-monopoly-trial-apple-search-deal
     tags:
       paywall_type: none
       category: tech
       difficulty: easy
 
   - name: Ars Technica
-    url: https://arstechnica.com/science/2023/09/the-first-satisfactory-explanation-for-why-the-night-sky-is-dark/
+    url: https://arstechnica.com/science/2025/01/getting-an-all-optical-ai-to-handle-non-linear-math/
     tags:
       paywall_type: none
       category: tech
@@ -71,87 +71,87 @@ sites:
     tags:
       paywall_type: none
       category: news
-      difficulty: easy
+      difficulty: medium
 
   - name: The Intercept
-    url: https://theintercept.com/2022/03/11/russia-open-source-intelligence/
+    url: https://theintercept.com/2025/08/14/state-department-human-rights-reports/
     tags:
       paywall_type: none
       category: news
       difficulty: easy
 
   - name: Axios
-    url: https://www.axios.com/2023/07/14/ai-artificial-intelligence-jobs-labor
+    url: https://www.axios.com/2025/11/30/chatgpt-three-years-work
     tags:
-      paywall_type: none
+      paywall_type: cloudflare
       category: news
-      difficulty: easy
+      difficulty: hard
 
   - name: The Hill
     url: https://thehill.com/policy/technology/4192640-ai-regulation-congress/
     tags:
-      paywall_type: none
+      paywall_type: perimeter-x
       category: policy
-      difficulty: easy
+      difficulty: hard
 
   - name: Smithsonian Magazine
     url: https://www.smithsonianmag.com/history/the-true-story-behind-devil-in-the-white-city-702476/
     tags:
-      paywall_type: none
+      paywall_type: soft
       category: magazine
-      difficulty: easy
+      difficulty: medium
 
   - name: Vox
-    url: https://www.vox.com/future-perfect/2023/6/3/23747002/ai-artificial-intelligence-existential-risk
+    url: https://www.vox.com/climate/475447/australia-great-barrier-reef-climate-change-restoration
     tags:
       paywall_type: none
       category: news
-      difficulty: easy
+      difficulty: medium
 
   - name: Slate
-    url: https://slate.com/technology/2023/09/internet-enshittification-cory-doctorow.html
+    url: https://slate.com/news-and-politics/2025/07/ice-public-opinion-civil-war-trump-revolt.html
     tags:
       paywall_type: none
       category: magazine
       difficulty: easy
 
   - name: HuffPost
-    url: https://www.huffpost.com/entry/ozempic-weight-loss-changing-america_l_6501fa3ae4b049707c517c9b
+    url: https://www.huffpost.com/entry/polymarket-khamenei-bets-iran-war_l_69bac785e4b0411b809efa63
     tags:
       paywall_type: none
       category: news
-      difficulty: easy
+      difficulty: medium
 
   - name: Reason
-    url: https://reason.com/2023/12/11/a-libertarian-case-for-vaccine-mandates/
+    url: https://reason.com/volokh/2026/03/20/my-new-liberalism-org-article-on-how-immigration-restrictions-restrict-americans-liberties/
     tags:
       paywall_type: none
       category: policy
       difficulty: easy
 
   - name: Common Dreams
-    url: https://www.commondreams.org/news/2023/08/23/watch-live-first-republican-debate
+    url: https://www.commondreams.org/opinion/what-is-project-2025
     tags:
-      paywall_type: none
+      paywall_type: soft
       category: news
-      difficulty: easy
+      difficulty: medium
 
   - name: TechCrunch
-    url: https://techcrunch.com/2023/11/17/openai-the-inside-story/
+    url: https://techcrunch.com/2025/12/29/2025-was-the-year-ai-got-a-vibe-check/
     tags:
       paywall_type: none
       category: tech
-      difficulty: easy
+      difficulty: medium
 
   - name: CNET
     url: https://www.cnet.com/tech/services-and-software/best-vpn/
     tags:
       paywall_type: none
       category: tech
-      difficulty: easy
+      difficulty: medium
 
   - name: Salon
-    url: https://www.salon.com/2023/07/08/the-rise-of-the-new-authoritarian-right/
+    url: https://www.salon.com/2025/03/05/after-dei-backlash-embracing-new-ideas-for-fairness-in-the-workplace/
     tags:
       paywall_type: none
       category: news
@@ -162,28 +162,28 @@ sites:
   # ──────────────────────────────────────────────────────────────
 
   - name: The Guardian
-    url: https://www.theguardian.com/technology/2023/mar/16/noam-chomsky-the-false-promise-of-chatgpt
+    url: https://www.theguardian.com/lifeandstyle/2025/aug/17/being-short-is-a-curse-the-men-paying-thousands-to-get-their-legs-broken-and-lengthened
     tags:
       paywall_type: soft
       category: uk
       difficulty: easy
 
   - name: Mother Jones
-    url: https://www.motherjones.com/politics/2023/09/anti-trans-movement-overview/
+    url: https://www.motherjones.com/politics/2025/07/the-landlord-gutting-americas-hospitals/
     tags:
       paywall_type: soft
       category: magazine
-      difficulty: easy
+      difficulty: medium
 
   - name: The Nation
-    url: https://www.thenation.com/article/society/workers-strikes-labor-2023/
+    url: https://www.thenation.com/article/politics/trump-national-labor-relations-board/
     tags:
       paywall_type: soft
       category: magazine
       difficulty: medium
 
   - name: Jacobin
-    url: https://jacobin.com/2023/05/chatgpt-ai-labor-capital-automation
+    url: https://jacobin.com/2025/01/trump-executive-orders-project-2025
     tags:
       paywall_type: soft
       category: policy
@@ -197,7 +197,7 @@ sites:
       difficulty: medium
 
   - name: Fortune
-    url: https://fortune.com/2023/06/14/ai-ceo-artificial-intelligence-chatgpt-future/
+    url: https://fortune.com/2025/08/18/mit-report-95-percent-generative-ai-pilots-at-companies-failing-cfo/
     tags:
       paywall_type: soft
       category: finance
@@ -206,16 +206,16 @@ sites:
   - name: Inc
     url: https://www.inc.com/jason-aten/apple-vision-pro-review.html
     tags:
-      paywall_type: soft
+      paywall_type: cloudflare
       category: tech
-      difficulty: medium
+      difficulty: hard
 
   - name: Fast Company
     url: https://www.fastcompany.com/90966484/the-end-of-the-office-as-we-know-it
     tags:
-      paywall_type: soft
+      paywall_type: cloudflare
       category: tech
-      difficulty: medium
+      difficulty: hard
 
   - name: Business Insider
     url: https://www.businessinsider.com/elon-musk-twitter-x-timeline-what-happened-2023-10
@@ -227,9 +227,9 @@ sites:
   - name: Seeking Alpha
     url: https://seekingalpha.com/article/4591320-nvidia-stock-is-it-too-late-to-buy
     tags:
-      paywall_type: soft
+      paywall_type: perimeter-x
       category: finance
-      difficulty: medium
+      difficulty: hard
 
   # ──────────────────────────────────────────────────────────────
   #  METERED PAYWALL — limited free articles (difficulty: medium)
