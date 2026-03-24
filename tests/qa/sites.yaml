@@ -56,7 +56,7 @@ sites:
 
   - name: NPR
     url: https://www.npr.org/2024/12/10/nx-s1-5222574/nobel-prize-physics-2024-hopfield-hinton
-    rss_feed_needed: true
+    rss_feed: https://feeds.npr.org/1001/rss.xml
     tags:
       paywall_type: piano
       category: news
