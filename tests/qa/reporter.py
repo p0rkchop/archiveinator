@@ -167,15 +167,20 @@ def validate_archive(
             result.failure_reasons.append(f"block pattern found: {pattern}")
             found_block = True
             break
-    # 3b. Generic terms — only flag if they appear in a class="" or id="" attribute,
-    #     not in article body text (avoids false positives on articles about paywalls)
+    # 3b. Generic terms — only flag if they appear as a complete token in a class/id
+    #     attribute.  CSS class values are whitespace-separated tokens, so
+    #     "tp-container" must not be a mere substring of "tp-container-inner".
+    #     Strategy: extract every class/id attribute value, split into tokens, and
+    #     check for an exact token match.  This avoids false positives on
+    #     articles that discuss paywalls or on Piano SDK elements whose class names
+    #     share a prefix with the pattern (e.g. tp-container-inner).
     if not found_block:
+        attr_value_re = re.compile(r'(?:class|id)\s*=\s*["\']([^"\']*)["\']', re.IGNORECASE)
+        attr_tokens: set[str] = set()
+        for m in attr_value_re.finditer(html):
+            attr_tokens.update(m.group(1).split())
         for pattern in _ATTRIBUTE_BLOCK_PATTERNS:
-            attr_re = re.compile(
-                rf'(?:class|id)\s*=\s*["\'][^"\']*{re.escape(pattern)}[^"\']*["\']',
-                re.IGNORECASE,
-            )
-            if attr_re.search(html):
+            if pattern.lower() in {t.lower() for t in attr_tokens}:
                 result.failure_reasons.append(f"block pattern found: {pattern}")
                 break
 

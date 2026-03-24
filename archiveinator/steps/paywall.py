@@ -52,6 +52,7 @@ _PAYWALL_SELECTORS: list[str] = [
     # Piano / TinyPass (widely used by news publishers)
     ".tp-modal",
     "#tp-container",
+    ".tp-container",
     ".tp-backdrop",
     "#piano-inline",
     ".piano-offer",
