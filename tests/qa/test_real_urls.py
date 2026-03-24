@@ -24,6 +24,7 @@ import sys
 import pytest
 
 from tests.qa.reporter import save_result, validate_archive
+from tests.qa.rss_resolver import resolve_site_url
 
 # Timeout per site in seconds — generous to accommodate slow pages + monolith
 _ARCHIVE_TIMEOUT = 180
@@ -33,7 +34,7 @@ _ARCHIVE_TIMEOUT = 180
 def test_archive_site(qa_site: dict, tmp_path: pytest.TempPathFactory) -> None:
     """Archive a live site and validate the output."""
     site_name = qa_site["name"]
-    url = qa_site["url"]
+    url = resolve_site_url(qa_site)  # uses rss_feed if present, falls back to stored url
     tags = qa_site.get("tags", {})
 
     # Run archiveinator as a subprocess — mirrors end-user experience

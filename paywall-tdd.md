@@ -21,6 +21,13 @@ Work through **all sites of one paywall type** before moving to the next type.
 Within a type, work in the order sites appear in `tests/qa/sites.yaml`.
 Skip any site that is already passing or marked `xfail: true`.
 
+**RSS feed requirement (hard rule):** Only work on sites that have a `rss_feed` field in
+`sites.yaml`. Sites marked `rss_feed_needed: true` have no verified working RSS feed and
+**must be skipped** — their article URLs may be hallucinated or stale. These sites are
+automatically excluded from the test parametrize list. To enable a site, add a working
+`rss_feed:` URL to its entry in `sites.yaml` (the conftest will pick it up automatically).
+Never test against the static `url:` field alone on a paywalled site.
+
 **Type ordering (easiest → hardest):**
 1. `piano` — TinyPass/Piano SDK; most common, high leverage
 2. `soft` / `metered` — word-count, regwall, soft registration walls
@@ -35,7 +42,7 @@ Skip any site that is already passing or marked `xfail: true`.
 ```
 PICK a site from the current type group that hasn't passed this session
 │
-├── RUN: uv run pytest tests/qa/test_real_urls.py -m real_url -k "<name>" -v
+├── RUN: uv run pytest tests/qa/test_real_urls.py -m real_url --qa-site "<name>" -v
 │     → Confirm it's failing; read QAResult failure_reasons
 │
 ├── INSPECT: read archiveinator/steps/ code relevant to the failure reason
@@ -46,7 +53,7 @@ PICK a site from the current type group that hasn't passed this session
 ├── RUN: uv run pytest tests/ -m "not e2e and not real_url" -q  (unit + mock_paywall)
 │     → REGRESSION? git revert, add regression test, redesign, loop back to IMPLEMENT
 │
-├── RUN: uv run pytest tests/qa/test_real_urls.py -m real_url -k "<name>" -v
+├── RUN: uv run pytest tests/qa/test_real_urls.py -m real_url --qa-site "<name>" -v
 │     → PASS: commit → open PR → move to next site
 │     → FAIL: increment attempt counter
 │           attempt < 3: loop back to INSPECT with new hypothesis
@@ -163,8 +170,9 @@ On resume:
 
 | File | Purpose |
 |------|---------|
-| `tests/qa/sites.yaml` | Site catalog — paywall types, difficulty, URLs |
-| `tests/qa/test_real_urls.py` | Real-URL test runner (use `-k` to filter by site name) |
+| `tests/qa/sites.yaml` | Site catalog — paywall types, difficulty, URLs, rss_feed fields |
+| `tests/qa/rss_resolver.py` | Fetches latest article URL from rss_feed at test runtime |
+| `tests/qa/test_real_urls.py` | Real-URL test runner (use `--qa-site` to filter by site name) |
 | `tests/qa/reporter.py` | QAResult validation — defines pass criteria |
 | `archiveinator/cli.py` | `_run_paywall_bypass()` — the bypass strategy loop |
 | `archiveinator/steps/paywall.py` | Detection logic (HTTP status, DOM selectors, word count) |
