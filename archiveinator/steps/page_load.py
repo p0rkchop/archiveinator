@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from playwright.async_api import Error as PlaywrightError
 from playwright.async_api import TimeoutError as PlaywrightTimeout
 from playwright.async_api import async_playwright
 
@@ -70,16 +71,19 @@ async def run(ctx: ArchiveContext) -> None:
                     wait_until="networkidle",
                     timeout=timeout_ms,
                 )
-            except PlaywrightTimeout:
-                console.warning("networkidle timed out, falling back to domcontentloaded")
-                try:
-                    response = await page.goto(
-                        ctx.url,
-                        wait_until="domcontentloaded",
-                        timeout=timeout_ms,
-                    )
-                except PlaywrightTimeout as exc:
-                    raise PageLoadError(f"Timed out loading {ctx.url}") from exc
+            except PlaywrightError as exc:
+                if isinstance(exc, PlaywrightTimeout):
+                    console.warning("networkidle timed out, falling back to domcontentloaded")
+                    try:
+                        response = await page.goto(
+                            ctx.url,
+                            wait_until="domcontentloaded",
+                            timeout=timeout_ms,
+                        )
+                    except PlaywrightTimeout as exc2:
+                        raise PageLoadError(f"Timed out loading {ctx.url}") from exc2
+                else:
+                    raise PageLoadError(f"Playwright error loading {ctx.url}: {exc}") from exc
 
             if response is None:
                 raise PageLoadError(f"No response received for {ctx.url}")

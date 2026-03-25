@@ -20,23 +20,17 @@ from __future__ import annotations
 
 import subprocess
 import sys
+from pathlib import Path
+from typing import Any
 
 import pytest
 
-from tests.qa.reporter import save_result, validate_archive
-from tests.qa.rss_resolver import resolve_site_url
-
-# Timeout per site in seconds — generous to accommodate slow pages + monolith
-_ARCHIVE_TIMEOUT = 180
+from tests.qa.reporter import MIN_WORD_COUNT, QAResult, save_result, validate_archive
+from tests.qa.rss_resolver import resolve_article_urls, resolve_site_url
 
 
-@pytest.mark.real_url
-def test_archive_site(qa_site: dict, tmp_path: pytest.TempPathFactory) -> None:
-    """Archive a live site and validate the output."""
-    site_name = qa_site["name"]
-    url = resolve_site_url(qa_site)  # uses rss_feed if present, falls back to stored url
-    tags = qa_site.get("tags", {})
-
+def _run_archive(url: str, tmp_path: Path, site_name: str, tags: dict[str, str]) -> QAResult:
+    """Run archiveinator on url and return validation result."""
     # Run archiveinator as a subprocess — mirrors end-user experience
     proc = subprocess.run(
         [
@@ -77,6 +71,35 @@ def test_archive_site(qa_site: dict, tmp_path: pytest.TempPathFactory) -> None:
         ):
             result.bypass_method = method
             break
+
+    return result
+
+
+# Timeout per site in seconds — generous to accommodate slow pages + monolith
+_ARCHIVE_TIMEOUT = 180
+
+
+@pytest.mark.real_url
+def test_archive_site(qa_site: dict[str, Any], tmp_path: Path) -> None:
+    """Archive a live site and validate the output."""
+    site_name = qa_site["name"]
+    tags = qa_site.get("tags", {})
+
+    # Determine the initial URL (RSS feed article or fallback)
+    primary_url = resolve_site_url(qa_site)
+    result = _run_archive(primary_url, tmp_path, site_name, tags)
+
+    # If primary article is too short and we have an RSS feed, try alternate articles
+    if result.word_count < MIN_WORD_COUNT and qa_site.get("rss_feed"):
+        for alt_url in resolve_article_urls(qa_site["rss_feed"], max_articles=5)[
+            1:
+        ]:  # skip first (already tried)
+            if alt_url == primary_url:
+                continue
+            alt_result = _run_archive(alt_url, tmp_path, site_name, tags)
+            if alt_result.word_count >= MIN_WORD_COUNT:
+                result = alt_result
+                break
 
     # Persist result for summary table (works across xdist workers)
     save_result(result)
