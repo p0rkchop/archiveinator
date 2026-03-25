@@ -63,6 +63,19 @@ async def run(ctx: ArchiveContext) -> None:
     if not extracted:
         raise ContentExtractionError("trafilatura could not extract article content")
 
+    # Reject extractions that are too short to be real article content.
+    # Cloudflare / bot-challenge pages produce a handful of words (e.g. "Just a
+    # moment... Checking your browser...") that trafilatura happily returns.
+    # A legitimate article should have at least 50 plain-text words.
+    import re as _re
+
+    plain_text = _re.sub(r"<[^>]+>", " ", extracted)
+    word_count = len(plain_text.split())
+    if word_count < 50:
+        raise ContentExtractionError(
+            f"extracted content too short ({word_count} words) — likely a challenge page"
+        )
+
     title = ctx.page_title or ""
     url = ctx.final_url or ctx.url
     ctx.page_html = _FALLBACK_TEMPLATE.format(

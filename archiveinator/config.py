@@ -143,8 +143,7 @@ def _migrate_pipeline(steps: list[PipelineStep], path: Path) -> list[PipelineSte
 
     added = [s.step for s in missing]
     print(
-        f"Config migration: added pipeline steps {added} — "
-        f"edit {path} to customise.",
+        f"Config migration: added pipeline steps {added} — edit {path} to customise.",
         file=sys.stderr,
     )
 
@@ -209,9 +208,7 @@ def load(path: Path = CONFIG_PATH) -> Config:
     if "user_agents" in data:
         config.user_agents = _parse_user_agents(data["user_agents"])
     if "pipeline" in data:
-        config.pipeline = _migrate_pipeline(
-            _parse_pipeline(data["pipeline"]), path
-        )
+        config.pipeline = _migrate_pipeline(_parse_pipeline(data["pipeline"]), path)
 
     return config
 

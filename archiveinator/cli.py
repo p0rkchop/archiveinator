@@ -157,8 +157,12 @@ def _run_paywall_bypass(ctx: ArchiveContext, active_steps: list[str]) -> None:
 
     # --- Full strategy suite ---
 
-    # Strategy 0: Stealth browser (only for bot challenge pages)
-    if "stealth_browser" in active_steps and ctx.paywall_reason and "bot challenge" in ctx.paywall_reason:
+    # Strategy 0: Stealth browser (for bot challenge pages and HTTP 403 blocks,
+    # which often indicate bot detection at the CDN layer)
+    _stealth_trigger = ctx.paywall_reason and (
+        "bot challenge" in ctx.paywall_reason or "HTTP 403" in ctx.paywall_reason
+    )
+    if "stealth_browser" in active_steps and _stealth_trigger:
         console.step("Bypass: trying stealth browser (anti-fingerprinting)")
         ctx.use_stealth = True
         ctx.extra_headers = {}

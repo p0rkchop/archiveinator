@@ -63,6 +63,16 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         default=0,
         help="Run a random sample of N sites (0 = all matching)",
     )
+    group.addoption(
+        "--qa-site",
+        help="Run only the named site (exact match on 'name' field in sites.yaml)",
+    )
+    group.addoption(
+        "--qa-include-rss-needed",
+        action="store_true",
+        default=False,
+        help="Include sites marked rss_feed_needed:true (normally skipped — no verified RSS feed)",
+    )
 
 
 # ── site catalog ────────────────────────────────────────────────
@@ -80,8 +90,19 @@ def _filter_sites(sites: list[dict], config: pytest.Config) -> list[dict]:
     pw_type = config.getoption("--qa-paywall-type", default=None)
     category = config.getoption("--qa-category", default=None)
     difficulty = config.getoption("--qa-difficulty", default=None)
+    site_name = config.getoption("--qa-site", default=None)
+    include_rss_needed = config.getoption("--qa-include-rss-needed", default=False)
 
     filtered = sites
+
+    # By default, skip sites that have no verified RSS feed (rss_feed_needed: true).
+    # These sites have unverified/stale article URLs and cannot be reliably tested.
+    # Add a working rss_feed to a site's entry in sites.yaml to enable it.
+    if not include_rss_needed:
+        filtered = [s for s in filtered if not s.get("rss_feed_needed")]
+
+    if site_name:
+        filtered = [s for s in filtered if s["name"] == site_name]
     if pw_type:
         filtered = [s for s in filtered if s["tags"]["paywall_type"] == pw_type]
     if category:

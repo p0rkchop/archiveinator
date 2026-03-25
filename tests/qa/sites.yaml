@@ -2,14 +2,19 @@
 #
 # Each entry has:
 #   name         — human-readable label
-#   url          — a stable article URL (old enough to stay online)
+#   url          — fallback article URL (may be stale; rss_feed takes precedence)
+#   rss_feed     — (optional) RSS/Atom feed URL; if present, the test fetches the
+#                  latest article from this feed at runtime instead of using url.
+#                  Use this for sites whose article URLs change frequently.
+#   rss_feed_needed — true if this site has no verified working RSS feed yet.
+#                     Sites marked this way are SKIPPED in the TDD loop until a
+#                     human adds a working rss_feed URL.
 #   tags:
 #     paywall_type — none | soft | metered | piano | perimeter-x | cloudflare | hard
 #     category     — finance | news | tech | sports | science | magazine | entertainment | policy | uk | australia | canada | regional
 #     difficulty   — easy | medium | hard
 #
 # Tags are overlapping so tests can slice by any dimension.
-# URLs chosen for longevity — prefer feature articles, not breaking news.
 
 sites:
 
@@ -19,6 +24,7 @@ sites:
 
   - name: The Onion
     url: https://theonion.com/political-profile-james-talarico/
+    rss_feed_needed: true
     tags:
       paywall_type: none
       category: entertainment
@@ -26,6 +32,7 @@ sites:
 
   - name: BBC News
     url: https://www.bbc.com/news/science-environment-56837908
+    rss_feed_needed: true
     tags:
       paywall_type: none
       category: news
@@ -33,6 +40,7 @@ sites:
 
   - name: Reuters
     url: https://www.reuters.com/technology/artificial-intelligence/what-is-artificial-general-intelligence-agi-2024-11-13/
+    rss_feed_needed: true
     tags:
       paywall_type: hard
       category: news
@@ -40,6 +48,7 @@ sites:
 
   - name: AP News
     url: https://apnews.com/article/flesheating-screwworm-fly-factory-cattle-texas-dca5a51ae8ba30559ccfa8991c2e9a97
+    rss_feed_needed: true
     tags:
       paywall_type: none
       category: news
@@ -47,6 +56,7 @@ sites:
 
   - name: NPR
     url: https://www.npr.org/2024/12/10/nx-s1-5222574/nobel-prize-physics-2024-hopfield-hinton
+    rss_feed: https://feeds.npr.org/1001/rss.xml
     tags:
       paywall_type: piano
       category: news
@@ -54,6 +64,7 @@ sites:
 
   - name: The Verge
     url: https://www.theverge.com/c/24070570/google-antitrust-monopoly-trial-apple-search-deal
+    rss_feed_needed: true
     tags:
       paywall_type: none
       category: tech
@@ -61,6 +72,7 @@ sites:
 
   - name: Ars Technica
     url: https://arstechnica.com/science/2025/01/getting-an-all-optical-ai-to-handle-non-linear-math/
+    rss_feed_needed: true
     tags:
       paywall_type: none
       category: tech
@@ -68,6 +80,7 @@ sites:
 
   - name: ProPublica
     url: https://www.propublica.org/article/the-secret-irs-files-trove-of-never-before-seen-records-reveal-how-the-wealthiest-avoid-income-tax
+    rss_feed_needed: true
     tags:
       paywall_type: none
       category: news
@@ -75,6 +88,7 @@ sites:
 
   - name: The Intercept
     url: https://theintercept.com/2025/08/14/state-department-human-rights-reports/
+    rss_feed_needed: true
     tags:
       paywall_type: none
       category: news
@@ -82,6 +96,7 @@ sites:
 
   - name: Axios
     url: https://www.axios.com/2025/11/30/chatgpt-three-years-work
+    rss_feed_needed: true
     tags:
       paywall_type: cloudflare
       category: news
@@ -89,6 +104,7 @@ sites:
 
   - name: The Hill
     url: https://thehill.com/policy/technology/4192640-ai-regulation-congress/
+    rss_feed: https://thehill.com/feed/
     tags:
       paywall_type: perimeter-x
       category: policy
@@ -96,6 +112,7 @@ sites:
 
   - name: Smithsonian Magazine
     url: https://www.smithsonianmag.com/history/the-true-story-behind-devil-in-the-white-city-702476/
+    rss_feed: https://www.smithsonianmag.com/rss/latest_articles/
     tags:
       paywall_type: soft
       category: magazine
@@ -103,6 +120,7 @@ sites:
 
   - name: Vox
     url: https://www.vox.com/climate/475447/australia-great-barrier-reef-climate-change-restoration
+    rss_feed_needed: true
     tags:
       paywall_type: none
       category: news
@@ -110,6 +128,7 @@ sites:
 
   - name: Slate
     url: https://slate.com/news-and-politics/2025/07/ice-public-opinion-civil-war-trump-revolt.html
+    rss_feed_needed: true
     tags:
       paywall_type: none
       category: magazine
@@ -117,6 +136,7 @@ sites:
 
   - name: HuffPost
     url: https://www.huffpost.com/entry/polymarket-khamenei-bets-iran-war_l_69bac785e4b0411b809efa63
+    rss_feed_needed: true
     tags:
       paywall_type: none
       category: news
@@ -124,6 +144,7 @@ sites:
 
   - name: Reason
     url: https://reason.com/volokh/2026/03/20/my-new-liberalism-org-article-on-how-immigration-restrictions-restrict-americans-liberties/
+    rss_feed_needed: true
     tags:
       paywall_type: none
       category: policy
@@ -131,6 +152,7 @@ sites:
 
   - name: Common Dreams
     url: https://www.commondreams.org/opinion/what-is-project-2025
+    rss_feed_needed: true
     tags:
       paywall_type: soft
       category: news
@@ -138,6 +160,7 @@ sites:
 
   - name: TechCrunch
     url: https://techcrunch.com/2025/12/29/2025-was-the-year-ai-got-a-vibe-check/
+    rss_feed_needed: true
     tags:
       paywall_type: none
       category: tech
@@ -145,6 +168,7 @@ sites:
 
   - name: CNET
     url: https://www.cnet.com/tech/services-and-software/best-vpn/
+    rss_feed_needed: true
     tags:
       paywall_type: none
       category: tech
@@ -152,6 +176,7 @@ sites:
 
   - name: Salon
     url: https://www.salon.com/2025/03/05/after-dei-backlash-embracing-new-ideas-for-fairness-in-the-workplace/
+    rss_feed_needed: true
     tags:
       paywall_type: none
       category: news
@@ -163,6 +188,7 @@ sites:
 
   - name: The Guardian
     url: https://www.theguardian.com/lifeandstyle/2025/aug/17/being-short-is-a-curse-the-men-paying-thousands-to-get-their-legs-broken-and-lengthened
+    rss_feed_needed: true
     tags:
       paywall_type: soft
       category: uk
@@ -170,6 +196,7 @@ sites:
 
   - name: Mother Jones
     url: https://www.motherjones.com/politics/2025/07/the-landlord-gutting-americas-hospitals/
+    rss_feed_needed: true
     tags:
       paywall_type: soft
       category: magazine
@@ -177,6 +204,7 @@ sites:
 
   - name: The Nation
     url: https://www.thenation.com/article/politics/trump-national-labor-relations-board/
+    rss_feed_needed: true
     tags:
       paywall_type: soft
       category: magazine
@@ -184,6 +212,7 @@ sites:
 
   - name: Jacobin
     url: https://jacobin.com/2025/01/trump-executive-orders-project-2025
+    rss_feed_needed: true
     tags:
       paywall_type: soft
       category: policy
@@ -191,6 +220,7 @@ sites:
 
   - name: Politico
     url: https://www.politico.com/news/magazine/2023/08/10/kevin-mccarthy-gop-impeachment-00109920
+    rss_feed_needed: true
     tags:
       paywall_type: soft
       category: policy
@@ -198,6 +228,7 @@ sites:
 
   - name: Fortune
     url: https://fortune.com/2025/08/18/mit-report-95-percent-generative-ai-pilots-at-companies-failing-cfo/
+    rss_feed_needed: true
     tags:
       paywall_type: soft
       category: finance
@@ -205,6 +236,7 @@ sites:
 
   - name: Inc
     url: https://www.inc.com/jason-aten/apple-vision-pro-review.html
+    rss_feed_needed: true
     tags:
       paywall_type: cloudflare
       category: tech
@@ -212,6 +244,7 @@ sites:
 
   - name: Fast Company
     url: https://www.fastcompany.com/90966484/the-end-of-the-office-as-we-know-it
+    rss_feed_needed: true
     tags:
       paywall_type: cloudflare
       category: tech
@@ -219,6 +252,7 @@ sites:
 
   - name: Business Insider
     url: https://www.businessinsider.com/elon-musk-twitter-x-timeline-what-happened-2023-10
+    rss_feed: https://feeds.businessinsider.com/custom/all
     tags:
       paywall_type: soft
       category: finance
@@ -226,6 +260,7 @@ sites:
 
   - name: Seeking Alpha
     url: https://seekingalpha.com/article/4591320-nvidia-stock-is-it-too-late-to-buy
+    rss_feed_needed: true
     tags:
       paywall_type: perimeter-x
       category: finance
@@ -237,6 +272,7 @@ sites:
 
   - name: New York Times
     url: https://www.nytimes.com/2023/04/16/technology/ai-chatbot-google-microsoft.html
+    rss_feed: https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml
     tags:
       paywall_type: metered
       category: news
@@ -244,6 +280,7 @@ sites:
 
   - name: Washington Post
     url: https://www.washingtonpost.com/technology/2023/05/04/ai-artificial-intelligence-chatgpt-dangers/
+    rss_feed_needed: true
     tags:
       paywall_type: metered
       category: news
@@ -251,6 +288,7 @@ sites:
 
   - name: LA Times
     url: https://www.latimes.com/california/story/2023-09-18/lahaina-fire-investigation
+    rss_feed: https://www.latimes.com/rss2.0.xml
     tags:
       paywall_type: metered
       category: news
@@ -258,6 +296,7 @@ sites:
 
   - name: Chicago Tribune
     url: https://www.chicagotribune.com/2023/10/15/chicagos-rat-problem-is-getting-worse/
+    rss_feed_needed: true
     tags:
       paywall_type: metered
       category: regional
@@ -265,6 +304,7 @@ sites:
 
   - name: Seattle Times
     url: https://www.seattletimes.com/seattle-news/boeing-737-max-problems/
+    rss_feed_needed: true
     tags:
       paywall_type: metered
       category: regional
@@ -272,6 +312,7 @@ sites:
 
   - name: Denver Post
     url: https://www.denverpost.com/2023/04/13/colorado-river-water-crisis-explained/
+    rss_feed_needed: true
     tags:
       paywall_type: metered
       category: regional
@@ -279,6 +320,7 @@ sites:
 
   - name: SF Chronicle
     url: https://www.sfchronicle.com/projects/2023/san-francisco-drug-trade/
+    rss_feed_needed: true
     tags:
       paywall_type: metered
       category: regional
@@ -286,6 +328,7 @@ sites:
 
   - name: Baltimore Sun
     url: https://www.baltimoresun.com/2023/06/28/key-bridge-baltimore-history/
+    rss_feed_needed: true
     tags:
       paywall_type: metered
       category: regional
@@ -293,6 +336,7 @@ sites:
 
   - name: Dallas Morning News
     url: https://www.dallasnews.com/news/politics/2023/05/24/texas-border-security-operation/
+    rss_feed_needed: true
     tags:
       paywall_type: metered
       category: regional
@@ -300,6 +344,7 @@ sites:
 
   - name: Houston Chronicle
     url: https://www.houstonchronicle.com/projects/2023/houston-flooding-history/
+    rss_feed_needed: true
     tags:
       paywall_type: metered
       category: regional
@@ -307,6 +352,7 @@ sites:
 
   - name: Atlanta Journal-Constitution
     url: https://www.ajc.com/news/crime/atlanta-crime-rate-2023/
+    rss_feed_needed: true
     tags:
       paywall_type: metered
       category: regional
@@ -314,6 +360,7 @@ sites:
 
   - name: Tampa Bay Times
     url: https://www.tampabay.com/news/florida/2023/06/01/florida-homeowners-insurance-crisis/
+    rss_feed_needed: true
     tags:
       paywall_type: metered
       category: regional
@@ -321,6 +368,7 @@ sites:
 
   - name: Miami Herald
     url: https://www.miamiherald.com/news/local/community/miami-dade/article275643471.html
+    rss_feed_needed: true
     tags:
       paywall_type: metered
       category: regional
@@ -328,6 +376,7 @@ sites:
 
   - name: Charlotte Observer
     url: https://www.charlotteobserver.com/news/business/banking/article275642421.html
+    rss_feed_needed: true
     tags:
       paywall_type: metered
       category: regional
@@ -335,6 +384,7 @@ sites:
 
   - name: Sacramento Bee
     url: https://www.sacbee.com/news/politics-government/capitol-alert/article274521166.html
+    rss_feed_needed: true
     tags:
       paywall_type: metered
       category: regional
@@ -342,6 +392,7 @@ sites:
 
   - name: Star-Telegram
     url: https://www.star-telegram.com/news/local/fort-worth/article275638271.html
+    rss_feed_needed: true
     tags:
       paywall_type: metered
       category: regional
@@ -349,6 +400,7 @@ sites:
 
   - name: Portland Oregonian
     url: https://www.oregonlive.com/news/2023/08/portland-homeless-crisis.html
+    rss_feed: https://www.oregonlive.com/arc/outboundfeeds/rss/?outputType=xml
     tags:
       paywall_type: metered
       category: regional
@@ -356,6 +408,7 @@ sites:
 
   - name: Cleveland Plain Dealer
     url: https://www.cleveland.com/metro/2023/06/cleveland-population-decline.html
+    rss_feed_needed: true
     tags:
       paywall_type: metered
       category: regional
@@ -363,6 +416,7 @@ sites:
 
   - name: NJ.com
     url: https://www.nj.com/news/2023/07/nj-property-taxes-highest-in-nation.html
+    rss_feed_needed: true
     tags:
       paywall_type: metered
       category: regional
@@ -370,6 +424,7 @@ sites:
 
   - name: Scientific American
     url: https://www.scientificamerican.com/article/the-universe-is-not-locally-real/
+    rss_feed_needed: true
     tags:
       paywall_type: metered
       category: science
@@ -377,6 +432,7 @@ sites:
 
   - name: National Geographic
     url: https://www.nationalgeographic.com/animals/article/worlds-rarest-animals
+    rss_feed_needed: true
     tags:
       paywall_type: metered
       category: science
@@ -388,6 +444,7 @@ sites:
 
   - name: Boston Globe
     url: https://www.bostonglobe.com/2023/04/14/business/boston-office-vacancy-rates/
+    rss_feed: https://www.bostonglobe.com/arc/outboundfeeds/rss/?outputType=xml
     tags:
       paywall_type: piano
       category: regional
@@ -395,6 +452,7 @@ sites:
 
   - name: Pittsburgh Post-Gazette
     url: https://www.post-gazette.com/news/transportation/2023/05/15/pittsburgh-bridges-infrastructure/stories/202305150080
+    rss_feed_needed: true
     tags:
       paywall_type: piano
       category: regional
@@ -402,6 +460,7 @@ sites:
 
   - name: Des Moines Register
     url: https://www.desmoinesregister.com/story/news/politics/2023/06/14/iowa-caucus-2024-republican/70316003007/
+    rss_feed_needed: true
     tags:
       paywall_type: piano
       category: regional
@@ -409,6 +468,7 @@ sites:
 
   - name: Cincinnati Enquirer
     url: https://www.cincinnati.com/story/news/2023/05/20/cincinnati-development-projects/70232003007/
+    rss_feed_needed: true
     tags:
       paywall_type: piano
       category: regional
@@ -416,6 +476,7 @@ sites:
 
   - name: Hartford Courant
     url: https://www.courant.com/2023/06/08/connecticut-economy-jobs-growth/
+    rss_feed_needed: true
     tags:
       paywall_type: piano
       category: regional
@@ -423,6 +484,7 @@ sites:
 
   - name: Richmond Times-Dispatch
     url: https://richmond.com/news/state-regional/virginia-education-reform-2023/article_a1b2c3d4.html
+    rss_feed_needed: true
     tags:
       paywall_type: piano
       category: regional
@@ -430,6 +492,7 @@ sites:
 
   - name: Omaha World-Herald
     url: https://omaha.com/news/local/warren-buffett-berkshire-hathaway-omaha/article_e5f6g7h8.html
+    rss_feed_needed: true
     tags:
       paywall_type: piano
       category: regional
@@ -437,6 +500,7 @@ sites:
 
   - name: Albuquerque Journal
     url: https://www.abqjournal.com/news/local/new-mexico-wildfire-prevention-2023
+    rss_feed_needed: true
     tags:
       paywall_type: piano
       category: regional
@@ -444,6 +508,7 @@ sites:
 
   - name: National Post (Canada)
     url: https://nationalpost.com/news/canada/canadian-housing-crisis-explained
+    rss_feed: https://nationalpost.com/feed/
     tags:
       paywall_type: piano
       category: canada
@@ -451,6 +516,7 @@ sites:
 
   - name: Toronto Star
     url: https://www.thestar.com/news/gta/toronto-cost-of-living-crisis/article_a2b3c4d5.html
+    rss_feed_needed: true
     tags:
       paywall_type: piano
       category: canada
@@ -462,6 +528,7 @@ sites:
 
   - name: Bloomberg
     url: https://www.bloomberg.com/news/features/2018-10-04/the-big-hack-how-china-used-a-tiny-chip-to-infiltrate-america-s-top-companies
+    rss_feed_needed: true
     tags:
       paywall_type: perimeter-x
       category: finance
@@ -469,6 +536,7 @@ sites:
 
   - name: Barron's
     url: https://www.barrons.com/articles/best-stocks-to-buy-2023-51672413608
+    rss_feed_needed: true
     tags:
       paywall_type: perimeter-x
       category: finance
@@ -476,6 +544,7 @@ sites:
 
   - name: MarketWatch
     url: https://www.marketwatch.com/story/the-stock-market-is-historically-expensive-11672165403
+    rss_feed_needed: true
     tags:
       paywall_type: perimeter-x
       category: finance
@@ -483,6 +552,7 @@ sites:
 
   - name: Variety
     url: https://variety.com/2023/film/news/barbie-oppenheimer-box-office-1235672384/
+    rss_feed: https://variety.com/feed/
     tags:
       paywall_type: perimeter-x
       category: entertainment
@@ -490,6 +560,7 @@ sites:
 
   - name: Hollywood Reporter
     url: https://www.hollywoodreporter.com/movies/movie-features/christopher-nolan-oppenheimer-interview-1235535099/
+    rss_feed_needed: true
     tags:
       paywall_type: perimeter-x
       category: entertainment
@@ -497,6 +568,7 @@ sites:
 
   - name: Deadline
     url: https://deadline.com/2023/07/writers-strike-wga-sag-aftra-history-1235427843/
+    rss_feed: https://deadline.com/feed/
     tags:
       paywall_type: perimeter-x
       category: entertainment
@@ -504,6 +576,7 @@ sites:
 
   - name: Billboard
     url: https://www.billboard.com/music/music-news/taylor-swift-eras-tour-economic-impact-1235373707/
+    rss_feed: https://www.billboard.com/feed/
     tags:
       paywall_type: perimeter-x
       category: entertainment
@@ -511,6 +584,7 @@ sites:
 
   - name: Rolling Stone
     url: https://www.rollingstone.com/music/music-features/beatles-now-and-then-story-1234871795/
+    rss_feed: https://www.rollingstone.com/feed/
     tags:
       paywall_type: perimeter-x
       category: entertainment
@@ -518,6 +592,7 @@ sites:
 
   - name: Pitchfork
     url: https://pitchfork.com/features/article/the-500-best-songs-of-the-2000s/
+    rss_feed_needed: true
     tags:
       paywall_type: perimeter-x
       category: entertainment
@@ -525,6 +600,7 @@ sites:
 
   - name: NME
     url: https://www.nme.com/features/music-features/best-albums-2023-3533241
+    rss_feed_needed: true
     tags:
       paywall_type: perimeter-x
       category: entertainment
@@ -536,6 +612,7 @@ sites:
 
   - name: The Australian
     url: https://www.theaustralian.com.au/nation/politics/australia-voice-referendum-explained/news-story/abc123
+    rss_feed_needed: true
     tags:
       paywall_type: cloudflare
       category: australia
@@ -543,6 +620,7 @@ sites:
 
   - name: Australian Financial Review
     url: https://www.afr.com/markets/equity-markets/asx-200-australian-share-market-2023-20230101-p5c9x1
+    rss_feed_needed: true
     tags:
       paywall_type: cloudflare
       category: australia
@@ -550,6 +628,7 @@ sites:
 
   - name: Sydney Morning Herald
     url: https://www.smh.com.au/national/nsw/sydney-housing-crisis-20230615-p5dgxa.html
+    rss_feed_needed: true
     tags:
       paywall_type: cloudflare
       category: australia
@@ -557,6 +636,7 @@ sites:
 
   - name: Globe and Mail (Canada)
     url: https://www.theglobeandmail.com/business/article-canadian-banks-housing-market/
+    rss_feed_needed: true
     tags:
       paywall_type: cloudflare
       category: canada
@@ -564,6 +644,7 @@ sites:
 
   - name: New Scientist
     url: https://www.newscientist.com/article/2370723-the-real-risks-of-artificial-intelligence/
+    rss_feed_needed: true
     tags:
       paywall_type: cloudflare
       category: science
@@ -575,6 +656,7 @@ sites:
 
   - name: Wall Street Journal
     url: https://www.wsj.com/articles/chatgpt-ai-chatbot-app-explained-11675865177
+    rss_feed_needed: true
     tags:
       paywall_type: hard
       category: finance
@@ -582,6 +664,7 @@ sites:
 
   - name: Financial Times
     url: https://www.ft.com/content/dd2c88a7-dcfa-47d0-a928-e1b1aa26f2a0
+    rss_feed_needed: true
     tags:
       paywall_type: hard
       category: finance
@@ -589,6 +672,7 @@ sites:
 
   - name: The Economist
     url: https://www.economist.com/leaders/2023/04/20/how-to-worry-wisely-about-artificial-intelligence
+    rss_feed_needed: true
     tags:
       paywall_type: hard
       category: finance
@@ -596,6 +680,7 @@ sites:
 
   - name: The Atlantic
     url: https://www.theatlantic.com/magazine/archive/2023/06/chatbot-ai-social-media-disinformation/673780/
+    rss_feed_needed: true
     tags:
       paywall_type: hard
       category: magazine
@@ -603,6 +688,7 @@ sites:
 
   - name: The New Yorker
     url: https://www.newyorker.com/magazine/2023/04/03/the-new-age-of-artificial-intelligence
+    rss_feed_needed: true
     tags:
       paywall_type: hard
       category: magazine
@@ -610,6 +696,7 @@ sites:
 
   - name: Wired
     url: https://www.wired.com/story/plaintext-fast-ai-chatgpt-openai-microsoft/
+    rss_feed_needed: true
     tags:
       paywall_type: hard
       category: tech
@@ -617,6 +704,7 @@ sites:
 
   - name: Harvard Business Review
     url: https://hbr.org/2023/04/how-to-use-chatgpt-at-work
+    rss_feed_needed: true
     tags:
       paywall_type: hard
       category: finance
@@ -624,6 +712,7 @@ sites:
 
   - name: MIT Technology Review
     url: https://www.technologyreview.com/2023/02/08/1068068/chatgpt-is-everywhere-heres-where-it-came-from/
+    rss_feed_needed: true
     tags:
       paywall_type: hard
       category: tech
@@ -631,6 +720,7 @@ sites:
 
   - name: Foreign Policy
     url: https://foreignpolicy.com/2023/06/14/ai-arms-race-china-united-states/
+    rss_feed_needed: true
     tags:
       paywall_type: hard
       category: policy
@@ -638,6 +728,7 @@ sites:
 
   - name: Foreign Affairs
     url: https://www.foreignaffairs.com/united-states/artificial-intelligence-geopolitics
+    rss_feed_needed: true
     tags:
       paywall_type: hard
       category: policy
@@ -645,6 +736,7 @@ sites:
 
   - name: National Review
     url: https://www.nationalreview.com/magazine/2023/06/26/the-ai-revolution/
+    rss_feed_needed: true
     tags:
       paywall_type: hard
       category: policy
@@ -652,6 +744,7 @@ sites:
 
   - name: The Information
     url: https://www.theinformation.com/articles/openai-and-the-race-to-build-the-next-google
+    rss_feed_needed: true
     tags:
       paywall_type: hard
       category: tech
@@ -659,6 +752,7 @@ sites:
 
   - name: The Times (UK)
     url: https://www.thetimes.co.uk/article/artificial-intelligence-future-of-work-uk-w75f0kz8t
+    rss_feed_needed: true
     tags:
       paywall_type: hard
       category: uk
@@ -666,6 +760,7 @@ sites:
 
   - name: The Telegraph (UK)
     url: https://www.telegraph.co.uk/technology/2023/05/17/ai-artificial-intelligence-uk-regulation/
+    rss_feed_needed: true
     tags:
       paywall_type: hard
       category: uk
@@ -673,6 +768,7 @@ sites:
 
   - name: The Spectator (UK)
     url: https://www.spectator.co.uk/article/the-real-risk-of-artificial-intelligence/
+    rss_feed_needed: true
     tags:
       paywall_type: hard
       category: uk
@@ -680,6 +776,7 @@ sites:
 
   - name: Nature
     url: https://www.nature.com/articles/d41586-023-00340-6
+    rss_feed_needed: true
     tags:
       paywall_type: hard
       category: science
@@ -687,6 +784,7 @@ sites:
 
   - name: Consumer Reports
     url: https://www.consumerreports.org/electronics/privacy/car-data-privacy-a1094768025/
+    rss_feed_needed: true
     tags:
       paywall_type: hard
       category: tech
@@ -694,6 +792,7 @@ sites:
 
   - name: The Athletic
     url: https://www.nytimes.com/athletic/4413476/2023/04/05/nfl-draft-2023-quarterback-rankings/
+    rss_feed_needed: true
     tags:
       paywall_type: hard
       category: sports
@@ -701,6 +800,7 @@ sites:
 
   - name: Sports Illustrated
     url: https://www.si.com/nfl/2023/09/05/nfl-power-rankings-week-1-2023
+    rss_feed_needed: true
     tags:
       paywall_type: hard
       category: sports
@@ -708,6 +808,7 @@ sites:
 
   - name: ESPN+
     url: https://www.espn.com/nfl/insider/story/_/id/38393015/2023-nfl-draft-best-available-players
+    rss_feed_needed: true
     tags:
       paywall_type: hard
       category: sports

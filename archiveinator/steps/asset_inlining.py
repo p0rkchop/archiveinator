@@ -44,6 +44,18 @@ async def run(ctx: ArchiveContext) -> None:
 
         input_file.write_text(ctx.page_html, encoding="utf-8")
 
+        # Sites requiring a bypass often sit behind Cloudflare or similar CDN
+        # protection that also blocks non-browser asset fetches.  Monolith
+        # (no JS engine) hits the same wall, times out, and turns a successful
+        # bypass into a _partial save.  When any bypass was used, suppress ALL
+        # external asset fetching so monolith completes quickly with inline text.
+        extra_flags: list[str] = []
+        if ctx.bypass_method is not None:
+            extra_flags.extend(["--no-images", "--no-css", "--no-fonts", "--no-frames", "--no-js"])
+            console.debug(
+                f"{ctx.bypass_method} bypass: suppressing external asset fetching in monolith"
+            )
+
         try:
             result = subprocess.run(
                 [
@@ -56,6 +68,7 @@ async def run(ctx: ArchiveContext) -> None:
                     "--isolate",
                     "--insecure",
                     "--quiet",
+                    *extra_flags,
                     "-o",
                     str(output_file),
                 ],
