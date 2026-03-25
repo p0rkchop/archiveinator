@@ -33,7 +33,7 @@ async def check_wayback(url: str) -> str | None:
 
     snapshot = data.get("archived_snapshots", {}).get("closest")
     if snapshot and snapshot.get("available"):
-        snapshot_url = snapshot.get("url", "")
+        snapshot_url: str = snapshot.get("url", "")
         if snapshot_url:
             console.debug(f"Wayback snapshot found: {snapshot_url}")
             return snapshot_url

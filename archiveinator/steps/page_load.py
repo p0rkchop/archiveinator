@@ -104,11 +104,11 @@ async def run(ctx: ArchiveContext) -> None:
             if "paywall_detection" in active_steps:
                 from archiveinator.steps.paywall import detect
 
-                reason = await detect(page, response.status)
-                if reason:
+                paywall_reason = await detect(page, response.status)
+                if paywall_reason:
                     ctx.paywalled = True
-                    ctx.paywall_reason = reason
-                    console.debug(f"Paywall detected: {reason}")
+                    ctx.paywall_reason = paywall_reason
+                    console.debug(f"Paywall detected: {paywall_reason}")
 
                     # JS overlay removal — attempt to clear the wall in-page
                     if "js_overlay_removal" in active_steps:
