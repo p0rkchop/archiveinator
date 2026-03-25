@@ -228,12 +228,19 @@ def test_update_blocklists_command(monkeypatch: MonkeyPatch) -> None:
     import archiveinator.cli as cli_mod
 
     called = []
-    monkeypatch.setattr(cli_mod, "_setup_blocklists", lambda: called.append(True), raising=False)
+    monkeypatch.setattr(
+        cli_mod,
+        "_setup_blocklists",
+        lambda ignore_cert_errors=False: called.append(True),
+        raising=False,
+    )
 
     # Patch at the import site inside the command
     import archiveinator.setup_cmd as setup_mod
 
-    monkeypatch.setattr(setup_mod, "_setup_blocklists", lambda: called.append(True))
+    monkeypatch.setattr(
+        setup_mod, "_setup_blocklists", lambda ignore_cert_errors=False: called.append(True)
+    )
 
     result = runner.invoke(app, ["update-blocklists"])
     assert result.exit_code == 0

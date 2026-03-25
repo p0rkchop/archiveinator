@@ -49,7 +49,9 @@ def test_setup_monolith_skips_if_already_installed(
 
     download_called = []
     monkeypatch.setattr(
-        setup_mod, "_download_monolith_binary", lambda: download_called.append(True)
+        setup_mod,
+        "_download_monolith_binary",
+        lambda ignore_cert_errors=False: download_called.append(True),
     )
 
     setup_mod._setup_monolith()
@@ -82,7 +84,9 @@ def test_setup_monolith_downloads_when_not_in_path(
 
     download_called = []
     monkeypatch.setattr(
-        setup_mod, "_download_monolith_binary", lambda: download_called.append(True)
+        setup_mod,
+        "_download_monolith_binary",
+        lambda ignore_cert_errors=False: download_called.append(True),
     )
 
     setup_mod._setup_monolith()
@@ -160,9 +164,11 @@ def test_run_creates_config_if_missing(monkeypatch: MonkeyPatch, tmp_path: Path)
     config_file = tmp_path / "config.yaml"
     monkeypatch.setattr(setup_mod, "_ensure_dirs", lambda: None)
     monkeypatch.setattr(setup_mod, "CONFIG_PATH", config_file)
-    monkeypatch.setattr(setup_mod, "_install_playwright_chromium", lambda: None)
-    monkeypatch.setattr(setup_mod, "_setup_monolith", lambda: None)
-    monkeypatch.setattr(setup_mod, "_setup_blocklists", lambda: None)
+    monkeypatch.setattr(
+        setup_mod, "_install_playwright_chromium", lambda ignore_cert_errors=False: None
+    )
+    monkeypatch.setattr(setup_mod, "_setup_monolith", lambda ignore_cert_errors=False: None)
+    monkeypatch.setattr(setup_mod, "_setup_blocklists", lambda ignore_cert_errors=False: None)
 
     from archiveinator import config as config_mod
 
@@ -177,9 +183,11 @@ def test_run_preserves_existing_config(monkeypatch: MonkeyPatch, tmp_path: Path)
     config_file.write_text("timeout_seconds: 99\n")
     monkeypatch.setattr(setup_mod, "_ensure_dirs", lambda: None)
     monkeypatch.setattr(setup_mod, "CONFIG_PATH", config_file)
-    monkeypatch.setattr(setup_mod, "_install_playwright_chromium", lambda: None)
-    monkeypatch.setattr(setup_mod, "_setup_monolith", lambda: None)
-    monkeypatch.setattr(setup_mod, "_setup_blocklists", lambda: None)
+    monkeypatch.setattr(
+        setup_mod, "_install_playwright_chromium", lambda ignore_cert_errors=False: None
+    )
+    monkeypatch.setattr(setup_mod, "_setup_monolith", lambda ignore_cert_errors=False: None)
+    monkeypatch.setattr(setup_mod, "_setup_blocklists", lambda ignore_cert_errors=False: None)
 
     setup_mod.run()
     assert "timeout_seconds: 99" in config_file.read_text()
