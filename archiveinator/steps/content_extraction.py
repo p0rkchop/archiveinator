@@ -68,6 +68,7 @@ async def run(ctx: ArchiveContext) -> None:
     # moment... Checking your browser...") that trafilatura happily returns.
     # A legitimate article should have at least 50 plain-text words.
     import re as _re
+
     plain_text = _re.sub(r"<[^>]+>", " ", extracted)
     word_count = len(plain_text.split())
     if word_count < 50:

@@ -152,15 +152,17 @@ def list_entries() -> list[tuple[str, CacheEntry]]:
     data = _prune(_load_raw())
     results: list[tuple[str, CacheEntry]] = []
     for domain, entry in sorted(data.items()):
-        results.append((
-            domain,
-            CacheEntry(
-                strategy=entry["strategy"],
-                ua_name=entry.get("ua_name"),
-                last_success=entry.get("last_success", ""),
-                attempts=entry.get("attempts", 0),
-                successes=entry.get("successes", 0),
-                consecutive_failures=entry.get("consecutive_failures", 0),
-            ),
-        ))
+        results.append(
+            (
+                domain,
+                CacheEntry(
+                    strategy=entry["strategy"],
+                    ua_name=entry.get("ua_name"),
+                    last_success=entry.get("last_success", ""),
+                    attempts=entry.get("attempts", 0),
+                    successes=entry.get("successes", 0),
+                    consecutive_failures=entry.get("consecutive_failures", 0),
+                ),
+            )
+        )
     return results

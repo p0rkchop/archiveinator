@@ -18,9 +18,7 @@ from archiveinator.bypass_cache import (
 @pytest.fixture(autouse=True)
 def _patch_cache_path(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Redirect the bypass cache to a temp file for every test."""
-    monkeypatch.setattr(
-        "archiveinator.bypass_cache.CACHE_PATH", tmp_path / "bypass_cache.yaml"
-    )
+    monkeypatch.setattr("archiveinator.bypass_cache.CACHE_PATH", tmp_path / "bypass_cache.yaml")
 
 
 def test_lookup_returns_none_when_empty():

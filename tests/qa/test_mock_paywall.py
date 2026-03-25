@@ -180,7 +180,11 @@ def test_perimeterx_bot_page_detected(
 
     output = _plain(result.output)
     # Should detect the bot challenge
-    assert "bot challenge" in output.lower() or "paywall" in output.lower() or "block" in output.lower()
+    assert (
+        "bot challenge" in output.lower()
+        or "paywall" in output.lower()
+        or "block" in output.lower()
+    )
 
 
 @pytest.mark.mock_paywall
@@ -272,9 +276,7 @@ def test_low_word_count_detected(
     # The paywall detection should fire on the low word count, triggering
     # a warning about the paywall/block.
     assert (
-        "word count" in output.lower()
-        or "paywall" in output.lower()
-        or "Partial" in result.output
+        "word count" in output.lower() or "paywall" in output.lower() or "Partial" in result.output
     ), f"Low word-count page was not flagged. Output:\n{output}"
 
 

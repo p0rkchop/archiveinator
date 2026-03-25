@@ -52,7 +52,9 @@ async def run(ctx: ArchiveContext) -> None:
         extra_flags: list[str] = []
         if ctx.bypass_method is not None:
             extra_flags.extend(["--no-images", "--no-css", "--no-fonts", "--no-frames", "--no-js"])
-            console.debug(f"{ctx.bypass_method} bypass: suppressing external asset fetching in monolith")
+            console.debug(
+                f"{ctx.bypass_method} bypass: suppressing external asset fetching in monolith"
+            )
 
         try:
             result = subprocess.run(

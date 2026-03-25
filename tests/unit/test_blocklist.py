@@ -5,9 +5,9 @@ from pathlib import Path
 import adblock
 
 from archiveinator.blocklist import (
+    _BUILTIN_RULES,
     _build_engine,
     _read_filter_file,
-    load_engine,
     should_block,
 )
 
@@ -34,12 +34,12 @@ def test_should_not_block_safe_domain():
 
 
 def test_should_block_builtin_doubleclick():
-    engine = load_engine()  # uses built-in rules when no EasyList downloaded
+    engine = _build_engine(_BUILTIN_RULES)
     assert should_block(engine, "https://doubleclick.net/ad.js", "https://example.com", "script")
 
 
 def test_should_block_builtin_googlesyndication():
-    engine = load_engine()
+    engine = _build_engine(_BUILTIN_RULES)
     assert should_block(
         engine,
         "https://googlesyndication.com/pagead/js/adsbygoogle.js",

@@ -156,7 +156,9 @@ def validate_archive(
     text = _extract_text(html)
     result.word_count = len(text.split())
     if result.word_count < MIN_WORD_COUNT:
-        result.failure_reasons.append(f"word count too low ({result.word_count} < {MIN_WORD_COUNT})")
+        result.failure_reasons.append(
+            f"word count too low ({result.word_count} < {MIN_WORD_COUNT})"
+        )
 
     # 3. Bot/paywall selectors in HTML
     html_lower = html.lower()

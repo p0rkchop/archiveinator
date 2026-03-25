@@ -7,10 +7,9 @@ redundant network requests when multiple tests parametrise the same site.
 
 from __future__ import annotations
 
-import urllib.request
 import urllib.error
+import urllib.request
 import xml.etree.ElementTree as ET
-from typing import Optional
 
 # Session cache: rss_feed_url -> resolved article url
 _CACHE: dict[str, str | None] = {}

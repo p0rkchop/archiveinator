@@ -94,6 +94,5 @@ def test_archive_site(qa_site: dict, tmp_path: pytest.TempPathFactory) -> None:
             pytest.fail(f"{site_name}: no output file produced at all")
         if not result.passed:
             pytest.xfail(
-                f"{site_name} ({tags.get('difficulty', '?')}): "
-                f"{'; '.join(result.failure_reasons)}"
+                f"{site_name} ({tags.get('difficulty', '?')}): {'; '.join(result.failure_reasons)}"
             )

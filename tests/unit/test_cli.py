@@ -349,9 +349,7 @@ def test_archive_partial_file_contains_page_html(tmp_path: Path, monkeypatch: Mo
 
 def test_cache_list_empty(tmp_path: Path, monkeypatch: MonkeyPatch) -> None:
     """cache list shows 'No cached entries' when the cache is empty."""
-    monkeypatch.setattr(
-        "archiveinator.bypass_cache.CACHE_PATH", tmp_path / "bypass_cache.yaml"
-    )
+    monkeypatch.setattr("archiveinator.bypass_cache.CACHE_PATH", tmp_path / "bypass_cache.yaml")
     result = runner.invoke(app, ["cache", "list"])
     assert result.exit_code == 0
     assert "No cached entries" in result.output
@@ -359,9 +357,7 @@ def test_cache_list_empty(tmp_path: Path, monkeypatch: MonkeyPatch) -> None:
 
 def test_cache_list_with_entries(tmp_path: Path, monkeypatch: MonkeyPatch) -> None:
     """cache list shows entries in a table."""
-    monkeypatch.setattr(
-        "archiveinator.bypass_cache.CACHE_PATH", tmp_path / "bypass_cache.yaml"
-    )
+    monkeypatch.setattr("archiveinator.bypass_cache.CACHE_PATH", tmp_path / "bypass_cache.yaml")
     from archiveinator.bypass_cache import record_success
 
     record_success("https://example.com/page", "header_tricks")
@@ -379,9 +375,7 @@ def test_cache_list_with_entries(tmp_path: Path, monkeypatch: MonkeyPatch) -> No
 
 def test_cache_clear_all(tmp_path: Path, monkeypatch: MonkeyPatch) -> None:
     """cache clear removes all entries."""
-    monkeypatch.setattr(
-        "archiveinator.bypass_cache.CACHE_PATH", tmp_path / "bypass_cache.yaml"
-    )
+    monkeypatch.setattr("archiveinator.bypass_cache.CACHE_PATH", tmp_path / "bypass_cache.yaml")
     from archiveinator.bypass_cache import list_entries, record_success
 
     record_success("https://a.com/p", "ua_cycling")
@@ -396,9 +390,7 @@ def test_cache_clear_all(tmp_path: Path, monkeypatch: MonkeyPatch) -> None:
 
 def test_cache_clear_domain(tmp_path: Path, monkeypatch: MonkeyPatch) -> None:
     """cache clear --domain removes only the specified domain."""
-    monkeypatch.setattr(
-        "archiveinator.bypass_cache.CACHE_PATH", tmp_path / "bypass_cache.yaml"
-    )
+    monkeypatch.setattr("archiveinator.bypass_cache.CACHE_PATH", tmp_path / "bypass_cache.yaml")
     from archiveinator.bypass_cache import list_entries, record_success
 
     record_success("https://a.com/p", "ua_cycling")

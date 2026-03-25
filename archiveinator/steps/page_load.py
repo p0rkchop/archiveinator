@@ -71,9 +71,7 @@ async def run(ctx: ArchiveContext) -> None:
                     timeout=timeout_ms,
                 )
             except PlaywrightTimeout:
-                console.warning(
-                    "networkidle timed out, falling back to domcontentloaded"
-                )
+                console.warning("networkidle timed out, falling back to domcontentloaded")
                 try:
                     response = await page.goto(
                         ctx.url,
