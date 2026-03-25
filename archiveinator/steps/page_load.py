@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from playwright.async_api import Error as PlaywrightError
 from playwright.async_api import TimeoutError as PlaywrightTimeout
 from playwright.async_api import async_playwright
 
@@ -80,6 +81,8 @@ async def run(ctx: ArchiveContext) -> None:
                     )
                 except PlaywrightTimeout as exc:
                     raise PageLoadError(f"Timed out loading {ctx.url}") from exc
+            except PlaywrightError as exc:
+                raise PageLoadError(f"Navigation failed for {ctx.url}: {exc}") from exc
 
             if response is None:
                 raise PageLoadError(f"No response received for {ctx.url}")

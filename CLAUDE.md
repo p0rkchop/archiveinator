@@ -2,6 +2,12 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## File Access Rules
+
+- **Only search and operate on files within the project directory** (`/Users/chris/code/archiveinator/`).
+- Do **not** access, search, or read files outside the project directory — including home folder subdirectories (Music, Documents, Downloads, Library, etc.).
+- When locating runtime files (config, caches), use the known path directly (e.g. via Python/`platformdirs`) rather than broad filesystem searches like `find ~`.
+
 ## Commands
 
 ```bash

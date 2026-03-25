@@ -23,16 +23,16 @@ sites:
   # ──────────────────────────────────────────────────────────────
 
   - name: The Onion
-    url: https://theonion.com/political-profile-james-talarico/
-    rss_feed_needed: true
+    url: https://theonion.com/robert-mueller-dead-at-81/
+    rss_feed: https://theonion.com/feed/
     tags:
       paywall_type: none
       category: entertainment
       difficulty: easy
 
   - name: BBC News
-    url: https://www.bbc.com/news/science-environment-56837908
-    rss_feed_needed: true
+    url: https://www.bbc.com/news/articles/c895xljyzewo?at_medium=RSS&at_campaign=rss
+    rss_feed: http://feeds.bbci.co.uk/news/rss.xml
     tags:
       paywall_type: none
       category: news
@@ -55,7 +55,7 @@ sites:
       difficulty: medium
 
   - name: NPR
-    url: https://www.npr.org/2024/12/10/nx-s1-5222574/nobel-prize-physics-2024-hopfield-hinton
+    url: https://www.npr.org/2026/03/24/nx-s1-5759276/anthropic-pentagon-claude-preliminary-injunction-hearing
     rss_feed: https://feeds.npr.org/1001/rss.xml
     tags:
       paywall_type: piano
@@ -63,47 +63,47 @@ sites:
       difficulty: medium
 
   - name: The Verge
-    url: https://www.theverge.com/c/24070570/google-antitrust-monopoly-trial-apple-search-deal
-    rss_feed_needed: true
+    url: https://www.theverge.com/news/899717/meta-instagram-facebook-affiliate-shopping-links-reels
+    rss_feed: https://www.theverge.com/rss/index.xml
     tags:
       paywall_type: none
       category: tech
       difficulty: easy
 
   - name: Ars Technica
-    url: https://arstechnica.com/science/2025/01/getting-an-all-optical-ai-to-handle-non-linear-math/
-    rss_feed_needed: true
+    url: https://arstechnica.com/science/2026/03/final-analysis-of-2025-iberian-blackout-policies-left-spain-at-risk/
+    rss_feed: https://feeds.arstechnica.com/arstechnica/index
     tags:
       paywall_type: none
       category: tech
       difficulty: easy
 
   - name: ProPublica
-    url: https://www.propublica.org/article/the-secret-irs-files-trove-of-never-before-seen-records-reveal-how-the-wealthiest-avoid-income-tax
-    rss_feed_needed: true
+    url: https://www.propublica.org/article/american-kids-detained-trump-immigration-deportation-democrats-investigation
+    rss_feed: https://www.propublica.org/feeds/propublica/main
     tags:
       paywall_type: none
       category: news
       difficulty: medium
 
   - name: The Intercept
-    url: https://theintercept.com/2025/08/14/state-department-human-rights-reports/
-    rss_feed_needed: true
+    url: https://theintercept.com/2026/03/24/cuba-oil-blockade-trump-rubio/
+    rss_feed: https://theintercept.com/feed/?lang=en
     tags:
       paywall_type: none
       category: news
       difficulty: easy
 
   - name: Axios
-    url: https://www.axios.com/2025/11/30/chatgpt-three-years-work
-    rss_feed_needed: true
+    url: https://www.axios.com/2026/03/24/openai-discontinue-sora-video-app
+    rss_feed: https://api.axios.com/feed/
     tags:
       paywall_type: cloudflare
       category: news
       difficulty: hard
 
   - name: The Hill
-    url: https://thehill.com/policy/technology/4192640-ai-regulation-congress/
+    url: https://thehill.com/homenews/state-watch/5798052-democrats-upset-florida-senate-election/
     rss_feed: https://thehill.com/feed/
     tags:
       paywall_type: perimeter-x
@@ -111,7 +111,7 @@ sites:
       difficulty: hard
 
   - name: Smithsonian Magazine
-    url: https://www.smithsonianmag.com/history/the-true-story-behind-devil-in-the-white-city-702476/
+    url: https://www.smithsonianmag.com/smart-news/a-bronze-age-loom-sheds-new-light-on-mediterranean-textile-practices-180988426/
     rss_feed: https://www.smithsonianmag.com/rss/latest_articles/
     tags:
       paywall_type: soft
@@ -119,8 +119,8 @@ sites:
       difficulty: medium
 
   - name: Vox
-    url: https://www.vox.com/climate/475447/australia-great-barrier-reef-climate-change-restoration
-    rss_feed_needed: true
+    url: https://www.vox.com/future-perfect/482653/openai-nonprofit-foundation-philanthropy
+    rss_feed: https://www.vox.com/rss/index.xml
     tags:
       paywall_type: none
       category: news
@@ -128,7 +128,7 @@ sites:
 
   - name: Slate
     url: https://slate.com/news-and-politics/2025/07/ice-public-opinion-civil-war-trump-revolt.html
-    rss_feed_needed: true
+    rss_feed: https://slate.com/feeds/all.rss
     tags:
       paywall_type: none
       category: magazine
@@ -136,47 +136,47 @@ sites:
 
   - name: HuffPost
     url: https://www.huffpost.com/entry/polymarket-khamenei-bets-iran-war_l_69bac785e4b0411b809efa63
-    rss_feed_needed: true
+    rss_feed: https://chaski.huffpost.com/us/auto/vertical/politics
     tags:
       paywall_type: none
       category: news
       difficulty: medium
 
   - name: Reason
-    url: https://reason.com/volokh/2026/03/20/my-new-liberalism-org-article-on-how-immigration-restrictions-restrict-americans-liberties/
-    rss_feed_needed: true
+    url: https://reason.com/volokh/2026/03/24/trump-administration-agrees-to-consent-decree-in-missouri-v-biden-social-media-case/
+    rss_feed: https://reason.com/feed/
     tags:
       paywall_type: none
       category: policy
       difficulty: easy
 
   - name: Common Dreams
-    url: https://www.commondreams.org/opinion/what-is-project-2025
-    rss_feed_needed: true
+    url: https://www.commondreams.org/newswire/oil-change-response-to-maria-corina-machado-s-speech-at-ceraweek
+    rss_feed: https://www.commondreams.org/feeds/feed.rss
     tags:
       paywall_type: soft
       category: news
       difficulty: medium
 
   - name: TechCrunch
-    url: https://techcrunch.com/2025/12/29/2025-was-the-year-ai-got-a-vibe-check/
-    rss_feed_needed: true
+    url: https://techcrunch.com/2026/03/24/amazon-just-bought-a-startup-making-kid-size-humanoid-robots/
+    rss_feed: https://techcrunch.com/feed/
     tags:
       paywall_type: none
       category: tech
       difficulty: medium
 
   - name: CNET
-    url: https://www.cnet.com/tech/services-and-software/best-vpn/
-    rss_feed_needed: true
+    url: https://www.cnet.com/tech/services-and-software/apple-may-give-siri-a-big-ai-overhaul-in-ios-27-report-says/
+    rss_feed: https://www.cnet.com/rss/news/
     tags:
       paywall_type: none
       category: tech
       difficulty: medium
 
   - name: Salon
-    url: https://www.salon.com/2025/03/05/after-dei-backlash-embracing-new-ideas-for-fairness-in-the-workplace/
-    rss_feed_needed: true
+    url: https://www.salon.com/2026/03/24/melissa-auf-der-maurs-memoir-captures-the-beauty-and-brutality-of-90s-rock/
+    rss_feed: https://www.salon.com/feed/
     tags:
       paywall_type: none
       category: news
@@ -187,16 +187,16 @@ sites:
   # ──────────────────────────────────────────────────────────────
 
   - name: The Guardian
-    url: https://www.theguardian.com/lifeandstyle/2025/aug/17/being-short-is-a-curse-the-men-paying-thousands-to-get-their-legs-broken-and-lengthened
-    rss_feed_needed: true
+    url: https://www.theguardian.com/environment/2026/mar/24/mountain-gorillas-twins-born-drc-aoe
+    rss_feed: https://www.theguardian.com/world/rss
     tags:
       paywall_type: soft
       category: uk
       difficulty: easy
 
   - name: Mother Jones
-    url: https://www.motherjones.com/politics/2025/07/the-landlord-gutting-americas-hospitals/
-    rss_feed_needed: true
+    url: https://www.motherjones.com/politics/2026/03/mad-scientist/
+    rss_feed: https://www.motherjones.com/feed/
     tags:
       paywall_type: soft
       category: magazine
@@ -204,31 +204,31 @@ sites:
 
   - name: The Nation
     url: https://www.thenation.com/article/politics/trump-national-labor-relations-board/
-    rss_feed_needed: true
+    rss_feed: https://www.thenation.com/feed/?post_type=article
     tags:
       paywall_type: soft
       category: magazine
       difficulty: medium
 
   - name: Jacobin
-    url: https://jacobin.com/2025/01/trump-executive-orders-project-2025
-    rss_feed_needed: true
+    url: https://jacobin.com/2026/03/lander-goldman-aipac-congressional-nyc/
+    rss_feed: https://jacobin.com/feed
     tags:
       paywall_type: soft
       category: policy
       difficulty: medium
 
   - name: Politico
-    url: https://www.politico.com/news/magazine/2023/08/10/kevin-mccarthy-gop-impeachment-00109920
-    rss_feed_needed: true
+    url: https://www.politico.com/news/2026/03/24/trump-endorsed-north-carolina-state-senate-leader-loses-00843104
+    rss_feed: https://rss.politico.com/politics-news.xml
     tags:
       paywall_type: soft
       category: policy
       difficulty: medium
 
   - name: Fortune
-    url: https://fortune.com/2025/08/18/mit-report-95-percent-generative-ai-pilots-at-companies-failing-cfo/
-    rss_feed_needed: true
+    url: https://fortune.com/2026/03/24/exclusive-cambridge-mobile-telematics-secures-350-million-from-tpg-allianz-to-make-driving-safer/
+    rss_feed: https://fortune.com/feed/
     tags:
       paywall_type: soft
       category: finance
@@ -236,22 +236,22 @@ sites:
 
   - name: Inc
     url: https://www.inc.com/jason-aten/apple-vision-pro-review.html
-    rss_feed_needed: true
+    rss_feed: https://www.inc.com/rss
     tags:
       paywall_type: cloudflare
       category: tech
       difficulty: hard
 
   - name: Fast Company
-    url: https://www.fastcompany.com/90966484/the-end-of-the-office-as-we-know-it
-    rss_feed_needed: true
+    url: https://www.fastcompany.com/91514709/the-tsa-fiasco-is-an-appalling-example-of-how-we-treat-essential-workers
+    rss_feed: https://www.fastcompany.com/latest/rss
     tags:
       paywall_type: cloudflare
       category: tech
       difficulty: hard
 
   - name: Business Insider
-    url: https://www.businessinsider.com/elon-musk-twitter-x-timeline-what-happened-2023-10
+    url: https://www.businessinsider.com/openai-kills-sora-app-ai-compute-crunch-forces-hard-choices-2026-3
     rss_feed: https://feeds.businessinsider.com/custom/all
     tags:
       paywall_type: soft
@@ -259,8 +259,8 @@ sites:
       difficulty: medium
 
   - name: Seeking Alpha
-    url: https://seekingalpha.com/article/4591320-nvidia-stock-is-it-too-late-to-buy
-    rss_feed_needed: true
+    url: https://seekingalpha.com/article/4885578-biocardia-inc-2025-q4-results-earnings-call-presentation?source=feed_all_articles
+    rss_feed: https://seekingalpha.com/feed.xml
     tags:
       paywall_type: perimeter-x
       category: finance
@@ -271,7 +271,7 @@ sites:
   # ──────────────────────────────────────────────────────────────
 
   - name: New York Times
-    url: https://www.nytimes.com/2023/04/16/technology/ai-chatbot-google-microsoft.html
+    url: https://www.nytimes.com/2026/03/24/technology/arm-holdings-sell-chips.html
     rss_feed: https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml
     tags:
       paywall_type: metered
@@ -279,15 +279,15 @@ sites:
       difficulty: medium
 
   - name: Washington Post
-    url: https://www.washingtonpost.com/technology/2023/05/04/ai-artificial-intelligence-chatgpt-dangers/
-    rss_feed_needed: true
+    url: https://www.washingtonpost.com/national-security/2026/03/24/us-iran-peace-talks-pakistan-turkey-egypt/
+    rss_feed: https://feeds.washingtonpost.com/rss/world
     tags:
       paywall_type: metered
       category: news
       difficulty: medium
 
   - name: LA Times
-    url: https://www.latimes.com/california/story/2023-09-18/lahaina-fire-investigation
+    url: https://www.latimes.com/california/story/2026-03-24/state-ag-takes-riverside-county-sheriff-to-court-over-seized-ballots
     rss_feed: https://www.latimes.com/rss2.0.xml
     tags:
       paywall_type: metered
@@ -303,8 +303,8 @@ sites:
       difficulty: medium
 
   - name: Seattle Times
-    url: https://www.seattletimes.com/seattle-news/boeing-737-max-problems/
-    rss_feed_needed: true
+    url: https://www.seattletimes.com/sports/wsu-cougar-football/wsu-spring-football-preview-three-trends-to-watch-on-offense/?utm_source=RSS&utm_medium=Referral&utm_campaign=RSS_all
+    rss_feed: https://www.seattletimes.com/feed/
     tags:
       paywall_type: metered
       category: regional
@@ -335,8 +335,8 @@ sites:
       difficulty: medium
 
   - name: Dallas Morning News
-    url: https://www.dallasnews.com/news/politics/2023/05/24/texas-border-security-operation/
-    rss_feed_needed: true
+    url: https://www.dallasnews.com/sports/tv-radio-listings/2026/03/24/wednesdays-tvradio-listings-march-25/
+    rss_feed: https://www.dallasnews.com/arc/outboundfeeds/rss/?outputType=xml
     tags:
       paywall_type: metered
       category: regional
@@ -359,8 +359,8 @@ sites:
       difficulty: medium
 
   - name: Tampa Bay Times
-    url: https://www.tampabay.com/news/florida/2023/06/01/florida-homeowners-insurance-crisis/
-    rss_feed_needed: true
+    url: http://www.tampabay.com/news/florida-politics/elections/2026/03/24/tampa-special-election-josie-tomkow-brian-nathan-republican-democrat/
+    rss_feed: https://www.tampabay.com/arc/outboundfeeds/rss/?outputType=xml
     tags:
       paywall_type: metered
       category: regional
@@ -399,7 +399,7 @@ sites:
       difficulty: medium
 
   - name: Portland Oregonian
-    url: https://www.oregonlive.com/news/2023/08/portland-homeless-crisis.html
+    url: https://www.oregonlive.com/crime/2026/03/no-evidence-that-hillsboro-mosque-was-intentionally-targeted-by-stray-bullet-police-say.html
     rss_feed: https://www.oregonlive.com/arc/outboundfeeds/rss/?outputType=xml
     tags:
       paywall_type: metered
@@ -407,16 +407,16 @@ sites:
       difficulty: medium
 
   - name: Cleveland Plain Dealer
-    url: https://www.cleveland.com/metro/2023/06/cleveland-population-decline.html
-    rss_feed_needed: true
+    url: https://www.cleveland.com/community/2026/03/highland-heights-man-charged-with-fraud-that-cost-gilmour-academy-over-5000.html
+    rss_feed: https://www.cleveland.com/arc/outboundfeeds/rss/?outputType=xml
     tags:
       paywall_type: metered
       category: regional
       difficulty: medium
 
   - name: NJ.com
-    url: https://www.nj.com/news/2023/07/nj-property-taxes-highest-in-nation.html
-    rss_feed_needed: true
+    url: https://www.nj.com/camden/2026/03/large-dumpster-fire-damages-2-homes-nj-fire-officials-say.html
+    rss_feed: https://www.nj.com/arc/outboundfeeds/rss/?outputType=xml
     tags:
       paywall_type: metered
       category: regional
@@ -424,7 +424,7 @@ sites:
 
   - name: Scientific American
     url: https://www.scientificamerican.com/article/the-universe-is-not-locally-real/
-    rss_feed_needed: true
+    rss_feed: https://www.scientificamerican.com/platform/syndication/rss/
     tags:
       paywall_type: metered
       category: science
@@ -443,7 +443,7 @@ sites:
   # ──────────────────────────────────────────────────────────────
 
   - name: Boston Globe
-    url: https://www.bostonglobe.com/2023/04/14/business/boston-office-vacancy-rates/
+    url: https://www.bostonglobe.com/2026/03/24/sports/celtics-jayson-tatum-return-frustrations/
     rss_feed: https://www.bostonglobe.com/arc/outboundfeeds/rss/?outputType=xml
     tags:
       paywall_type: piano
@@ -451,8 +451,8 @@ sites:
       difficulty: medium
 
   - name: Pittsburgh Post-Gazette
-    url: https://www.post-gazette.com/news/transportation/2023/05/15/pittsburgh-bridges-infrastructure/stories/202305150080
-    rss_feed_needed: true
+    url: https://www.post-gazette.com/news/politics-local/2026/03/24/district-attorney-search-warrant-pittsburgh/stories/202603240089
+    rss_feed: https://www.post-gazette.com/rss
     tags:
       paywall_type: piano
       category: regional
@@ -483,16 +483,16 @@ sites:
       difficulty: medium
 
   - name: Richmond Times-Dispatch
-    url: https://richmond.com/news/state-regional/virginia-education-reform-2023/article_a1b2c3d4.html
-    rss_feed_needed: true
+    url: https://richmond.com/exclusive/christmas-mother/article_59656007-39f9-4eb1-9460-3c7060875729.html
+    rss_feed: https://richmond.com/search/?f=rss&t=article&c=news&l=50&s=start_time&sd=desc
     tags:
       paywall_type: piano
       category: regional
       difficulty: medium
 
   - name: Omaha World-Herald
-    url: https://omaha.com/news/local/warren-buffett-berkshire-hathaway-omaha/article_e5f6g7h8.html
-    rss_feed_needed: true
+    url: https://omaha.com/news/state-regional/nebraska/article_1c44796a-e36c-52c5-a016-edc933cb8fd4.html
+    rss_feed: https://omaha.com/search/?f=rss&t=article&c=news&l=50&s=start_time&sd=desc
     tags:
       paywall_type: piano
       category: regional
@@ -507,7 +507,7 @@ sites:
       difficulty: medium
 
   - name: National Post (Canada)
-    url: https://nationalpost.com/news/canada/canadian-housing-crisis-explained
+    url: https://nationalpost.com/news/canada/whos-to-blame-for-air-canada-crash-laguardia-airport
     rss_feed: https://nationalpost.com/feed/
     tags:
       paywall_type: piano
@@ -515,8 +515,8 @@ sites:
       difficulty: medium
 
   - name: Toronto Star
-    url: https://www.thestar.com/news/gta/toronto-cost-of-living-crisis/article_a2b3c4d5.html
-    rss_feed_needed: true
+    url: https://www.thestar.com/news/canada/pride-festivals-seek-federal-3m-as-corporations-pull-back-support-amid-dei-backlash/article_d7114c79-7b6b-5c87-ba7c-37764059c867.html
+    rss_feed: https://www.thestar.com/search/?f=rss&t=article&c=news&l=50&s=start_time&sd=desc
     tags:
       paywall_type: piano
       category: canada
@@ -527,8 +527,8 @@ sites:
   # ──────────────────────────────────────────────────────────────
 
   - name: Bloomberg
-    url: https://www.bloomberg.com/news/features/2018-10-04/the-big-hack-how-china-used-a-tiny-chip-to-infiltrate-america-s-top-companies
-    rss_feed_needed: true
+    url: https://www.bloomberg.com/news/articles/2026-03-25/australia-s-inflation-was-elevated-before-war-driven-oil-shock
+    rss_feed: https://feeds.bloomberg.com/markets/news.rss
     tags:
       paywall_type: perimeter-x
       category: finance
@@ -543,15 +543,15 @@ sites:
       difficulty: hard
 
   - name: MarketWatch
-    url: https://www.marketwatch.com/story/the-stock-market-is-historically-expensive-11672165403
-    rss_feed_needed: true
+    url: https://www.marketwatch.com/story/7-software-stocks-set-to-thrive-in-the-face-of-ai-uncertainty-d810b6d1?mod=mw_rss_topstories
+    rss_feed: https://feeds.marketwatch.com/marketwatch/topstories
     tags:
       paywall_type: perimeter-x
       category: finance
       difficulty: hard
 
   - name: Variety
-    url: https://variety.com/2023/film/news/barbie-oppenheimer-box-office-1235672384/
+    url: https://variety.com/2026/music/global/lily-allen-sam-fender-2026-o2-silver-clef-awards-honorees-1236698046/
     rss_feed: https://variety.com/feed/
     tags:
       paywall_type: perimeter-x
@@ -559,15 +559,15 @@ sites:
       difficulty: hard
 
   - name: Hollywood Reporter
-    url: https://www.hollywoodreporter.com/movies/movie-features/christopher-nolan-oppenheimer-interview-1235535099/
-    rss_feed_needed: true
+    url: https://www.hollywoodreporter.com/business/digital/sora-disney-openai-deal-collapse-1236546434/
+    rss_feed: https://www.hollywoodreporter.com/feed/
     tags:
       paywall_type: perimeter-x
       category: entertainment
       difficulty: hard
 
   - name: Deadline
-    url: https://deadline.com/2023/07/writers-strike-wga-sag-aftra-history-1235427843/
+    url: https://deadline.com/2026/03/lee-byunghan-han-jimin-the-koreans-remake-the-americans-1236764981/
     rss_feed: https://deadline.com/feed/
     tags:
       paywall_type: perimeter-x
@@ -575,7 +575,7 @@ sites:
       difficulty: hard
 
   - name: Billboard
-    url: https://www.billboard.com/music/music-news/taylor-swift-eras-tour-economic-impact-1235373707/
+    url: https://www.billboard.com/music/music-news/chip-taylor-dead-songwriter-wild-thing-angel-of-the-morning-1236206249/
     rss_feed: https://www.billboard.com/feed/
     tags:
       paywall_type: perimeter-x
@@ -583,7 +583,7 @@ sites:
       difficulty: hard
 
   - name: Rolling Stone
-    url: https://www.rollingstone.com/music/music-features/beatles-now-and-then-story-1234871795/
+    url: https://www.rollingstone.com/music/music-news/chip-taylor-wild-thing-songwriter-dead-obituary-1235536722/
     rss_feed: https://www.rollingstone.com/feed/
     tags:
       paywall_type: perimeter-x
@@ -592,15 +592,15 @@ sites:
 
   - name: Pitchfork
     url: https://pitchfork.com/features/article/the-500-best-songs-of-the-2000s/
-    rss_feed_needed: true
+    rss_feed: https://pitchfork.com/feed/rss
     tags:
       paywall_type: perimeter-x
       category: entertainment
       difficulty: hard
 
   - name: NME
-    url: https://www.nme.com/features/music-features/best-albums-2023-3533241
-    rss_feed_needed: true
+    url: https://www.nme.com/news/music/milton-keynes-crucial-grassroots-music-venues-to-receive-40000-council-funding-3936494?utm_source=rss&utm_medium=rss&utm_campaign=milton-keynes-crucial-grassroots-music-venues-to-receive-40000-council-funding
+    rss_feed: https://www.nme.com/feed
     tags:
       paywall_type: perimeter-x
       category: entertainment
@@ -627,24 +627,24 @@ sites:
       difficulty: hard
 
   - name: Sydney Morning Herald
-    url: https://www.smh.com.au/national/nsw/sydney-housing-crisis-20230615-p5dgxa.html
-    rss_feed_needed: true
+    url: https://www.smh.com.au/national/nsw/after-swimming-12-hours-non-stop-quinn-knew-it-was-the-beginning-of-the-end-20260324-p5v4pq.html?ref=rss&utm_medium=rss&utm_source=rss_feed
+    rss_feed: https://www.smh.com.au/rss/feed.xml
     tags:
       paywall_type: cloudflare
       category: australia
       difficulty: hard
 
   - name: Globe and Mail (Canada)
-    url: https://www.theglobeandmail.com/business/article-canadian-banks-housing-market/
-    rss_feed_needed: true
+    url: https://www.theglobeandmail.com/business/article-air-canada-investigation-fatal-collision-laguardia-airport/
+    rss_feed: https://www.theglobeandmail.com/arc/outboundfeeds/rss/category/canada/
     tags:
       paywall_type: cloudflare
       category: canada
       difficulty: hard
 
   - name: New Scientist
-    url: https://www.newscientist.com/article/2370723-the-real-risks-of-artificial-intelligence/
-    rss_feed_needed: true
+    url: https://www.newscientist.com/article/2520503-earth-may-have-formed-from-two-separate-rings-around-the-sun/?utm_campaign=RSS%7CNSNS&utm_source=NSNS&utm_medium=RSS&utm_content=home
+    rss_feed: https://www.newscientist.com/feed/home/
     tags:
       paywall_type: cloudflare
       category: science
@@ -655,8 +655,8 @@ sites:
   # ──────────────────────────────────────────────────────────────
 
   - name: Wall Street Journal
-    url: https://www.wsj.com/articles/chatgpt-ai-chatbot-app-explained-11675865177
-    rss_feed_needed: true
+    url: https://www.wsj.com/articles/palestinians-flock-back-to-northern-gaza-on-foot-after-hostage-release-breakthrough-3f60e2db
+    rss_feed: https://feeds.a.dj.com/rss/RSSWorldNews.xml
     tags:
       paywall_type: hard
       category: finance
@@ -671,32 +671,32 @@ sites:
       difficulty: hard
 
   - name: The Economist
-    url: https://www.economist.com/leaders/2023/04/20/how-to-worry-wisely-about-artificial-intelligence
-    rss_feed_needed: true
+    url: https://www.economist.com/the-world-this-week/2026/03/20/cover-story-newsletter-operation-blind-fury
+    rss_feed: https://www.economist.com/the-world-this-week/rss.xml
     tags:
       paywall_type: hard
       category: finance
       difficulty: hard
 
   - name: The Atlantic
-    url: https://www.theatlantic.com/magazine/archive/2023/06/chatbot-ai-social-media-disinformation/673780/
-    rss_feed_needed: true
+    url: https://www.theatlantic.com/newsletters/2026/03/trump-markets-decision-making-iran/686526/?utm_source=feed
+    rss_feed: https://www.theatlantic.com/feed/all/
     tags:
       paywall_type: hard
       category: magazine
       difficulty: hard
 
   - name: The New Yorker
-    url: https://www.newyorker.com/magazine/2023/04/03/the-new-age-of-artificial-intelligence
-    rss_feed_needed: true
+    url: https://www.newyorker.com/news/the-lede/a-former-prisoner-of-the-iranian-regime-watches-trumps-war
+    rss_feed: https://www.newyorker.com/feed/news
     tags:
       paywall_type: hard
       category: magazine
       difficulty: hard
 
   - name: Wired
-    url: https://www.wired.com/story/plaintext-fast-ai-chatgpt-openai-microsoft/
-    rss_feed_needed: true
+    url: https://www.wired.com/story/pentagons-attempt-to-cripple-anthropic-is-troublesome-judge-says/
+    rss_feed: https://www.wired.com/feed/rss
     tags:
       paywall_type: hard
       category: tech
@@ -711,40 +711,40 @@ sites:
       difficulty: hard
 
   - name: MIT Technology Review
-    url: https://www.technologyreview.com/2023/02/08/1068068/chatgpt-is-everywhere-heres-where-it-came-from/
-    rss_feed_needed: true
+    url: https://www.technologyreview.com/2026/03/24/1134531/exclusive-ebook-are-we-ready-to-hand-ai-agents-the-keys/
+    rss_feed: https://www.technologyreview.com/feed/
     tags:
       paywall_type: hard
       category: tech
       difficulty: hard
 
   - name: Foreign Policy
-    url: https://foreignpolicy.com/2023/06/14/ai-arms-race-china-united-states/
-    rss_feed_needed: true
+    url: https://foreignpolicy.com/2026/03/24/china-xi-jinping-xiongan-beijing-capital-city-urban-planning/
+    rss_feed: https://foreignpolicy.com/feed/
     tags:
       paywall_type: hard
       category: policy
       difficulty: hard
 
   - name: Foreign Affairs
-    url: https://www.foreignaffairs.com/united-states/artificial-intelligence-geopolitics
-    rss_feed_needed: true
+    url: https://www.foreignaffairs.com/china/china-squeezing-southeast-asia
+    rss_feed: https://www.foreignaffairs.com/rss.xml
     tags:
       paywall_type: hard
       category: policy
       difficulty: hard
 
   - name: National Review
-    url: https://www.nationalreview.com/magazine/2023/06/26/the-ai-revolution/
-    rss_feed_needed: true
+    url: https://www.nationalreview.com/2026/03/of-course-jd-vance-will-run-in-2028/
+    rss_feed: https://www.nationalreview.com/feed/
     tags:
       paywall_type: hard
       category: policy
       difficulty: hard
 
   - name: The Information
-    url: https://www.theinformation.com/articles/openai-and-the-race-to-build-the-next-google
-    rss_feed_needed: true
+    url: https://www.theinformation.com/articles/math-behind-anthropics-mad-revenue-growth
+    rss_feed: https://www.theinformation.com/feed
     tags:
       paywall_type: hard
       category: tech
@@ -775,8 +775,8 @@ sites:
       difficulty: hard
 
   - name: Nature
-    url: https://www.nature.com/articles/d41586-023-00340-6
-    rss_feed_needed: true
+    url: https://www.nature.com/articles/s41586-026-10403-z
+    rss_feed: https://www.nature.com/nature.rss
     tags:
       paywall_type: hard
       category: science
@@ -800,15 +800,15 @@ sites:
 
   - name: Sports Illustrated
     url: https://www.si.com/nfl/2023/09/05/nfl-power-rankings-week-1-2023
-    rss_feed_needed: true
+    rss_feed: https://www.si.com/feed/
     tags:
       paywall_type: hard
       category: sports
       difficulty: hard
 
   - name: ESPN+
-    url: https://www.espn.com/nfl/insider/story/_/id/38393015/2023-nfl-draft-best-available-players
-    rss_feed_needed: true
+    url: https://www.espn.com/nfl/story/_/id/48298896/bengals-41-year-old-qb-joe-flacco-agree-1-year-deal
+    rss_feed: https://www.espn.com/espn/rss/news
     tags:
       paywall_type: hard
       category: sports

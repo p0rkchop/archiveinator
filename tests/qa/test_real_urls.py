@@ -25,19 +25,14 @@ import pytest
 
 from tests.qa.reporter import save_result, validate_archive
 from tests.qa.rss_resolver import resolve_site_url
+from tests.qa.rss_resolver import resolve_article_urls
 
 # Timeout per site in seconds — generous to accommodate slow pages + monolith
 _ARCHIVE_TIMEOUT = 180
 
 
-@pytest.mark.real_url
-def test_archive_site(qa_site: dict, tmp_path: pytest.TempPathFactory) -> None:
-    """Archive a live site and validate the output."""
-    site_name = qa_site["name"]
-    url = resolve_site_url(qa_site)  # uses rss_feed if present, falls back to stored url
-    tags = qa_site.get("tags", {})
-
-    # Run archiveinator as a subprocess — mirrors end-user experience
+def _run_archive(url: str, output_dir: str) -> tuple[subprocess.CompletedProcess, str]:
+    """Run archiveinator archive and return (proc, combined_output)."""
     proc = subprocess.run(
         [
             sys.executable,
@@ -46,13 +41,24 @@ def test_archive_site(qa_site: dict, tmp_path: pytest.TempPathFactory) -> None:
             "archive",
             url,
             "--output-dir",
-            str(tmp_path),
+            output_dir,
             "--verbose",
         ],
         capture_output=True,
         text=True,
         timeout=_ARCHIVE_TIMEOUT,
     )
+    return proc, proc.stdout + proc.stderr
+
+
+@pytest.mark.real_url
+def test_archive_site(qa_site: dict, tmp_path: pytest.TempPathFactory) -> None:
+    """Archive a live site and validate the output."""
+    site_name = qa_site["name"]
+    url = resolve_site_url(qa_site)
+    tags = qa_site.get("tags", {})
+
+    proc, output = _run_archive(url, str(tmp_path))
 
     # Validate the archive
     result = validate_archive(
@@ -60,11 +66,27 @@ def test_archive_site(qa_site: dict, tmp_path: pytest.TempPathFactory) -> None:
         site_name=site_name,
         difficulty=tags.get("difficulty", ""),
     )
+
+    # If word count is below threshold and RSS has alternate articles, retry once
+    if not result.passed and result.word_count < 300 and result.word_count > 0:
+        rss_feed = qa_site.get("rss_feed")
+        if rss_feed:
+            alt_urls = resolve_article_urls(rss_feed)
+            if len(alt_urls) > 1 and alt_urls[0] == url:
+                # Clean output dir and try next article
+                for f in tmp_path.glob("*.html"):
+                    f.unlink()
+                proc, output = _run_archive(alt_urls[1], str(tmp_path))
+                result = validate_archive(
+                    tmp_path,
+                    site_name=site_name,
+                    difficulty=tags.get("difficulty", ""),
+                )
+
     result.category = tags.get("category", "")
     result.paywall_type = tags.get("paywall_type", "")
 
     # Extract bypass method from verbose output
-    output = proc.stdout + proc.stderr
     for method in [
         "js_overlay_removal",
         "ua_cycling",

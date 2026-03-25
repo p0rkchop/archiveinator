@@ -1,56 +1,95 @@
 # TDD Resume State
-updated: 2026-03-24 18:30 UTC
-session_branch: tdd/session-2026-03-24
-current_paywall_type: perimeter-x
+updated: 2026-03-25 11:00 UTC
+session_branch: tdd/session-2026-03-24-2
+current_paywall_type: complete (all types swept)
 sites_passed_this_session:
-  - NPR (piano, 3897 words)
-  - Boston Globe (piano, 1654 words)
-  - National Post Canada (piano, 1862 words)
-  - Smithsonian Magazine (soft, 1223 words)
-  - Business Insider (soft, 462 words)
-  - LA Times (metered, 836 words)
-  - Deadline (perimeter-x, 1518 words)
-  - Billboard (perimeter-x, 512 words)
-  - Rolling Stone (perimeter-x, 1236 words)
-sites_intractable_this_session:
-  - New York Times: HTTP 403 server-side for all bypass attempts; no content served to bots; genuine subscription paywall. Attempts: (1) full suite all 403, (2) stealth browser on 403 - still blocked. Intractable.
-  - Portland Oregonian: Same as NYT — HTTP 403 server-side for all bypass strategies, Advance Local bot blocking. Intractable.
-  - The Hill: PerimeterX "Access to this page has been denied" for all strategies, 47-word block page. Intractable with current playwright-stealth approach.
-sites_in_progress:
-  - Variety: content_extraction works (strategy cached) but today's RSS article is 103 words (< 300 threshold). Article is genuinely short, not a paywall failure. Will likely pass on a different day's article.
+  # Piano
+  - NPR (piano, 3897 words) [prior session]
+  - Boston Globe (piano, 1654 words) [prior session]
+  - National Post Canada (piano, 1862 words) [prior session]
+  - Pittsburgh Post-Gazette (piano, 1885 words)
+  - Richmond Times-Dispatch (piano, 2696 words)
+  - Omaha World-Herald (piano, 3273 words)
+  - Toronto Star (piano, 4857 words)
+  # Soft
+  - Smithsonian Magazine (soft, 1223 words) [prior session]
+  - Business Insider (soft, 462 words) [prior session]
+  - The Guardian (soft, 1217 words)
+  - Mother Jones (soft, 3277 words)
+  - The Nation (soft, 342 words)
+  - Jacobin (soft, 2391 words)
+  - Politico (soft, 1051 words)
+  - Fortune (soft, 765 words)
+  - Common Dreams (soft, 1202 words)
+  # Metered
+  - LA Times (metered, 836 words) [prior session]
+  - Dallas Morning News (metered, 1283 words)
+  - Tampa Bay Times (metered, 1427 words)
+  - Cleveland Plain Dealer (metered, 942 words)
+  - NJ.com (metered, 929 words)
+  - Scientific American (metered, 3977 words)
+  # PerimeterX
+  - Deadline (perimeter-x, 1518 words) [prior session]
+  - Billboard (perimeter-x, 512 words) [prior session]
+  - Rolling Stone (perimeter-x, 1236 words) [prior session]
+  - Pitchfork (perimeter-x, 1323 words)
+  - NME (perimeter-x, 787 words)
+  - Hollywood Reporter (perimeter-x, 602 words)
+  - MarketWatch (perimeter-x, 468 words)
+  # Cloudflare
+  - Axios (cloudflare, 901 words)
+  - Inc (cloudflare, passed)
+  - Fast Company (cloudflare, passed)
+  - Globe and Mail Canada (cloudflare, passed)
+  - New Scientist (cloudflare, passed)
+  # Hard paywall
+  - Wall Street Journal (hard, 860 words)
+  - The Atlantic (hard, 538 words)
+  - The New Yorker (hard, 1440 words)
+  - Wired (hard, 1517 words)
+  - Foreign Policy (hard, 2179 words)
+  - Foreign Affairs (hard, 1028 words)
+  - National Review (hard, 851 words)
+  - The Information (hard, 499 words)
+  - Nature (hard, 1286 words)
+  - Sports Illustrated (hard, 1841 words)
+  - ESPN+ (hard, 7031 words)
+  # Baseline (no paywall)
+  - The Onion (none, 1251 words)
+  - BBC News (none, 2098 words)
+  - The Verge (none, 1974 words)
+  - Ars Technica (none, 1842 words)
+  - ProPublica (none, 6853 words)
+  - The Intercept (none, 2097 words)
+  - Vox (none, 2311 words)
+  - Reason (none, 8545 words)
+  - TechCrunch (none, 815 words)
+  - CNET (none, 5382 words)
+  - Salon (none, 2890 words)
+
+sites_intractable:
+  - New York Times: HTTP 403 server-side for all bypass; genuine subscription paywall
+  - Portland Oregonian: HTTP 403 server-side; Advance Local bot blocking
+  - The Hill: PerimeterX "Access denied" for all strategies
+  - Bloomberg: PerimeterX + hard paywall; content_extraction gets only robot page (97 words)
+  - Seeking Alpha: PerimeterX #px-captcha + hard paywall; 95 words extracted
+  - Sydney Morning Herald: Cloudflare + hard paywall; HTTP 403 on all strategies, 34 words
+  - The Economist: Stealth browser gets through but only 61 words extracted
+  - Washington Post: net::ERR_HTTP2_PROTOCOL_ERROR — hard network-level bot block
+  - MIT Technology Review: No output file produced (page load failure)
+
+sites_partial_save:
+  - Slate: RSS article was a crossword puzzle (low content); monolith partial. Article-dependent.
+  - HuffPost: 3046 words but _partial suffix — monolith asset inlining timeout
+
+sites_flaky:
+  - Variety: content_extraction works but word count depends on article length
+  - Seattle Times: content_extraction gets 128-163 words; metered paywall limits visible content
+
 next_action: >
-  Resume perimeter-x group. Variety may self-resolve with a longer RSS article.
-  Consider testing The Hill with a fresh approach on next session.
-  Then move to cloudflare group (The Hill is cloudflare-adjacent via PerimeterX).
-  RSS-enabled sites remaining to test: None in cloudflare group (all rss_feed_needed).
-  Consider adding RSS feeds for: Globe and Mail (Canada), New Scientist, etc.
-
-infrastructure_changes_this_session:
-  - Added rss_resolver.py: RSS/Atom feed resolver with session-level caching
-  - Added rss_feed to 13 sites (including NPR verified at feeds.npr.org/1001/rss.xml)
-  - Added rss_feed_needed:true to 84 sites — skipped until feeds added
-  - Updated conftest: --qa-site, --qa-include-rss-needed flags; skip rss_feed_needed by default
-  - Fixed reporter.py: exact CSS class token matching (was substring)
-  - Fixed paywall.py: added .tp-container class selector
-  - Fixed content_extraction.py: 50-word quality gate rejects challenge pages
-  - Fixed asset_inlining.py: suppress external assets when bypass was used
-  - Fixed cli.py: stealth_browser now triggers on HTTP 403 (in addition to bot challenge pages)
-
-rss_enabled_sites:
-  piano:
-    - NPR: https://feeds.npr.org/1001/rss.xml ✓
-    - Boston Globe: https://www.bostonglobe.com/arc/outboundfeeds/rss/?outputType=xml ✓
-    - National Post Canada: https://nationalpost.com/feed/ ✓
-  soft:
-    - Smithsonian Magazine: https://www.smithsonianmag.com/rss/latest_articles/ ✓
-    - Business Insider: https://feeds.businessinsider.com/custom/all ✓
-  metered:
-    - LA Times: https://www.latimes.com/rss2.0.xml ✓
-    - NYT: https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml (intractable — HTTP 403)
-    - Portland Oregonian: https://www.oregonlive.com/arc/outboundfeeds/rss/?outputType=xml (intractable — HTTP 403)
-  perimeter-x:
-    - Deadline: https://deadline.com/feed/ ✓
-    - Billboard: https://www.billboard.com/feed/ ✓
-    - Rolling Stone: https://www.rollingstone.com/feed/ ✓
-    - The Hill: https://thehill.com/feed/ (intractable — PerimeterX block)
-    - Variety: https://variety.com/feed/ (flaky — article length dependent)
+  All paywall type groups have been swept. 47 of 56 RSS-enabled sites pass.
+  Remaining work:
+  1. Investigate Slate/HuffPost partial saves (monolith asset inlining timeouts)
+  2. Consider adding RSS feeds for remaining rss_feed_needed sites
+  3. 9 intractable/flaky sites likely need fundamentally different approaches
+     (e.g. actual subscription credentials, residential proxy, or accepting archive fallback)
