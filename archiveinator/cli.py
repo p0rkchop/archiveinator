@@ -393,23 +393,35 @@ def archive(
 
 
 @app.command()
-def setup() -> None:
+def setup(
+    ignore_cert_errors: bool = typer.Option(
+        False,
+        "--ignore-cert-errors",
+        help="Ignore SSL certificate errors during setup (use behind corporate proxies)",
+    ),
+) -> None:
     """Install dependencies: Playwright Chromium and monolith binary."""
     from archiveinator import setup_cmd
     from archiveinator.setup_cmd import SetupError
 
     try:
-        setup_cmd.run()
+        setup_cmd.run(ignore_cert_errors=ignore_cert_errors)
     except SetupError as e:
         _abort(str(e))
 
 
 @app.command(name="update-blocklists")
-def update_blocklists() -> None:
+def update_blocklists(
+    ignore_cert_errors: bool = typer.Option(
+        False,
+        "--ignore-cert-errors",
+        help="Ignore SSL certificate errors during download (use behind corporate proxies)",
+    ),
+) -> None:
     """Download the latest EasyList and EasyPrivacy adblock rules."""
     from archiveinator.setup_cmd import _setup_blocklists
 
-    _setup_blocklists()
+    _setup_blocklists(ignore_cert_errors=ignore_cert_errors)
 
 
 # --- Cache subcommands ---

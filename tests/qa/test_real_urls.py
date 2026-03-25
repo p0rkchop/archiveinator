@@ -24,8 +24,7 @@ import sys
 import pytest
 
 from tests.qa.reporter import save_result, validate_archive
-from tests.qa.rss_resolver import resolve_site_url
-from tests.qa.rss_resolver import resolve_article_urls
+from tests.qa.rss_resolver import resolve_article_urls, resolve_site_url
 
 # Timeout per site in seconds — generous to accommodate slow pages + monolith
 _ARCHIVE_TIMEOUT = 180
