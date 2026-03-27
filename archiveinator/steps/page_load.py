@@ -50,8 +50,20 @@ async def run(ctx: ArchiveContext) -> None:
                 extra_http_headers=ctx.extra_headers,
             )
             if ctx.cookies:
-                await browser_context.add_cookies(ctx.cookies)  # type: ignore[arg-type]
-                console.debug(f"Added {len(ctx.cookies)} cookie(s)")
+                # Log cookie domains for debugging
+                domains: dict[str, int] = {}
+                for c in ctx.cookies:
+                    domain = c.get("domain", c.get("url", "unknown"))
+                    domains[domain] = domains.get(domain, 0) + 1
+                domain_summary = ", ".join(f"{d}:{n}" for d, n in sorted(domains.items()))
+                console.step(f"Adding {len(ctx.cookies)} cookie(s) for domains: {domain_summary}")
+
+                try:
+                    await browser_context.add_cookies(ctx.cookies)  # type: ignore[arg-type]
+                    console.step(f"Successfully added {len(ctx.cookies)} cookie(s)")
+                except Exception as e:
+                    console.warning(f"Failed to add cookies: {e}")
+                    # Continue without cookies; authentication may fail
             page = await browser_context.new_page()
 
             # Apply stealth anti-fingerprinting if requested by bypass suite

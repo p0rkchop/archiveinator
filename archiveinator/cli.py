@@ -85,6 +85,22 @@ def _load_cookies(file_path: str) -> list[dict[str, object]]:
         """Keep only fields Playwright understands."""
         return {k: v for k, v in cookie.items() if k in ALLOWED_FIELDS}
 
+    def _validate_cookie(cookie: dict[str, Any]) -> bool:
+        """Check if a cookie has the required fields for Playwright."""
+        # name and value are required
+        if "name" not in cookie or "value" not in cookie:
+            return False
+
+        # Either url or domain+path must be present
+        if "url" in cookie:
+            return True
+        if "domain" in cookie:
+            # path defaults to "/" in Playwright
+            if "path" not in cookie:
+                cookie["path"] = "/"
+            return True
+        return False
+
     try:
         with open(file_path) as f:
             data = json.load(f)
@@ -117,7 +133,22 @@ def _load_cookies(file_path: str) -> list[dict[str, object]]:
 
     # Clean each cookie
     cleaned = [_clean_cookie(c) for c in cookies]
-    return cleaned
+
+    # Validate and filter
+    valid_cookies = []
+    invalid_count = 0
+    for cookie in cleaned:
+        if _validate_cookie(cookie):
+            valid_cookies.append(cookie)
+        else:
+            invalid_count += 1
+            console.warning(f"Cookie '{cookie.get('name', 'unnamed')}' missing required fields, skipping")
+
+    if invalid_count:
+        console.warning(f"Skipped {invalid_count} invalid cookie(s)")
+
+    console.debug(f"Loaded {len(valid_cookies)} valid cookie(s) from {file_path}")
+    return valid_cookies
 
 
 def _try_strategy(
@@ -396,7 +427,7 @@ def archive(
 
     # When writing to stdout, redirect all status messages to stderr so they
     # don't interleave with the HTML output.
-    console.configure(verbose=verbose, stderr=to_stdout)
+    console.configure(verbose=verbose, debug=verbose, stderr=to_stdout)
     _validate_url(url)
 
     try:
