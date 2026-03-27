@@ -15,14 +15,20 @@ from archiveinator import console
 from archiveinator.config import load as load_config
 from archiveinator.pipeline import ArchiveContext
 
+# Get package version for help text
+try:
+    VERSION = metadata.version("archiveinator")
+except metadata.PackageNotFoundError:
+    VERSION = "unknown"
+
 app = typer.Typer(
-    help="archiveinator — local web page archiver",
+    help=f"archiveinator v{VERSION} — local web page archiver\n\nRun 'archiveinator COMMAND --help' for more details on a specific command.",
     no_args_is_help=True,
 )
 
 @app.callback(invoke_without_command=True)
 def main_callback(version: bool = typer.Option(False, "--version", help="Show version and exit.")) -> None:
-    """archiveinator — local web page archiver"""
+    """Run 'archiveinator COMMAND --help' for more details on a specific command."""
     if version:
         try:
             pkg_version = metadata.version("archiveinator")
