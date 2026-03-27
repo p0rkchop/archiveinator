@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "archiveinator"
-version = "0.5.3"
+version = "0.6.0"
 description = "A local, self-hosted web page archiver with ad blocking and paywall bypass"
 readme = "README.md"
 license = { file = "LICENSE" }

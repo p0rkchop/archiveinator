@@ -515,3 +515,106 @@ def test_archive_with_cookie_editor_format(tmp_path: Path, monkeypatch: MonkeyPa
     assert cookie["path"] == "/"
     assert cookie["secure"]
     assert "extraField" not in cookie
+
+
+# --- Login command ---
+
+
+def test_login_command_help() -> None:
+    """Basic help test for login command."""
+    result = runner.invoke(app, ["login", "--help"])
+    assert result.exit_code == 0
+    output = _plain(result.output)
+    assert "URL to open for login" in output
+    assert "--output" in output
+    assert "--headless" in output
+    assert "--timeout" in output
+
+
+def test_login_command_requires_url() -> None:
+    """Login command requires URL argument."""
+    result = runner.invoke(app, ["login"])
+    assert result.exit_code != 0
+
+
+def test_login_command_invalid_url() -> None:
+    """Login command rejects non-http URLs."""
+    result = runner.invoke(app, ["login", "ftp://example.com"])
+    assert result.exit_code != 0
+    assert "Invalid URL" in result.output
+
+
+def test_login_command_with_output_option(tmp_path: Path, monkeypatch: MonkeyPatch) -> None:
+    """Login command respects --output option."""
+    import json
+    import archiveinator.cli as cli_mod
+
+    captured_url = None
+    captured_output = None
+    captured_headless = None
+    captured_timeout = None
+
+    async def mock_capture_login(
+        url: str, output: Path, headless: bool, timeout: int, full_storage: bool
+    ) -> None:
+        nonlocal captured_url, captured_output, captured_headless, captured_timeout
+        captured_url = url
+        captured_output = output
+        captured_headless = headless
+        captured_timeout = timeout
+        # Write dummy cookies to output file
+        with open(output, "w") as f:
+            json.dump({"cookies": []}, f)
+
+    monkeypatch.setattr(cli_mod, "_capture_login", mock_capture_login)
+
+    output_file = tmp_path / "mycookies.json"
+    result = runner.invoke(app, [
+        "login",
+        "https://example.com",
+        "--output", str(output_file),
+        "--headless",
+        "--timeout", "60",
+    ])
+    assert result.exit_code == 0
+    assert captured_url == "https://example.com"
+    assert captured_output == output_file
+    assert captured_headless is True
+    assert captured_timeout == 60
+    assert output_file.exists()
+    # Verify file contains valid JSON
+    data = json.loads(output_file.read_text())
+    assert "cookies" in data
+
+
+def test_login_command_full_storage(tmp_path: Path, monkeypatch: MonkeyPatch) -> None:
+    """Login command with --full-storage saves storage state."""
+    import json
+    import archiveinator.cli as cli_mod
+
+    captured_full_storage = None
+
+    async def mock_capture_login(
+        url: str, output: Path, headless: bool, timeout: int, full_storage: bool
+    ) -> None:
+        nonlocal captured_full_storage
+        captured_full_storage = full_storage
+        # Write dummy storage state
+        with open(output, "w") as f:
+            json.dump({"cookies": [], "origins": []}, f)
+
+    monkeypatch.setattr(cli_mod, "_capture_login", mock_capture_login)
+
+    output_file = tmp_path / "storage.json"
+    result = runner.invoke(app, [
+        "login",
+        "https://example.com",
+        "--output", str(output_file),
+        "--full-storage",
+    ])
+    assert result.exit_code == 0
+    assert captured_full_storage is True
+    assert output_file.exists()
+    data = json.loads(output_file.read_text())
+    assert "cookies" in data
+    assert "origins" in data

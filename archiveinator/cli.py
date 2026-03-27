@@ -157,6 +157,55 @@ def _load_cookies(file_path: str) -> list[dict[str, object]]:
     return valid_cookies
 
 
+async def _capture_login(
+    url: str,
+    output: Path,
+    headless: bool,
+    timeout: int,
+    full_storage: bool,
+) -> None:
+    """Async helper for login command: launch browser, wait for login, save cookies."""
+    from playwright.async_api import async_playwright
+
+    console.info(f"Opening browser for login to {url}")
+    console.info("Log in manually, then close the browser window to save cookies.")
+    if headless:
+        console.info("Running in headless mode (no visible window).")
+
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=headless)
+        try:
+            browser_context = await browser.new_context()
+            page = await browser_context.new_page()
+
+            # Navigate to URL
+            await page.goto(url, wait_until="domcontentloaded")
+
+            # Wait for browser to close or timeout
+            import asyncio
+            try:
+                # Wait for page close event (browser closed)
+                await asyncio.wait_for(page.wait_for_event("close"), timeout=timeout)
+            except asyncio.TimeoutError:
+                console.warning(f"Timeout after {timeout} seconds, saving cookies now.")
+
+            # Capture cookies or storage state
+            if full_storage:
+                storage_state = await browser_context.storage_state()
+                import json
+                with open(output, "w") as f:
+                    json.dump(storage_state, f, indent=2)
+                console.success(f"Saved storage state to {output}")
+            else:
+                cookies = await browser_context.cookies()
+                import json
+                with open(output, "w") as f:
+                    json.dump({"cookies": cookies}, f, indent=2)
+                console.success(f"Saved {len(cookies)} cookie(s) to {output}")
+        finally:
+            await browser.close()
+
+
 def _try_strategy(
     ctx: ArchiveContext,
     strategy: str,
@@ -557,6 +606,41 @@ def update_blocklists(
     from archiveinator.setup_cmd import _setup_blocklists
 
     _setup_blocklists(ignore_cert_errors=ignore_cert_errors)
+
+
+@app.command()
+def login(
+    url: str = typer.Argument(..., help="URL to open for login"),
+    output: Path = typer.Option(
+        Path("cookies.json"),
+        "--output",
+        "-o",
+        help="Output file path for cookies (default: cookies.json)",
+    ),
+    headless: bool = typer.Option(
+        False,
+        "--headless",
+        help="Run browser in headless mode (no visible window)",
+    ),
+    timeout: int = typer.Option(
+        300,
+        "--timeout",
+        help="Maximum time to wait for login in seconds (default: 300)",
+    ),
+    full_storage: bool = typer.Option(
+        False,
+        "--full-storage",
+        help="Save full storage state (cookies + localStorage) instead of just cookies",
+    ),
+) -> None:
+    """Launch interactive browser to log into a site and save authentication cookies."""
+    _validate_url(url)
+
+    import asyncio
+    try:
+        asyncio.run(_capture_login(url, output, headless, timeout, full_storage))
+    except Exception as e:
+        _abort(f"Login command failed: {e}")
 
 
 # --- Cache subcommands ---

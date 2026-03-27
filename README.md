@@ -184,12 +184,36 @@ archiveinator archive https://example.com/article --stdout > article.html
 archiveinator archive https://example.com/article --verbose
 
 # Cookie Authentication
-# Use cookies for authenticated pages (export from browser extension)
-# Supported formats: Cookie-Editor ({ "cookies": [...] }) and EditThisCookie ([...]) are automatically detected.
+
+## Capturing Cookies with Login Command
+
+To easily capture authentication cookies from a website, use the `login` command. It launches an interactive browser window where you can log in manually; cookies are saved when you close the browser.
+
+```bash
+# Basic usage: opens browser, navigates to URL, saves cookies to cookies.json
+archiveinator login https://example.com
+
+# Specify custom output file
+archiveinator login https://example.com -o auth.json
+
+# Run in headless mode (no visible window) with a timeout
+archiveinator login https://example.com --headless --timeout 60
+
+# Save full storage state (cookies + localStorage) instead of just cookies
+archiveinator login https://example.com --full-storage
+```
+
+## Using Saved Cookies
+
+Saved cookies can be used with the `archive` command:
+
+```bash
 archiveinator archive https://example.com/private --cookies-file cookies.json
 ```
 
-**Options:**
+Supported cookie formats: Cookie-Editor (`{ "cookies": [...] }`) and EditThisCookie (`[...]`) are automatically detected. The `login` command saves cookies in the Cookie-Editor format by default.
+
+**Options for `archive` command:**
 
 | Flag | Short | Description |
 |------|-------|-------------|
