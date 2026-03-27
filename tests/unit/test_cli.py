@@ -461,6 +461,7 @@ def test_archive_with_cookies_file(tmp_path: Path, monkeypatch: MonkeyPatch) -> 
     assert captured_cookies[0]["name"] == "session"
     assert captured_cookies[0]["value"] == "abc123"
 
+
 def test_archive_with_cookie_editor_format(tmp_path: Path, monkeypatch: MonkeyPatch) -> None:
     """--cookies-file loads Cookie-Editor format JSON."""
     import json

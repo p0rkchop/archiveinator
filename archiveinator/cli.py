@@ -27,8 +27,11 @@ app = typer.Typer(
     no_args_is_help=True,
 )
 
+
 @app.callback(invoke_without_command=True)
-def main_callback(version: bool = typer.Option(False, "--version", help="Show version and exit.")) -> None:
+def main_callback(
+    version: bool = typer.Option(False, "--version", help="Show version and exit."),
+) -> None:
     """Run 'archiveinator COMMAND --help' for more details on a specific command."""
     if version:
         try:
@@ -37,6 +40,7 @@ def main_callback(version: bool = typer.Option(False, "--version", help="Show ve
             pkg_version = "unknown"
         typer.echo(f"archiveinator v{pkg_version}")
         raise typer.Exit()
+
 
 cache_app = typer.Typer(help="Manage the per-domain bypass strategy cache.")
 app.add_typer(cache_app, name="cache")
@@ -142,7 +146,9 @@ def _load_cookies(file_path: str) -> list[dict[str, object]]:
             valid_cookies.append(cookie)
         else:
             invalid_count += 1
-            console.warning(f"Cookie '{cookie.get('name', 'unnamed')}' missing required fields, skipping")
+            console.warning(
+                f"Cookie '{cookie.get('name', 'unnamed')}' missing required fields, skipping"
+            )
 
     if invalid_count:
         console.warning(f"Skipped {invalid_count} invalid cookie(s)")
