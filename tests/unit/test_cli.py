@@ -570,13 +570,18 @@ def test_login_command_with_output_option(tmp_path: Path, monkeypatch: MonkeyPat
     monkeypatch.setattr(cli_mod, "_capture_login", mock_capture_login)
 
     output_file = tmp_path / "mycookies.json"
-    result = runner.invoke(app, [
-        "login",
-        "https://example.com",
-        "--output", str(output_file),
-        "--headless",
-        "--timeout", "60",
-    ])
+    result = runner.invoke(
+        app,
+        [
+            "login",
+            "https://example.com",
+            "--output",
+            str(output_file),
+            "--headless",
+            "--timeout",
+            "60",
+        ],
+    )
     assert result.exit_code == 0
     assert captured_url == "https://example.com"
     assert captured_output == output_file
@@ -608,12 +613,16 @@ def test_login_command_full_storage(tmp_path: Path, monkeypatch: MonkeyPatch) ->
     monkeypatch.setattr(cli_mod, "_capture_login", mock_capture_login)
 
     output_file = tmp_path / "storage.json"
-    result = runner.invoke(app, [
-        "login",
-        "https://example.com",
-        "--output", str(output_file),
-        "--full-storage",
-    ])
+    result = runner.invoke(
+        app,
+        [
+            "login",
+            "https://example.com",
+            "--output",
+            str(output_file),
+            "--full-storage",
+        ],
+    )
     assert result.exit_code == 0
     assert captured_full_storage is True
     assert output_file.exists()

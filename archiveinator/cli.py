@@ -184,6 +184,7 @@ async def _capture_login(
 
             # Wait for browser to close or timeout
             import asyncio
+
             try:
                 # Wait for page close event (browser closed)
                 await asyncio.wait_for(page.wait_for_event("close"), timeout=timeout)
@@ -194,12 +195,14 @@ async def _capture_login(
             if full_storage:
                 storage_state = await browser_context.storage_state()
                 import json
+
                 with open(output, "w") as f:
                     json.dump(storage_state, f, indent=2)
                 console.success(f"Saved storage state to {output}")
             else:
                 cookies = await browser_context.cookies()
                 import json
+
                 with open(output, "w") as f:
                     json.dump({"cookies": cookies}, f, indent=2)
                 console.success(f"Saved {len(cookies)} cookie(s) to {output}")
@@ -638,6 +641,7 @@ def login(
     _validate_url(url)
 
     import asyncio
+
     try:
         asyncio.run(_capture_login(url, output, headless, timeout, full_storage))
     except Exception as e:
