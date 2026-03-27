@@ -4,9 +4,9 @@ import asyncio
 import sys
 import time
 from collections.abc import Callable
-from typing import Any
 from importlib import metadata
 from pathlib import Path
+from typing import Any
 
 import typer
 from rich.console import Console as RichConsole

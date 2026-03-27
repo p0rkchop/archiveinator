@@ -15,7 +15,6 @@ import json
 import sys
 from pathlib import Path
 
-
 # Fields that Playwright's SetCookieParam accepts
 # https://playwright.dev/python/docs/api/class-browsercontext#browser-context-add-cookies
 ALLOWED_FIELDS = {
