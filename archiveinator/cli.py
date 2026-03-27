@@ -4,6 +4,7 @@ import asyncio
 import sys
 import time
 from collections.abc import Callable
+from typing import Any
 from importlib import metadata
 from pathlib import Path
 
@@ -51,6 +52,72 @@ def _abort(msg: str, exit_code: int = 1) -> None:
 def _validate_url(url: str) -> None:
     if not url.startswith(("http://", "https://")):
         _abort(f"Invalid URL: {url!r}. Must start with http:// or https://")
+
+
+def _load_cookies(file_path: str) -> list[dict[str, object]]:
+    """Load cookies from JSON file, attempting conversion if needed.
+
+    Supports:
+    - Playwright format: list of cookie objects
+    - Cookie-Editor format: {"cookies": [...]}
+    - EditThisCookie format: array of cookie objects (same as Playwright)
+
+    Returns a list of cookie dicts suitable for Playwright's add_cookies().
+    Unknown fields are stripped; only Playwright-accepted fields are kept.
+    """
+    import json
+
+    # Fields that Playwright's SetCookieParam accepts
+    # https://playwright.dev/python/docs/api/class-browsercontext#browser-context-add-cookies
+    ALLOWED_FIELDS = {
+        "name",
+        "value",
+        "url",
+        "domain",
+        "path",
+        "expires",
+        "httpOnly",
+        "secure",
+        "sameSite",
+    }
+
+    def _clean_cookie(cookie: dict[str, Any]) -> dict[str, Any]:
+        """Keep only fields Playwright understands."""
+        return {k: v for k, v in cookie.items() if k in ALLOWED_FIELDS}
+
+    try:
+        with open(file_path) as f:
+            data = json.load(f)
+    except (json.JSONDecodeError, OSError) as e:
+        raise ValueError(f"Could not read or parse JSON: {e}") from e
+
+    cookies: list[dict[str, Any]] = []
+
+    # Already a list of cookie objects
+    if isinstance(data, list):
+        # Verify first element looks like a cookie
+        if data and isinstance(data[0], dict) and "name" in data[0] and "value" in data[0]:
+            cookies = data
+        else:
+            raise ValueError("JSON list does not contain cookie objects")
+
+    # Cookie-Editor format: {"cookies": [...]}
+    elif isinstance(data, dict) and "cookies" in data:
+        cookies = data["cookies"]
+        if not isinstance(cookies, list):
+            raise ValueError("'cookies' field is not a list")
+
+    else:
+        # Unknown format
+        raise ValueError(
+            "Cookies file must be either:\n"
+            "1. A JSON list of cookie objects (Playwright/EditThisCookie format), or\n"
+            "2. A JSON object with a 'cookies' field (Cookie-Editor format)"
+        )
+
+    # Clean each cookie
+    cleaned = [_clean_cookie(c) for c in cookies]
+    return cleaned
 
 
 def _try_strategy(
@@ -314,12 +381,10 @@ def archive(
         None,
         "--cookies-file",
         "-c",
-        help="Path to JSON file containing cookies in Playwright format (list of dicts with name, value, domain, etc.)",
+        help="Path to JSON file containing cookies (Playwright format; Cookie-Editor and EditThisCookie exports are auto-detected)",
     ),
 ) -> None:
     """Archive a web page as a self-contained HTML file."""
-    import json
-
     from archiveinator.naming import build_filename
     from archiveinator.steps.asset_inlining import AssetInliningError
     from archiveinator.steps.asset_inlining import run as inline_run
@@ -351,13 +416,10 @@ def archive(
     ctx = ArchiveContext(url=url, config=config)
     if cookies_file:
         try:
-            with open(cookies_file) as f:
-                cookies = json.load(f)
-            if not isinstance(cookies, list):
-                _abort("Cookies file must contain a JSON list of cookie objects")
+            cookies = _load_cookies(cookies_file)
             ctx.cookies = cookies
             console.debug(f"Loaded {len(cookies)} cookie(s) from {cookies_file}")
-        except Exception as e:
+        except ValueError as e:
             _abort(f"Failed to load cookies file: {e}")
     if stealth:
         ctx.use_stealth = True
