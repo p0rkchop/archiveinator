@@ -4,6 +4,7 @@ import asyncio
 import sys
 import time
 from collections.abc import Callable
+from importlib import metadata
 from pathlib import Path
 
 import typer
@@ -18,6 +19,17 @@ app = typer.Typer(
     help="archiveinator — local web page archiver",
     no_args_is_help=True,
 )
+
+@app.callback(invoke_without_command=True)
+def main_callback(version: bool = typer.Option(False, "--version", help="Show version and exit.")) -> None:
+    """archiveinator — local web page archiver"""
+    if version:
+        try:
+            pkg_version = metadata.version("archiveinator")
+        except metadata.PackageNotFoundError:
+            pkg_version = "unknown"
+        typer.echo(f"archiveinator v{pkg_version}")
+        raise typer.Exit()
 
 cache_app = typer.Typer(help="Manage the per-domain bypass strategy cache.")
 app.add_typer(cache_app, name="cache")
