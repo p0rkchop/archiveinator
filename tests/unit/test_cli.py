@@ -547,6 +547,7 @@ def test_login_command_invalid_url() -> None:
 def test_login_command_with_output_option(tmp_path: Path, monkeypatch: MonkeyPatch) -> None:
     """Login command respects --output option."""
     import json
+
     import archiveinator.cli as cli_mod
 
     captured_url = None
@@ -590,6 +591,7 @@ def test_login_command_with_output_option(tmp_path: Path, monkeypatch: MonkeyPat
 def test_login_command_full_storage(tmp_path: Path, monkeypatch: MonkeyPatch) -> None:
     """Login command with --full-storage saves storage state."""
     import json
+
     import archiveinator.cli as cli_mod
 
     captured_full_storage = None

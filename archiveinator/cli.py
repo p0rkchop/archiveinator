@@ -46,6 +46,7 @@ cache_app = typer.Typer(help="Manage the per-domain bypass strategy cache.")
 app.add_typer(cache_app, name="cache")
 
 _RETRY_DELAY_SECONDS = 2
+_DEFAULT_COOKIE_FILE = Path("cookies.json")
 
 
 def _abort(msg: str, exit_code: int = 1) -> None:
@@ -186,7 +187,7 @@ async def _capture_login(
             try:
                 # Wait for page close event (browser closed)
                 await asyncio.wait_for(page.wait_for_event("close"), timeout=timeout)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 console.warning(f"Timeout after {timeout} seconds, saving cookies now.")
 
             # Capture cookies or storage state
@@ -611,8 +612,8 @@ def update_blocklists(
 @app.command()
 def login(
     url: str = typer.Argument(..., help="URL to open for login"),
-    output: Path = typer.Option(
-        Path("cookies.json"),
+    output: Path = typer.Option(  # noqa: B008
+        "cookies.json",
         "--output",
         "-o",
         help="Output file path for cookies (default: cookies.json)",
