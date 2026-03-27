@@ -49,6 +49,9 @@ async def run(ctx: ArchiveContext) -> None:
                 user_agent=ua,
                 extra_http_headers=ctx.extra_headers,
             )
+            if ctx.cookies:
+                await browser_context.add_cookies(ctx.cookies)  # type: ignore[arg-type]
+                console.debug(f"Added {len(ctx.cookies)} cookie(s)")
             page = await browser_context.new_page()
 
             # Apply stealth anti-fingerprinting if requested by bypass suite

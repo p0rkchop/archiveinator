@@ -182,6 +182,9 @@ archiveinator archive https://example.com/article --stdout > article.html
 
 # Show verbose output (pipeline steps, paywall bypass attempts)
 archiveinator archive https://example.com/article --verbose
+
+# Use cookies for authenticated pages (export from browser extension)
+archiveinator archive https://example.com/private --cookies-file cookies.json
 ```
 
 **Options:**
@@ -191,6 +194,8 @@ archiveinator archive https://example.com/article --verbose
 | `--output-dir PATH` | `-o` | Directory to save the archive (overrides config) |
 | `--stdout` | `-s` | Write HTML to stdout; status messages go to stderr |
 | `--verbose` | `-v` | Show pipeline step messages |
+| `--stealth` | | Force stealth browser mode (anti‑fingerprinting) |
+| `--cookies-file PATH` | `-c` | JSON file containing cookies for authentication (Playwright format) |
 
 `--stdout` and `--output-dir` are mutually exclusive.
 

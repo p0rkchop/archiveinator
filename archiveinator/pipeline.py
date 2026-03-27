@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 
 from archiveinator.config import Config
 
@@ -27,6 +28,7 @@ class ArchiveContext:
     # Per-attempt overrides (set by bypass strategies before each page_load retry)
     ua_override: str | None = None
     extra_headers: dict[str, str] = field(default_factory=dict)
+    cookies: list[dict[str, Any]] = field(default_factory=list)
     use_stealth: bool = False
     # Diagnostics — steps append notes here
     step_log: list[str] = field(default_factory=list)

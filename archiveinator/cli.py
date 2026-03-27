@@ -292,8 +292,16 @@ def archive(
     stealth: bool = typer.Option(
         False, "--stealth", help="Force stealth browser mode (anti-fingerprinting)"
     ),
+    cookies_file: str | None = typer.Option(
+        None,
+        "--cookies-file",
+        "-c",
+        help="Path to JSON file containing cookies in Playwright format (list of dicts with name, value, domain, etc.)",
+    ),
 ) -> None:
     """Archive a web page as a self-contained HTML file."""
+    import json
+
     from archiveinator.naming import build_filename
     from archiveinator.steps.asset_inlining import AssetInliningError
     from archiveinator.steps.asset_inlining import run as inline_run
@@ -323,6 +331,16 @@ def archive(
     console.debug(f"pipeline={config.active_pipeline_steps()}")
 
     ctx = ArchiveContext(url=url, config=config)
+    if cookies_file:
+        try:
+            with open(cookies_file) as f:
+                cookies = json.load(f)
+            if not isinstance(cookies, list):
+                _abort("Cookies file must contain a JSON list of cookie objects")
+            ctx.cookies = cookies
+            console.debug(f"Loaded {len(cookies)} cookie(s) from {cookies_file}")
+        except Exception as e:
+            _abort(f"Failed to load cookies file: {e}")
     if stealth:
         ctx.use_stealth = True
         console.debug("Stealth mode forced via --stealth flag")

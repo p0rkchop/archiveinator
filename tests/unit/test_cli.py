@@ -410,3 +410,53 @@ def test_cache_clear_domain(tmp_path: Path, monkeypatch: MonkeyPatch) -> None:
     entries = list_entries()
     assert len(entries) == 1
     assert entries[0][0] == "b.com"
+
+
+# --- Cookies ---
+
+
+def test_archive_with_cookies_file(tmp_path: Path, monkeypatch: MonkeyPatch) -> None:
+    """--cookies-file loads JSON cookies and passes them to page_load."""
+    import json
+
+    import archiveinator.steps.asset_inlining as ai_mod
+    import archiveinator.steps.page_load as pl_mod
+
+    cookie_data = [
+        {
+            "name": "session",
+            "value": "abc123",
+            "domain": "example.com",
+            "path": "/",
+            "secure": True,
+        }
+    ]
+    cookie_file = tmp_path / "cookies.json"
+    cookie_file.write_text(json.dumps(cookie_data))
+
+    captured_cookies = []
+
+    original_mock = _async_mock_page_load
+
+    async def mock_page_load(ctx):
+        captured_cookies.extend(ctx.cookies)
+        await original_mock(ctx)
+
+    monkeypatch.setattr(pl_mod, "run", mock_page_load)
+    monkeypatch.setattr(ai_mod, "run", _async_noop)
+
+    result = runner.invoke(
+        app,
+        [
+            "archive",
+            "https://example.com",
+            "--cookies-file",
+            str(cookie_file),
+            "--output-dir",
+            str(tmp_path),
+        ],
+    )
+    assert result.exit_code == 0
+    assert len(captured_cookies) == 1
+    assert captured_cookies[0]["name"] == "session"
+    assert captured_cookies[0]["value"] == "abc123"
