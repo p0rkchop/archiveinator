@@ -723,7 +723,7 @@ def login(
         3000,
         "--timeout",
         help="Maximum time to wait for login in seconds (default: 3000)",
-    ),
+    ),  # timeout is passed to Playwright in milliseconds
     full_storage: bool = typer.Option(
         False,
         "--full-storage",
