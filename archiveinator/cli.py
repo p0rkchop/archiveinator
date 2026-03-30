@@ -65,6 +65,7 @@ def _load_cookies(file_path: str) -> list[dict[str, object]]:
     Supports:
     - Playwright format: list of cookie objects
     - Cookie-Editor format: {"cookies": [...]}
+    - Playwright storage state format: {"cookies": [...], "origins": [...]}
     - EditThisCookie format: array of cookie objects (same as Playwright)
 
     Returns a list of cookie dicts suitable for Playwright's add_cookies().

@@ -3,9 +3,17 @@ from __future__ import annotations
 import asyncio
 from urllib.parse import urlparse
 
-from playwright.async_api import Error as PlaywrightError
-from playwright.async_api import TimeoutError as PlaywrightTimeout
-from playwright.async_api import async_playwright
+from playwright.async_api import (
+    Error as PlaywrightError,
+)
+from playwright.async_api import (
+    Page,
+    Request,
+    async_playwright,
+)
+from playwright.async_api import (
+    TimeoutError as PlaywrightTimeout,
+)
 
 from archiveinator import console
 from archiveinator.pipeline import ArchiveContext
@@ -30,7 +38,7 @@ class PageLoadError(Exception):
 
 
 async def _wait_for_same_origin_network_idle(
-    page, target_origin: str, timeout_ms: int, idle_ms: int = 500
+    page: Page, target_origin: str, timeout_ms: int, idle_ms: int = 500
 ) -> None:
     """Wait until no same-origin requests are active for at least `idle_ms`.
 
@@ -39,8 +47,8 @@ async def _wait_for_same_origin_network_idle(
 
     Raises `TimeoutError` if the condition isn't met within `timeout_ms`.
     """
-    active_same_origin: set = set()
-    idle_timer: asyncio.Task | None = None
+    active_same_origin: set[Request] = set()
+    idle_timer: asyncio.Task[None] | None = None
     idle_event = asyncio.Event()
     loop = asyncio.get_event_loop()
 
@@ -58,7 +66,7 @@ async def _wait_for_same_origin_network_idle(
         except Exception:
             return ""
 
-    def on_request(request):
+    def on_request(request: Request) -> None:
         nonlocal idle_timer
         if _origin(request.url) == target_origin:
             active_same_origin.add(request)
@@ -66,7 +74,7 @@ async def _wait_for_same_origin_network_idle(
                 idle_timer.cancel()
                 idle_timer = None
 
-    def on_request_done(request):
+    def on_request_done(request: Request) -> None:
         nonlocal idle_timer
         if request in active_same_origin:
             active_same_origin.remove(request)

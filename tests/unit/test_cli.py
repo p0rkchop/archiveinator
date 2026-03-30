@@ -517,6 +517,37 @@ def test_archive_with_cookie_editor_format(tmp_path: Path, monkeypatch: MonkeyPa
     assert "extraField" not in cookie
 
 
+def test_load_cookies_full_storage_format(tmp_path: Path) -> None:
+    """_load_cookies extracts cookies from Playwright storage state format."""
+    from archiveinator.cli import _load_cookies
+    import json
+
+    storage_state = {
+        "cookies": [
+            {
+                "name": "session",
+                "value": "abc123",
+                "domain": "example.com",
+                "path": "/",
+                "secure": True,
+            }
+        ],
+        "origins": []
+    }
+    cookie_file = tmp_path / "storage.json"
+    cookie_file.write_text(json.dumps(storage_state))
+
+    cookies = _load_cookies(str(cookie_file))
+    assert len(cookies) == 1
+    cookie = cookies[0]
+    assert cookie["name"] == "session"
+    assert cookie["value"] == "abc123"
+    assert cookie["domain"] == "example.com"
+    assert cookie["path"] == "/"
+    assert cookie["secure"]
+    assert "origins" not in cookie
+
+
 # --- Login command ---
 
 
