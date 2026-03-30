@@ -707,9 +707,9 @@ def login(
         help="Run browser in headless mode (no visible window)",
     ),
     timeout: int = typer.Option(
-        300,
+        3000,
         "--timeout",
-        help="Maximum time to wait for login in seconds (default: 300)",
+        help="Maximum time to wait for login in seconds (default: 3000)",
     ),
     full_storage: bool = typer.Option(
         False,
