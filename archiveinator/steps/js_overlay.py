@@ -43,6 +43,53 @@ _OVERLAY_SELECTORS: list[str] = [
     ".modal-overlay",
     "[class*='modal-backdrop']",
     "[class*='modal-overlay']",
+    # Cookie consent / GDPR / privacy banners
+    ".cookie-banner",
+    "#cookie-banner",
+    ".cookie-consent",
+    ".cookie-notice",
+    ".gdpr-banner",
+    ".cc-banner",
+    ".privacy-consent",
+    ".consent-banner",
+    ".gdpr-cookie-banner",
+    "[class*='cookie'][class*='banner']",
+    "[id*='cookie'][id*='banner']",
+    # Newsletter / subscription popups
+    ".newsletter-popup",
+    "#newsletter-popup",
+    "[class*='newsletter'][class*='popup']",
+    "[class*='newsletter'][class*='modal']",
+    ".email-signup",
+    ".signup-modal",
+    ".subscribe-popup",
+    # Age verification gates
+    ".age-gate",
+    "#age-verification",
+    ".age-verification",
+    ".birthday-wall",
+    ".age-wall",
+    # Continue reading / teaser prompts
+    ".continue-reading",
+    ".read-more-prompt",
+    ".teaser-wall",
+    ".partial-content",
+    ".preview-wall",
+    # Ad-block detection warnings
+    ".adblock-warning",
+    "#adblock-detected",
+    ".please-disable-adblock",
+    ".anti-adblock",
+    # Site messages / notification bars
+    ".site-message",
+    ".site-notice",
+    ".notification-bar",
+    ".alert-banner",
+    ".site-alert",
+    # Generic overlay patterns (catch-alls)
+    "[class*='overlay']",
+    "[class*='popup']",
+    "[class*='modal']",
 ]
 
 _JS_REMOVE_OVERLAYS = """
