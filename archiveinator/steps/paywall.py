@@ -28,6 +28,8 @@ _BOT_CHALLENGE_SELECTORS: list[str] = [
     "[id*='datadome']",
     "[class*='datadome']",
     "[data-datadome]",
+    "script[src*='datadome']",
+    "iframe[src*='datadome']",
     # Generic challenge patterns
     "#captcha-container",
     "#robot-check",
@@ -48,6 +50,8 @@ _BOT_CHALLENGE_TITLE_PATTERNS: list[str] = [
     "please verify",
     "robot check",
     "human verification",
+    "datadome",
+    "data dome",
 ]
 
 # CSS selectors for known paywall / subscription-wall elements.
