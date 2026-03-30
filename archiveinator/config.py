@@ -227,7 +227,7 @@ output_dir: .
 asset_size_limit_mb: 5
 
 # Page load timeout in seconds
-timeout_seconds: 30
+timeout_seconds: 20
 
 # How often to auto-update adblock blocklists (in days)
 blocklist_update_interval_days: 7
