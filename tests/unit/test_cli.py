@@ -533,7 +533,7 @@ def test_load_cookies_full_storage_format(tmp_path: Path) -> None:
                 "secure": True,
             }
         ],
-        "origins": []
+        "origins": [],
     }
     cookie_file = tmp_path / "storage.json"
     cookie_file.write_text(json.dumps(storage_state))
