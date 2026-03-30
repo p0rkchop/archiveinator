@@ -12,6 +12,19 @@ CONFIG_DIR = Path(user_config_dir("archiveinator"))
 CONFIG_PATH = CONFIG_DIR / "config.yaml"
 DATA_DIR = Path(user_data_dir("archiveinator"))
 
+def find_config_path() -> Path:
+    """Return the config file path, preferring project-local config if present."""
+    # Look for .venv or pyproject.toml to identify project root
+    cwd = Path.cwd()
+    for parent in [cwd, *cwd.parents]:
+        if (parent / ".venv").exists() or (parent / "pyproject.toml").exists():
+            project_config = parent / "config.yaml"
+            if project_config.exists():
+                return project_config
+            # Found project root but config doesn't exist; fall back to global
+            break
+    return CONFIG_PATH
+
 
 @dataclass
 class UserAgent:
@@ -54,6 +67,7 @@ DEFAULT_PIPELINE: list[PipelineStep] = [
     PipelineStep(step="page_load"),
     PipelineStep(step="paywall_detection"),
     PipelineStep(step="js_overlay_removal"),
+    PipelineStep(step="js_disabled"),
     PipelineStep(step="stealth_browser"),
     PipelineStep(step="ua_cycling"),
     PipelineStep(step="header_tricks"),
@@ -187,8 +201,10 @@ def _pipeline_yaml_lines(steps: list[PipelineStep]) -> list[str]:
     return lines
 
 
-def load(path: Path = CONFIG_PATH) -> Config:
+def load(path: Path | None = None) -> Config:
     """Load config from YAML file. Creates default config if not present."""
+    if path is None:
+        path = find_config_path()
     if not path.exists():
         create_default(path)
 
@@ -213,8 +229,10 @@ def load(path: Path = CONFIG_PATH) -> Config:
     return config
 
 
-def create_default(path: Path = CONFIG_PATH) -> None:
+def create_default(path: Path | None = None) -> None:
     """Write the default config file to disk."""
+    if path is None:
+        path = find_config_path()
     path.parent.mkdir(parents=True, exist_ok=True)
     default_content = """\
 # archiveinator configuration
@@ -256,6 +274,10 @@ pipeline:
   # JS overlay removal: clears paywall modals in-page before serializing HTML
   - step: js_overlay_removal
     enabled: true
+  # JS disabled page load: loads page with JavaScript disabled
+  # Can bypass client-side paywalls that hide content with JS
+  - step: js_disabled
+    enabled: true
   # Stealth browser: retries page load with anti-fingerprinting patches
   # Effective against Cloudflare "Just a moment" and DataDome challenges
   - step: stealth_browser
@@ -285,7 +307,8 @@ pipeline:
 
 
 def config_path() -> Path:
-    return CONFIG_PATH
+    """Return the effective config file path (project-local if present, else global)."""
+    return find_config_path()
 
 
 def data_dir() -> Path:

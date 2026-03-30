@@ -12,7 +12,7 @@ import httpx
 
 from archiveinator import console
 from archiveinator.blocklist import easylist_path, easyprivacy_path
-from archiveinator.config import CONFIG_PATH, DATA_DIR, create_default, monolith_bin
+from archiveinator.config import config_path, DATA_DIR, create_default, monolith_bin
 from archiveinator.platform_info import get_monolith_asset_name, is_windows
 
 ARCHIVEINATOR_RELEASES_API = "https://api.github.com/repos/p0rkchop/archiveinator/releases/latest"
@@ -23,7 +23,7 @@ class SetupError(Exception):
 
 
 def _ensure_dirs() -> None:
-    CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
+    config_path().parent.mkdir(parents=True, exist_ok=True)
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     monolith_bin().parent.mkdir(parents=True, exist_ok=True)
 
@@ -262,11 +262,11 @@ def run(ignore_cert_errors: bool = False) -> None:
 
     _ensure_dirs()
 
-    if not CONFIG_PATH.exists():
-        create_default(CONFIG_PATH)
-        console.success(f"Config created at {CONFIG_PATH}")
+    if not config_path().exists():
+        create_default(config_path())
+        console.success(f"Config created at {config_path()}")
     else:
-        console.success(f"Config already exists at {CONFIG_PATH}")
+        console.success(f"Config already exists at {config_path()}")
 
     _install_playwright_chromium(ignore_cert_errors)
     _setup_monolith(ignore_cert_errors)

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import asyncio
+import json
+import re
 import sys
 import time
 from collections.abc import Callable
@@ -15,6 +17,10 @@ from rich.table import Table
 from archiveinator import console
 from archiveinator.config import load as load_config
 from archiveinator.pipeline import ArchiveContext
+
+# Global state for JSON output mode
+_JSON_OUTPUT = False
+_CURRENT_URL = None
 
 # Get package version for help text
 try:
@@ -49,14 +55,34 @@ _RETRY_DELAY_SECONDS = 2
 _DEFAULT_COOKIE_FILE = Path("cookies.json")
 
 
-def _abort(msg: str, exit_code: int = 1) -> None:
-    console.error(msg)
-    raise typer.Exit(code=exit_code)
+def _count_words(html: str) -> int:
+    """Rough word count from HTML — strip tags, collapse whitespace."""
+    text = re.sub(r"<script[^>]*>.*?</script>", " ", html, flags=re.S | re.I)
+    text = re.sub(r"<style[^>]*>.*?</style>", " ", text, flags=re.S | re.I)
+    text = re.sub(r"<[^>]+>", " ", text)
+    text = re.sub(r"\s+", " ", text)
+    return len(text.strip().split())
 
 
-def _validate_url(url: str) -> None:
+def _abort(msg: str, exit_code: int = 1, json_output: bool = False, url: str | None = None) -> None:
+    if json_output:
+        import sys
+        result = {
+            "success": False,
+            "url": url,
+            "error": msg,
+            "exit_code": exit_code,
+        }
+        sys.stdout.write(json.dumps(result, indent=2) + "\n")
+        raise typer.Exit(code=exit_code)
+    else:
+        console.error(msg)
+        raise typer.Exit(code=exit_code)
+
+
+def _validate_url(url: str, json_output: bool = False) -> None:
     if not url.startswith(("http://", "https://")):
-        _abort(f"Invalid URL: {url!r}. Must start with http:// or https://")
+        _abort(f"Invalid URL: {url!r}. Must start with http:// or https://", json_output=json_output, url=url)
 
 
 def _load_cookies(file_path: str) -> list[dict[str, object]]:
@@ -230,6 +256,14 @@ def _try_strategy(
         ctx.use_stealth = False
         return False
 
+    if strategy == "js_disabled":
+        ctx.js_enabled = False
+        if _reload():
+            ctx.bypass_method = "js_disabled"
+            return True
+        ctx.js_enabled = True
+        return False
+
     if strategy == "ua_cycling":
         from archiveinator import ua_manager
 
@@ -328,6 +362,7 @@ def _run_paywall_bypass(ctx: ArchiveContext, active_steps: list[str]) -> None:
         if _try_strategy(ctx, cached.strategy, active_steps, _reload):
             _record_success(cached.strategy, ua_name=cached.ua_name)
             console.step(f"Paywall bypassed via cached strategy '{cached.strategy}'")
+            ctx.bypass_cached = True
             return
         console.debug("Cached strategy failed, falling through to full suite")
 
@@ -350,7 +385,19 @@ def _run_paywall_bypass(ctx: ArchiveContext, active_steps: list[str]) -> None:
         ctx.use_stealth = False
         console.debug("Stealth browser did not clear the challenge")
 
-    # Strategy 1: UA cycling
+    # Strategy 1: JS disabled page load
+    if "js_disabled" in active_steps and ctx.paywalled:
+        console.step("Bypass: trying JavaScript-disabled page load")
+        ctx.js_enabled = False
+        if _reload():
+            ctx.bypass_method = "js_disabled"
+            _record_success("js_disabled")
+            console.step("Paywall bypassed via JavaScript-disabled load")
+            return
+        ctx.js_enabled = True
+        console.debug("JavaScript-disabled load did not clear paywall")
+
+    # Strategy 2: UA cycling
     if "ua_cycling" in active_steps:
         from archiveinator import ua_manager
 
@@ -374,7 +421,7 @@ def _run_paywall_bypass(ctx: ArchiveContext, active_steps: list[str]) -> None:
         else:
             console.debug("UA cycling: no alternative UA available (cycle=false or single agent)")
 
-    # Strategy 2: Header tricks (Googlebot UA + Google referer)
+    # Strategy 3: Header tricks (Googlebot UA + Google referer)
     if "header_tricks" in active_steps and ctx.paywalled:
         console.step("Bypass: trying header tricks (Googlebot UA + referer)")
         googlebot_ua: str | None = None
@@ -393,7 +440,7 @@ def _run_paywall_bypass(ctx: ArchiveContext, active_steps: list[str]) -> None:
             console.step("Paywall bypassed via header tricks")
             return
 
-    # Strategy 3: Google News referral
+    # Strategy 4: Google News referral
     if "google_news" in active_steps and ctx.paywalled:
         console.step("Bypass: trying Google News referral")
         from archiveinator.steps.google_news import run as google_news_run
@@ -405,7 +452,7 @@ def _run_paywall_bypass(ctx: ArchiveContext, active_steps: list[str]) -> None:
             console.step("Paywall bypassed via Google News referral")
             return
 
-    # Strategy 4: Content extraction fallback (no reload — works on existing HTML)
+    # Strategy 5: Content extraction fallback (no reload — works on existing HTML)
     if "content_extraction" in active_steps and ctx.paywalled:
         console.step("Bypass: falling back to trafilatura content extraction")
         from archiveinator.steps.content_extraction import ContentExtractionError
@@ -420,7 +467,7 @@ def _run_paywall_bypass(ctx: ArchiveContext, active_steps: list[str]) -> None:
         except ContentExtractionError as e:
             console.warning(f"Content extraction failed: {e}")
 
-    # Strategy 5: Archive service fallback (Wayback Machine, then archive.today)
+    # Strategy 6: Archive service fallback (Wayback Machine, then archive.today)
     if "archive_fallback" in active_steps and ctx.paywalled:
         from archiveinator.steps.archive_fallback import check_archive_today, check_wayback
 
@@ -464,6 +511,9 @@ def archive(
     to_stdout: bool = typer.Option(
         False, "--stdout", "-s", help="Write archive to stdout; status messages go to stderr"
     ),
+    json_output: bool = typer.Option(
+        False, "--json", "-j", help="Output JSON metadata to stdout; status messages go to stderr"
+    ),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output"),
     stealth: bool = typer.Option(
         False, "--stealth", help="Force stealth browser mode (anti-fingerprinting)"
@@ -483,23 +533,26 @@ def archive(
     from archiveinator.steps.page_load import run as page_load_run
 
     if to_stdout and output_dir is not None:
-        _abort("--stdout and --output-dir are mutually exclusive")
+        _abort("--stdout and --output-dir are mutually exclusive", json_output=json_output, url=url)
+    if json_output and to_stdout:
+        _abort("--json and --stdout are mutually exclusive", json_output=json_output, url=url)
 
     # When writing to stdout, redirect all status messages to stderr so they
     # don't interleave with the HTML output.
-    console.configure(verbose=verbose, debug=verbose, stderr=to_stdout)
-    _validate_url(url)
+    console.configure(verbose=verbose, debug=verbose, stderr=to_stdout or json_output)
+    start_time = time.time()
+    _validate_url(url, json_output=json_output)
 
     try:
         config = load_config()
     except Exception as e:
-        _abort(f"Failed to load config: {e}")
+        _abort(f"Failed to load config: {e}", json_output=json_output, url=url)
 
     if output_dir is not None:
         config.output_dir = Path(output_dir)
 
     if not to_stdout and not config.output_dir.exists():
-        _abort(f"Output directory does not exist: {config.output_dir}")
+        _abort(f"Output directory does not exist: {config.output_dir}", json_output=json_output, url=url)
 
     console.debug(f"output_dir={config.output_dir}")
     console.debug(f"pipeline={config.active_pipeline_steps()}")
@@ -511,7 +564,7 @@ def archive(
             ctx.cookies = cookies
             console.debug(f"Loaded {len(cookies)} cookie(s) from {cookies_file}")
         except ValueError as e:
-            _abort(f"Failed to load cookies file: {e}")
+            _abort(f"Failed to load cookies file: {e}", json_output=json_output, url=url)
     if stealth:
         ctx.use_stealth = True
         console.debug("Stealth mode forced via --stealth flag")
@@ -531,7 +584,7 @@ def archive(
                 time.sleep(_RETRY_DELAY_SECONDS)
 
     if last_page_error is not None:
-        _abort(f"Failed to load page: {last_page_error}")
+        _abort(f"Failed to load page: {last_page_error}", json_output=json_output, url=url)
 
     # --- Paywall bypass suite ---
     if ctx.paywalled:
@@ -573,12 +626,38 @@ def archive(
     try:
         output_path.write_text(html, encoding="utf-8")
     except OSError as e:
-        _abort(f"Failed to write output file: {e}")
+        _abort(f"Failed to write output file: {e}", json_output=json_output, url=url)
 
     if is_partial:
         console.warning(f"Partial archive saved: {output_path}")
     else:
         console.success(f"Saved: {output_path}")
+
+    if json_output:
+        duration_seconds = time.time() - start_time
+        word_count = _count_words(html)
+        steps_run = config.active_pipeline_steps()
+        # Determine if bypass was cached
+        bypass_cached = ctx.bypass_cached
+        # Build JSON object
+        result = {
+            "success": True,
+            "url": url,
+            "final_url": ctx.final_url or url,
+            "output_file": str(output_path) if not to_stdout else None,
+            "title": ctx.page_title or "",
+            "word_count": word_count,
+            "partial": is_partial,
+            "response_status": ctx.response_status,
+            "paywalled": ctx.paywalled,
+            "paywall_reason": ctx.paywall_reason,
+            "bypass_method": ctx.bypass_method,
+            "bypass_cached": bypass_cached,
+            "steps_run": steps_run,
+            "duration_seconds": round(duration_seconds, 2),
+            "errors": [],
+        }
+        sys.stdout.write(json.dumps(result, indent=2) + "\n")
 
 
 @app.command()

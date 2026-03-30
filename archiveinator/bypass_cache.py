@@ -18,6 +18,7 @@ from urllib.parse import urlparse
 import yaml
 
 from archiveinator.config import CONFIG_DIR
+from archiveinator import console
 
 CACHE_PATH = CONFIG_DIR / "bypass_cache.yaml"
 
@@ -84,12 +85,16 @@ def lookup(url: str) -> CacheEntry | None:
     """Return the cached bypass strategy for this domain, if any."""
     data = _prune(_load_raw())
     domain = _domain(url)
+    console.debug(f"Cache lookup for domain {domain}")
     entry = data.get(domain)
     if entry is None:
+        console.debug(f"Cache miss for {domain}")
         return None
     # Demoted entries (too many consecutive failures) are skipped
     if entry.get("consecutive_failures", 0) >= _MAX_CONSECUTIVE_FAILURES:
+        console.debug(f"Cache entry demoted (failures={entry.get('consecutive_failures')}) for {domain}")
         return None
+    console.debug(f"Cache hit for {domain}: strategy={entry['strategy']}, successes={entry.get('successes')}, failures={entry.get('consecutive_failures')}")
     return CacheEntry(
         strategy=entry["strategy"],
         ua_name=entry.get("ua_name"),
@@ -104,6 +109,7 @@ def record_success(url: str, strategy: str, ua_name: str | None = None) -> None:
     """Record a successful bypass for this domain."""
     data = _load_raw()
     domain = _domain(url)
+    console.debug(f"Cache recording success for {domain}: strategy={strategy}, ua={ua_name}")
     existing = data.get(domain, {})
     data[domain] = {
         "strategy": strategy,
@@ -120,8 +126,10 @@ def record_failure(url: str) -> None:
     """Record a failed bypass attempt for this domain."""
     data = _load_raw()
     domain = _domain(url)
+    console.debug(f"Cache recording failure for {domain}")
     existing = data.get(domain, {})
     if not existing:
+        console.debug(f"No cache entry for {domain}, skipping failure record")
         return  # No cache entry to update
     existing["attempts"] = existing.get("attempts", 0) + 1
     existing["consecutive_failures"] = existing.get("consecutive_failures", 0) + 1

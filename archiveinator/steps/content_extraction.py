@@ -71,6 +71,7 @@ async def run(ctx: ArchiveContext) -> None:
 
     plain_text = _re.sub(r"<[^>]+>", " ", extracted)
     word_count = len(plain_text.split())
+    console.debug(f"Word count after content extraction: {word_count}")
     if word_count < 50:
         raise ContentExtractionError(
             f"extracted content too short ({word_count} words) — likely a challenge page"

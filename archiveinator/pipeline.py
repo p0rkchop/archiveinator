@@ -30,6 +30,8 @@ class ArchiveContext:
     extra_headers: dict[str, str] = field(default_factory=dict)
     cookies: list[dict[str, Any]] = field(default_factory=list)
     use_stealth: bool = False
+    js_enabled: bool = True
+    bypass_cached: bool = False
     # Diagnostics — steps append notes here
     step_log: list[str] = field(default_factory=list)
 

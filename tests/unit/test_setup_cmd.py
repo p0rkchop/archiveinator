@@ -163,7 +163,7 @@ def test_blocklist_download_failure_is_non_fatal(monkeypatch: MonkeyPatch, tmp_p
 def test_run_creates_config_if_missing(monkeypatch: MonkeyPatch, tmp_path: Path) -> None:
     config_file = tmp_path / "config.yaml"
     monkeypatch.setattr(setup_mod, "_ensure_dirs", lambda: None)
-    monkeypatch.setattr(setup_mod, "CONFIG_PATH", config_file)
+    monkeypatch.setattr(setup_mod, "config_path", lambda: config_file)
     monkeypatch.setattr(
         setup_mod, "_install_playwright_chromium", lambda ignore_cert_errors=False: None
     )
@@ -182,7 +182,7 @@ def test_run_preserves_existing_config(monkeypatch: MonkeyPatch, tmp_path: Path)
     config_file = tmp_path / "config.yaml"
     config_file.write_text("timeout_seconds: 99\n")
     monkeypatch.setattr(setup_mod, "_ensure_dirs", lambda: None)
-    monkeypatch.setattr(setup_mod, "CONFIG_PATH", config_file)
+    monkeypatch.setattr(setup_mod, "config_path", lambda: config_file)
     monkeypatch.setattr(
         setup_mod, "_install_playwright_chromium", lambda ignore_cert_errors=False: None
     )

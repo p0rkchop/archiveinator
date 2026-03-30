@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import re
 from urllib.parse import urlparse
 
 from playwright.async_api import (
@@ -19,6 +20,14 @@ from archiveinator import console
 from archiveinator.pipeline import ArchiveContext
 
 STEP = "page_load"
+
+def _word_count(html: str) -> int:
+    """Rough word count from HTML — strip tags, collapse whitespace."""
+    text = re.sub(r"<script[^>]*>.*?</script>", " ", html, flags=re.S | re.I)
+    text = re.sub(r"<style[^>]*>.*?</style>", " ", text, flags=re.S | re.I)
+    text = re.sub(r"<[^>]+>", " ", text)
+    text = re.sub(r"\s+", " ", text)
+    return len(text.strip().split())
 
 # These statuses indicate access restrictions (paywall, bot detection, rate limiting).
 # They are NOT raised as PageLoadError — instead they flow through to paywall
@@ -119,6 +128,7 @@ async def run(ctx: ArchiveContext) -> None:
             browser_context = await browser.new_context(
                 user_agent=ua,
                 extra_http_headers=ctx.extra_headers,
+                java_script_enabled=ctx.js_enabled,
             )
             if ctx.cookies:
                 # Log cookie domains for debugging
@@ -136,6 +146,12 @@ async def run(ctx: ArchiveContext) -> None:
                     console.warning(f"Failed to add cookies: {e}")
                     # Continue without cookies; authentication may fail
             page = await browser_context.new_page()
+
+            # Forward console logs to debug output if enabled
+            if console.is_debug():
+                def on_console(msg):
+                    console.debug(f"Console {msg.type}: {msg.text}")
+                page.on("console", on_console)
 
             # Apply stealth anti-fingerprinting if requested by bypass suite
             if ctx.use_stealth and "stealth_browser" in active_steps:
@@ -201,6 +217,7 @@ async def run(ctx: ArchiveContext) -> None:
                 console.warning(f"HTTP {response.status}: {reason}")
 
             ctx.response_status = response.status
+            console.debug(f"Response headers: {dict(response.headers)}")
 
             # DOM ad cleanup — runs in live browser context before serializing
             if "dom_ad_cleanup" in active_steps:
@@ -225,6 +242,7 @@ async def run(ctx: ArchiveContext) -> None:
 
                         removed = await remove(page)
                         ctx.log(STEP, f"js_overlay removed {removed} element(s)")
+                        console.debug(f"Word count after JS overlay removal: {_word_count(await page.content())}")
 
                         # Re-detect after removal
                         reason_after = await detect(page, response.status)
@@ -241,6 +259,7 @@ async def run(ctx: ArchiveContext) -> None:
 
             ctx.page_title = await page.title()
             ctx.page_html = await page.content()
+            console.debug(f"Word count after page load: {_word_count(ctx.page_html)}")
             ctx.final_url = page.url
 
             ctx.log(STEP, f"status={response.status} title={ctx.page_title!r} url={ctx.final_url}")
