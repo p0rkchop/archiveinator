@@ -5,12 +5,13 @@ import re
 from urllib.parse import urlparse
 
 from playwright.async_api import (
-    Error as PlaywrightError,
-)
-from playwright.async_api import (
+    ConsoleMessage,
     Page,
     Request,
     async_playwright,
+)
+from playwright.async_api import (
+    Error as PlaywrightError,
 )
 from playwright.async_api import (
     TimeoutError as PlaywrightTimeout,
@@ -21,6 +22,7 @@ from archiveinator.pipeline import ArchiveContext
 
 STEP = "page_load"
 
+
 def _word_count(html: str) -> int:
     """Rough word count from HTML — strip tags, collapse whitespace."""
     text = re.sub(r"<script[^>]*>.*?</script>", " ", html, flags=re.S | re.I)
@@ -28,6 +30,7 @@ def _word_count(html: str) -> int:
     text = re.sub(r"<[^>]+>", " ", text)
     text = re.sub(r"\s+", " ", text)
     return len(text.strip().split())
+
 
 # These statuses indicate access restrictions (paywall, bot detection, rate limiting).
 # They are NOT raised as PageLoadError — instead they flow through to paywall
@@ -149,8 +152,10 @@ async def run(ctx: ArchiveContext) -> None:
 
             # Forward console logs to debug output if enabled
             if console.is_debug():
-                def on_console(msg):
+
+                def on_console(msg: ConsoleMessage) -> None:
                     console.debug(f"Console {msg.type}: {msg.text}")
+
                 page.on("console", on_console)
 
             # Apply stealth anti-fingerprinting if requested by bypass suite
@@ -242,7 +247,9 @@ async def run(ctx: ArchiveContext) -> None:
 
                         removed = await remove(page)
                         ctx.log(STEP, f"js_overlay removed {removed} element(s)")
-                        console.debug(f"Word count after JS overlay removal: {_word_count(await page.content())}")
+                        console.debug(
+                            f"Word count after JS overlay removal: {_word_count(await page.content())}"
+                        )
 
                         # Re-detect after removal
                         reason_after = await detect(page, response.status)

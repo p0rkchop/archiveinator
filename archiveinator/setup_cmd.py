@@ -12,7 +12,7 @@ import httpx
 
 from archiveinator import console
 from archiveinator.blocklist import easylist_path, easyprivacy_path
-from archiveinator.config import config_path, DATA_DIR, create_default, monolith_bin
+from archiveinator.config import DATA_DIR, config_path, create_default, monolith_bin
 from archiveinator.platform_info import get_monolith_asset_name, is_windows
 
 ARCHIVEINATOR_RELEASES_API = "https://api.github.com/repos/p0rkchop/archiveinator/releases/latest"

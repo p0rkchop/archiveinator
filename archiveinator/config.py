@@ -12,6 +12,7 @@ CONFIG_DIR = Path(user_config_dir("archiveinator"))
 CONFIG_PATH = CONFIG_DIR / "config.yaml"
 DATA_DIR = Path(user_data_dir("archiveinator"))
 
+
 def find_config_path() -> Path:
     """Return the config file path, preferring project-local config if present."""
     # Look for .venv or pyproject.toml to identify project root

@@ -17,8 +17,8 @@ from urllib.parse import urlparse
 
 import yaml
 
-from archiveinator.config import CONFIG_DIR
 from archiveinator import console
+from archiveinator.config import CONFIG_DIR
 
 CACHE_PATH = CONFIG_DIR / "bypass_cache.yaml"
 
@@ -92,9 +92,13 @@ def lookup(url: str) -> CacheEntry | None:
         return None
     # Demoted entries (too many consecutive failures) are skipped
     if entry.get("consecutive_failures", 0) >= _MAX_CONSECUTIVE_FAILURES:
-        console.debug(f"Cache entry demoted (failures={entry.get('consecutive_failures')}) for {domain}")
+        console.debug(
+            f"Cache entry demoted (failures={entry.get('consecutive_failures')}) for {domain}"
+        )
         return None
-    console.debug(f"Cache hit for {domain}: strategy={entry['strategy']}, successes={entry.get('successes')}, failures={entry.get('consecutive_failures')}")
+    console.debug(
+        f"Cache hit for {domain}: strategy={entry['strategy']}, successes={entry.get('successes')}, failures={entry.get('consecutive_failures')}"
+    )
     return CacheEntry(
         strategy=entry["strategy"],
         ua_name=entry.get("ua_name"),

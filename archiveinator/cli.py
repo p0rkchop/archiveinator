@@ -67,6 +67,7 @@ def _count_words(html: str) -> int:
 def _abort(msg: str, exit_code: int = 1, json_output: bool = False, url: str | None = None) -> None:
     if json_output:
         import sys
+
         result = {
             "success": False,
             "url": url,
@@ -82,7 +83,11 @@ def _abort(msg: str, exit_code: int = 1, json_output: bool = False, url: str | N
 
 def _validate_url(url: str, json_output: bool = False) -> None:
     if not url.startswith(("http://", "https://")):
-        _abort(f"Invalid URL: {url!r}. Must start with http:// or https://", json_output=json_output, url=url)
+        _abort(
+            f"Invalid URL: {url!r}. Must start with http:// or https://",
+            json_output=json_output,
+            url=url,
+        )
 
 
 def _load_cookies(file_path: str) -> list[dict[str, object]]:
@@ -552,7 +557,11 @@ def archive(
         config.output_dir = Path(output_dir)
 
     if not to_stdout and not config.output_dir.exists():
-        _abort(f"Output directory does not exist: {config.output_dir}", json_output=json_output, url=url)
+        _abort(
+            f"Output directory does not exist: {config.output_dir}",
+            json_output=json_output,
+            url=url,
+        )
 
     console.debug(f"output_dir={config.output_dir}")
     console.debug(f"pipeline={config.active_pipeline_steps()}")

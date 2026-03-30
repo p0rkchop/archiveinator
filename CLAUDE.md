@@ -100,3 +100,42 @@ Work is organized into milestones named after upcoming versions (e.g., `v0.4.0`)
 - **`ci.yml`**: Runs on push/PR to main. Tests on Python 3.11 and 3.12 via `uv`. Excludes `e2e` and `real_url` marked tests. Also runs ruff and mypy.
 - **`qa-paywall.yml`**: Scheduled weekly (Monday 06:00 UTC); runs real-URL paywall tests and auto-opens a GitHub issue on failure.
 - **`update-blocklists.yml`**: Scheduled weekly; refreshes EasyList/EasyPrivacy and commits them back.
+
+## Release Process & Quality Assurance
+
+### Two-Action Release Flow
+When releasing a new version, two GitHub Actions run in sequence:
+
+1. **CI workflow** (`ci.yml`) – triggered by push to `main`
+   - Runs tests, linting (`ruff check`, `ruff format --check`), and type checking (`mypy`)
+   - **Must pass** before proceeding with release
+   - If CI fails, fix the issues locally and push again
+
+2. **Release workflow** (`release.yml`) – triggered by `v*` tag push
+   - Builds `monolith` binaries for all platforms (macOS arm64, Linux x86_64/arm64, Windows x86_64)
+   - Creates GitHub release with binaries as assets
+   - Only runs after CI passes (manual tag push follows CI success)
+
+### Mandatory Linting Compliance
+- **Always run local checks before pushing**:
+  ```bash
+  ruff check .
+  ruff format --check .
+  mypy archiveinator/
+  pytest tests/ -m "not e2e and not real_url" -q --tb=short
+  ```
+- **If CI fails**, immediately diagnose and fix:
+  1. Check GitHub Actions run output for specific failures
+  2. Reproduce locally with the commands above
+  3. Fix linting (`ruff check --fix`, `ruff format .`) and type errors
+  4. Commit fixes and push again
+  5. **Do not push tags** until CI passes
+- **Monitor release workflow** through completion:
+  - Wait for all four platform builds to finish
+  - Verify release appears at `https://github.com/p0rkchop/archiveinator/releases/tag/vX.Y.Z`
+  - Test downloaded binaries if needed
+
+### Why Two Workflows?
+- **Separation of concerns**: CI validates code quality; Release builds distributables
+- **Safety net**: Prevents releasing broken code (CI must pass first)
+- **Efficiency**: Release builds can run in parallel across platforms while CI runs once
