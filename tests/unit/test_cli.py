@@ -519,8 +519,9 @@ def test_archive_with_cookie_editor_format(tmp_path: Path, monkeypatch: MonkeyPa
 
 def test_load_cookies_full_storage_format(tmp_path: Path) -> None:
     """_load_cookies extracts cookies from Playwright storage state format."""
-    from archiveinator.cli import _load_cookies
     import json
+
+    from archiveinator.cli import _load_cookies
 
     storage_state = {
         "cookies": [
