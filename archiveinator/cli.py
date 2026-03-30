@@ -198,6 +198,7 @@ async def _capture_login(
     full_storage: bool,
 ) -> None:
     """Async helper for login command: launch browser, wait for login, save cookies."""
+    from playwright.async_api import TimeoutError as PlaywrightTimeout
     from playwright.async_api import async_playwright
 
     console.info(f"Opening browser for login to {url}")
@@ -212,15 +213,18 @@ async def _capture_login(
             page = await browser_context.new_page()
 
             # Navigate to URL
+            # Set page timeout to match user's timeout (convert seconds → milliseconds)
+            timeout_ms = timeout * 1000
+            page.set_default_timeout(timeout_ms)
+
             await page.goto(url, wait_until="domcontentloaded")
 
             # Wait for browser to close or timeout
-            import asyncio
 
             try:
                 # Wait for page close event (browser closed)
-                await asyncio.wait_for(page.wait_for_event("close"), timeout=timeout)
-            except TimeoutError:
+                await page.wait_for_event("close", timeout=timeout_ms)
+            except PlaywrightTimeout:
                 console.warning(f"Timeout after {timeout} seconds, saving cookies now.")
 
             # Capture cookies or storage state

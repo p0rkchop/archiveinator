@@ -101,6 +101,12 @@ Work is organized into milestones named after upcoming versions (e.g., `v0.4.0`)
 - **`qa-paywall.yml`**: Scheduled weekly (Monday 06:00 UTC); runs real-URL paywall tests and auto-opens a GitHub issue on failure.
 - **`update-blocklists.yml`**: Scheduled weekly; refreshes EasyList/EasyPrivacy and commits them back.
 
+## GitHub Actions Monitoring
+
+- **Monitor CI after every push**: After `git push`, check the triggered GitHub Actions run (`gh run list --limit 1`) and wait for it to complete (`gh run watch <run-id>`). Do not proceed with further work until CI passes.
+- **Automatically fix failures**: If CI fails, immediately investigate logs, reproduce locally, fix linting (`ruff check --fix`, `ruff format .`), type errors, or test failures, then commit and push fixes.
+- **Release workflow monitoring**: After pushing a version tag, monitor the release workflow through completion. Verify all four platform binaries are built and the release is published.
+
 ## Release Process & Quality Assurance
 
 ### Two-Action Release Flow
