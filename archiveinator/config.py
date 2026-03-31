@@ -85,7 +85,7 @@ DEFAULT_PIPELINE: list[PipelineStep] = [
 class Config:
     output_dir: Path = field(default_factory=lambda: Path.cwd())
     asset_size_limit_mb: int = 5
-    timeout_seconds: int = 30
+    timeout_seconds: int = 40
     blocklist_update_interval_days: int = 7
     user_agents: UserAgentConfig = field(default_factory=UserAgentConfig)
     pipeline: list[PipelineStep] = field(default_factory=lambda: list(DEFAULT_PIPELINE))
@@ -246,7 +246,7 @@ output_dir: .
 asset_size_limit_mb: 5
 
 # Page load timeout in seconds
-timeout_seconds: 30
+timeout_seconds: 40
 
 # How often to auto-update adblock blocklists (in days)
 blocklist_update_interval_days: 7

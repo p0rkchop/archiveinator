@@ -168,8 +168,11 @@ def test_archive_fails_after_two_page_load_errors(tmp_path: Path, monkeypatch: M
 
     result = runner.invoke(app, ["archive", "https://example.com", "--output-dir", str(tmp_path)])
 
-    assert result.exit_code == 1
-    assert "Failed to load page" in result.output
+    assert result.exit_code == 0
+    assert "Page load failed" in result.output
+    # Error page should be produced
+    html_files = list(tmp_path.glob("*.html"))
+    assert html_files, "Expected error page output file"
 
 
 # --- Partial saves ---

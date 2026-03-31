@@ -126,12 +126,13 @@ async def run(ctx: ArchiveContext) -> None:
         console.debug(f"Extra headers: {list(ctx.extra_headers.keys())}")
 
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await p.chromium.launch(headless=True, args=["--disable-http2"])
         try:
             browser_context = await browser.new_context(
                 user_agent=ua,
                 extra_http_headers=ctx.extra_headers,
                 java_script_enabled=ctx.js_enabled,
+                ignore_https_errors=True,
             )
             if ctx.cookies:
                 # Log cookie domains for debugging

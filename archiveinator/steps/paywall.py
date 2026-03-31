@@ -25,6 +25,11 @@ _BOT_CHALLENGE_SELECTORS: list[str] = [
     "#ak_bmsc",
     # DataDome
     "#datadome-captcha",
+    "[id*='datadome']",
+    "[class*='datadome']",
+    "[data-datadome]",
+    "script[src*='datadome']",
+    "iframe[src*='datadome']",
     # Generic challenge patterns
     "#captcha-container",
     "#robot-check",
@@ -45,6 +50,8 @@ _BOT_CHALLENGE_TITLE_PATTERNS: list[str] = [
     "please verify",
     "robot check",
     "human verification",
+    "datadome",
+    "data dome",
 ]
 
 # CSS selectors for known paywall / subscription-wall elements.
@@ -70,6 +77,9 @@ _PAYWALL_SELECTORS: list[str] = [
     ".article__paywall",
     # Publisher-specific
     ".nyt-meter-bar",
+    "[data-testid='paywall']",
+    ".meteredContent",
+    ".gate-overlay",
     ".js-sub-prompt",
     ".dynamic-paywall-prompt",
     ".subscription-prompt",
@@ -130,29 +140,40 @@ async def detect(page: Page, http_status: int) -> str | None:
 
     Returns a human-readable reason string if blocked, or None if not.
     Checks (in order):
-      1. Unusual HTTP status codes
-      2. Bot challenge DOM selectors (PerimeterX, Cloudflare, etc.)
-      3. Bot challenge page title patterns
+      1. Bot challenge DOM selectors (PerimeterX, Cloudflare, etc.)
+      2. Bot challenge page title patterns
+      3. Unusual HTTP status codes
       4. Known paywall DOM selectors
       5. Suspiciously low word count
     """
-    if http_status in _PAYWALL_HTTP_STATUSES:
-        return f"HTTP {http_status}"
-
+    # Check for bot challenges first, even if we have an HTTP error status.
+    # Some bot challenges (e.g., DataDome) return HTTP 403 with a challenge page.
     bot_selector: str | None = await page.evaluate(_JS_DETECT_SELECTOR, _BOT_CHALLENGE_SELECTORS)
     if bot_selector:
+        from archiveinator import console
+
+        console.debug(f"Paywall detection: matched bot challenge selector '{bot_selector}'")
         return f"bot challenge page (selector: {bot_selector})"
 
     bot_title: str | None = await page.evaluate(_JS_DETECT_TITLE, _BOT_CHALLENGE_TITLE_PATTERNS)
     if bot_title:
         return f"bot challenge page (title: {bot_title!r})"
 
+    if http_status in _PAYWALL_HTTP_STATUSES:
+        # Check if it's a hard block with minimal content (any paywall HTTP status)
+        word_count: int = await page.evaluate(_JS_WORD_COUNT)
+        if (
+            word_count is not None and 0 < word_count < 30
+        ):  # Very low word count indicates hard block
+            return f"HTTP {http_status} hard block ({word_count} words)"
+        return f"HTTP {http_status}"
+
     matched: str | None = await page.evaluate(_JS_DETECT_SELECTOR, _PAYWALL_SELECTORS)
     if matched:
         return f"DOM selector matched: {matched}"
 
-    word_count: int = await page.evaluate(_JS_WORD_COUNT)
-    if 0 < word_count < _MIN_WORD_COUNT:
-        return f"low word count ({word_count})"
+    total_words: int = await page.evaluate(_JS_WORD_COUNT)
+    if total_words is not None and 0 < total_words < _MIN_WORD_COUNT:
+        return f"low word count ({total_words})"
 
     return None
