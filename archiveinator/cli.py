@@ -732,7 +732,7 @@ def archive(
 
     if json_output:
         duration_seconds = time.time() - start_time
-        word_count = _count_words(html)
+        word_count = _count_words(ctx.page_html or "")
         steps_run = config.active_pipeline_steps()
         # Determine if bypass was cached
         bypass_cached = ctx.bypass_cached
