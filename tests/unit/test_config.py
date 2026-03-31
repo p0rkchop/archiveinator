@@ -18,7 +18,7 @@ from archiveinator.config import (
 def test_default_config_values():
     config = Config()
     assert config.asset_size_limit_mb == 5
-    assert config.timeout_seconds == 30
+    assert config.timeout_seconds == 40
     assert config.blocklist_update_interval_days == 7
 
 
@@ -91,7 +91,7 @@ def test_load_empty_yaml_uses_all_defaults(tmp_path: Path):
     config_file = tmp_path / "config.yaml"
     config_file.write_text("")
     config = load(config_file)
-    assert config.timeout_seconds == 30
+    assert config.timeout_seconds == 40
     assert config.asset_size_limit_mb == 5
 
 

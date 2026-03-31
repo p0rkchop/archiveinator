@@ -136,11 +136,16 @@ def _run_paywall_bypass(ctx: ArchiveContext, active_steps: list[str]) -> None:
     from archiveinator.steps.page_load import run as page_load_run
 
     def _reload() -> bool:
-        """Re-run page_load with shorter timeout for bypass retries."""
+        """Re-run page_load with shorter timeout for bypass retries, except for timeouts."""
         original_timeout = ctx.config.timeout_seconds
         try:
-            # Use shorter timeout for bypass retries
-            ctx.config.timeout_seconds = min(15, original_timeout)
+            # For timeout cases, use the original timeout (or even longer)
+            # For other cases, use shorter timeout for bypass retries
+            if ctx.paywall_reason and "timeout" in ctx.paywall_reason.lower():
+                # For timeout cases, use original timeout or slightly longer
+                ctx.config.timeout_seconds = max(original_timeout, 30)
+            else:
+                ctx.config.timeout_seconds = min(15, original_timeout)
             asyncio.run(page_load_run(ctx))
         except PageLoadError as e:
             console.warning(f"Bypass page load failed: {e}")
@@ -164,10 +169,12 @@ def _run_paywall_bypass(ctx: ArchiveContext, active_steps: list[str]) -> None:
 
     # --- Full strategy suite ---
 
-    # Strategy 0: Stealth browser (for bot challenge pages and HTTP 403 blocks,
+    # Strategy 0: Stealth browser (for bot challenge pages, HTTP 403 blocks, and timeouts,
     # which often indicate bot detection at the CDN layer)
     _stealth_trigger = ctx.paywall_reason and (
-        "bot challenge" in ctx.paywall_reason or "HTTP 403" in ctx.paywall_reason
+        "bot challenge" in ctx.paywall_reason
+        or "HTTP 403" in ctx.paywall_reason
+        or "timeout" in ctx.paywall_reason.lower()
     )
     if "stealth_browser" in active_steps and _stealth_trigger:
         console.step("Bypass: trying stealth browser (anti-fingerprinting)")
@@ -370,6 +377,7 @@ def archive(
     if last_page_error is not None:
         # Check if it's an HTTP/2 error and suggest archive fallback
         error_str = str(last_page_error)
+        is_http2_error = "ERR_HTTP2_PROTOCOL_ERROR" in error_str
         if "ERR_HTTP2_PROTOCOL_ERROR" in error_str:
             console.warning(
                 f"Failed to load page after {max_attempts} attempts due to HTTP/2 protocol error. "
@@ -377,12 +385,34 @@ def archive(
                 "Consider trying archive fallback if enabled in config."
             )
 
-        # Instead of aborting, create an error page so at least some output is produced
-        # This helps with QA tests that check for "no output file produced at all"
-        console.warning("Page load failed completely. Creating error page output.")
-        import html as html_module
-        escaped_error = html_module.escape(error_str[:500])
-        ctx.page_html = f"""<!DOCTYPE html>
+        # Check if it's a timeout error - treat as potential bot challenge
+        is_timeout = "Timed out loading" in error_str or "timeout" in error_str.lower()
+        is_bot_challenge = is_timeout or is_http2_error
+
+        if is_bot_challenge:
+            if is_http2_error:
+                console.warning(
+                    f"Page load failed after {max_attempts} attempts due to HTTP/2 protocol error. "
+                    "Treating as potential bot challenge and attempting bypass strategies."
+                )
+                reason = "HTTP/2 protocol error (potential bot challenge)"
+            else:
+                console.warning(
+                    f"Page load timed out after {max_attempts} attempts. "
+                    "Treating as potential bot challenge and attempting bypass strategies."
+                )
+                reason = "timeout (potential bot challenge)"
+            # Mark as paywalled to trigger bypass suite
+            ctx.paywalled = True
+            ctx.paywall_reason = reason
+            # We don't have page_html yet, but bypass strategies will attempt to load it
+        else:
+            # Instead of aborting, create an error page so at least some output is produced
+            # This helps with QA tests that check for "no output file produced at all"
+            console.warning("Page load failed completely. Creating error page output.")
+            import html as html_module
+            escaped_error = html_module.escape(error_str[:500])
+            ctx.page_html = f"""<!DOCTYPE html>
 <html>
 <head>
     <title>Archive Error: {url}</title>
@@ -395,11 +425,11 @@ def archive(
     <p>Timestamp: {datetime.now().isoformat()}</p>
 </body>
 </html>"""
-        ctx.page_title = f"Archive Error: {url}"
-        ctx.final_url = url
-        ctx.is_partial = True
-        ctx.paywalled = False  # Not paywalled, just failed to load
-        # Continue with the rest of the pipeline to produce output
+            ctx.page_title = f"Archive Error: {url}"
+            ctx.final_url = url
+            ctx.is_partial = True
+            ctx.paywalled = False  # Not paywalled, just failed to load
+            # Continue with the rest of the pipeline to produce output
 
     # --- Paywall bypass suite ---
     if ctx.paywalled:

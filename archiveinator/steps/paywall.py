@@ -77,6 +77,9 @@ _PAYWALL_SELECTORS: list[str] = [
     ".article__paywall",
     # Publisher-specific
     ".nyt-meter-bar",
+    "[data-testid='paywall']",
+    ".meteredContent",
+    ".gate-overlay",
     ".js-sub-prompt",
     ".dynamic-paywall-prompt",
     ".subscription-prompt",
