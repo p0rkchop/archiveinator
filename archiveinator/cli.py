@@ -168,10 +168,12 @@ def _run_paywall_bypass(ctx: ArchiveContext, active_steps: list[str]) -> None:
         console.debug("Cached strategy failed, falling through to full suite")
 
     # --- Full strategy suite ---
+    # Detect hard blocks (server-side HTTP 403 with minimal content)
+    is_hard_block = ctx.paywall_reason and "hard block" in ctx.paywall_reason
 
     # Strategy 0: Stealth browser (for bot challenge pages, HTTP 403 blocks, and timeouts,
     # which often indicate bot detection at the CDN layer)
-    _stealth_trigger = ctx.paywall_reason and (
+    _stealth_trigger = ctx.paywall_reason and "hard block" not in ctx.paywall_reason and (
         "bot challenge" in ctx.paywall_reason
         or "HTTP 403" in ctx.paywall_reason
         or "timeout" in ctx.paywall_reason.lower()
@@ -189,7 +191,7 @@ def _run_paywall_bypass(ctx: ArchiveContext, active_steps: list[str]) -> None:
         console.debug("Stealth browser did not clear the challenge")
 
     # Strategy 1: UA cycling
-    if "ua_cycling" in active_steps:
+    if not is_hard_block and "ua_cycling" in active_steps:
         from archiveinator import ua_manager
 
         current_ua = ctx.ua_override or ctx.config.active_user_agent()
@@ -244,7 +246,9 @@ def _run_paywall_bypass(ctx: ArchiveContext, active_steps: list[str]) -> None:
             return
 
     # Strategy 4: Content extraction fallback (no reload — works on existing HTML)
-    if "content_extraction" in active_steps and ctx.paywalled:
+    if is_hard_block:
+        console.debug("Skipping content extraction for hard block (minimal content)")
+    if "content_extraction" in active_steps and ctx.paywalled and not is_hard_block:
         console.step("Bypass: falling back to trafilatura content extraction")
         from archiveinator.steps.content_extraction import ContentExtractionError
         from archiveinator.steps.content_extraction import run as content_extract_run
