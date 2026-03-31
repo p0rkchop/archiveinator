@@ -159,11 +159,10 @@ async def detect(page: Page, http_status: int) -> str | None:
         return f"bot challenge page (title: {bot_title!r})"
 
     if http_status in _PAYWALL_HTTP_STATUSES:
-        # For HTTP 403, check if it's a hard block with minimal content
-        if http_status == 403:
-            word_count: int = await page.evaluate(_JS_WORD_COUNT)
-            if word_count is not None and 0 < word_count < 30:  # Very low word count indicates hard block
-                return f"HTTP 403 hard block ({word_count} words)"
+        # Check if it's a hard block with minimal content (any paywall HTTP status)
+        word_count: int = await page.evaluate(_JS_WORD_COUNT)
+        if word_count is not None and 0 < word_count < 30:  # Very low word count indicates hard block
+            return f"HTTP {http_status} hard block ({word_count} words)"
         return f"HTTP {http_status}"
 
     matched: str | None = await page.evaluate(_JS_DETECT_SELECTOR, _PAYWALL_SELECTORS)
