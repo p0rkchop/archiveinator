@@ -172,10 +172,14 @@ def _run_paywall_bypass(ctx: ArchiveContext, active_steps: list[str]) -> None:
 
     # Strategy 0: Stealth browser (for bot challenge pages, HTTP 403 blocks, and timeouts,
     # which often indicate bot detection at the CDN layer)
-    _stealth_trigger = ctx.paywall_reason and "hard block" not in ctx.paywall_reason and (
-        "bot challenge" in ctx.paywall_reason
-        or "HTTP 403" in ctx.paywall_reason
-        or "timeout" in ctx.paywall_reason.lower()
+    _stealth_trigger = (
+        ctx.paywall_reason
+        and "hard block" not in ctx.paywall_reason
+        and (
+            "bot challenge" in ctx.paywall_reason
+            or "HTTP 403" in ctx.paywall_reason
+            or "timeout" in ctx.paywall_reason.lower()
+        )
     )
     if "stealth_browser" in active_steps and _stealth_trigger:
         console.step("Bypass: trying stealth browser (anti-fingerprinting)")
@@ -414,6 +418,7 @@ def archive(
             # This helps with QA tests that check for "no output file produced at all"
             console.warning("Page load failed completely. Creating error page output.")
             import html as html_module
+
             escaped_error = html_module.escape(error_str[:500])
             ctx.page_html = f"""<!DOCTYPE html>
 <html>

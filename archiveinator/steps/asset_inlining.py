@@ -32,7 +32,9 @@ async def run(ctx: ArchiveContext) -> None:
 
     bin_path = check_monolith()
     base_url = ctx.final_url or ctx.url
-    inlining_timeout = max(60, ctx.config.timeout_seconds * 1.5)  # Minimum 60s, max 1.5x page timeout
+    inlining_timeout = max(
+        60, ctx.config.timeout_seconds * 1.5
+    )  # Minimum 60s, max 1.5x page timeout
 
     console.step("Inlining assets with monolith")
     console.debug(f"base_url={base_url}")
@@ -55,9 +57,7 @@ async def run(ctx: ArchiveContext) -> None:
         if ctx.bypass_method is not None or ctx.paywalled:
             extra_flags.extend(["--no-images", "--no-css", "--no-fonts", "--no-frames", "--no-js"])
             reason = ctx.bypass_method or "paywall detected"
-            console.debug(
-                f"{reason}: suppressing external asset fetching in monolith"
-            )
+            console.debug(f"{reason}: suppressing external asset fetching in monolith")
 
         try:
             result = subprocess.run(

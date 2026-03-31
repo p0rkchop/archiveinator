@@ -151,6 +151,7 @@ async def detect(page: Page, http_status: int) -> str | None:
     bot_selector: str | None = await page.evaluate(_JS_DETECT_SELECTOR, _BOT_CHALLENGE_SELECTORS)
     if bot_selector:
         from archiveinator import console
+
         console.debug(f"Paywall detection: matched bot challenge selector '{bot_selector}'")
         return f"bot challenge page (selector: {bot_selector})"
 
@@ -161,7 +162,9 @@ async def detect(page: Page, http_status: int) -> str | None:
     if http_status in _PAYWALL_HTTP_STATUSES:
         # Check if it's a hard block with minimal content (any paywall HTTP status)
         word_count: int = await page.evaluate(_JS_WORD_COUNT)
-        if word_count is not None and 0 < word_count < 30:  # Very low word count indicates hard block
+        if (
+            word_count is not None and 0 < word_count < 30
+        ):  # Very low word count indicates hard block
             return f"HTTP {http_status} hard block ({word_count} words)"
         return f"HTTP {http_status}"
 
@@ -169,8 +172,8 @@ async def detect(page: Page, http_status: int) -> str | None:
     if matched:
         return f"DOM selector matched: {matched}"
 
-    word_count: int = await page.evaluate(_JS_WORD_COUNT)
-    if word_count is not None and 0 < word_count < _MIN_WORD_COUNT:
-        return f"low word count ({word_count})"
+    total_words: int = await page.evaluate(_JS_WORD_COUNT)
+    if total_words is not None and 0 < total_words < _MIN_WORD_COUNT:
+        return f"low word count ({total_words})"
 
     return None
