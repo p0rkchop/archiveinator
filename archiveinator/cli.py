@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-import html
 import sys
 import time
 from collections.abc import Callable
@@ -463,10 +462,10 @@ def archive(
             ctx.is_partial = True
 
     # --- Output ---
-    html = ctx.page_html or ""
+    html_content = ctx.page_html or ""
 
     if to_stdout:
-        sys.stdout.write(html)
+        sys.stdout.write(html_content)
         return
 
     title = ctx.page_title or ""
@@ -474,7 +473,7 @@ def archive(
     output_path = config.output_dir / filename
 
     try:
-        output_path.write_text(html, encoding="utf-8")
+        output_path.write_text(html_content, encoding="utf-8")
     except OSError as e:
         _abort(f"Failed to write output file: {e}")
 
