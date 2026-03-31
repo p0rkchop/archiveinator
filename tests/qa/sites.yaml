@@ -288,7 +288,7 @@ sites:
 
   - name: LA Times
     url: https://www.latimes.com/california/story/2023-09-18/lahaina-fire-investigation
-    rss_feed: https://www.latimes.com/rss2.0.xml
+    rss_feed_needed: true
     tags:
       paywall_type: metered
       category: news
