@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-import re
 from urllib.parse import urlparse
 
 from playwright.async_api import (
@@ -19,17 +18,9 @@ from playwright.async_api import (
 
 from archiveinator import console
 from archiveinator.pipeline import ArchiveContext
+from archiveinator.utils import word_count
 
 STEP = "page_load"
-
-
-def _word_count(html: str) -> int:
-    """Rough word count from HTML — strip tags, collapse whitespace."""
-    text = re.sub(r"<script[^>]*>.*?</script>", " ", html, flags=re.S | re.I)
-    text = re.sub(r"<style[^>]*>.*?</style>", " ", text, flags=re.S | re.I)
-    text = re.sub(r"<[^>]+>", " ", text)
-    text = re.sub(r"\s+", " ", text)
-    return len(text.strip().split())
 
 
 # These statuses indicate access restrictions (paywall, bot detection, rate limiting).
@@ -249,7 +240,7 @@ async def run(ctx: ArchiveContext) -> None:
                         removed = await remove(page)
                         ctx.log(STEP, f"js_overlay removed {removed} element(s)")
                         console.debug(
-                            f"Word count after JS overlay removal: {_word_count(await page.content())}"
+                            f"Word count after JS overlay removal: {word_count(await page.content())}"
                         )
 
                         # Re-detect after removal
@@ -267,7 +258,7 @@ async def run(ctx: ArchiveContext) -> None:
 
             ctx.page_title = await page.title()
             ctx.page_html = await page.content()
-            console.debug(f"Word count after page load: {_word_count(ctx.page_html)}")
+            console.debug(f"Word count after page load: {word_count(ctx.page_html)}")
             ctx.final_url = page.url
 
             ctx.log(STEP, f"status={response.status} title={ctx.page_title!r} url={ctx.final_url}")

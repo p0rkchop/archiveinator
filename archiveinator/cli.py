@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import json
-import re
 import sys
 import time
 from collections.abc import Callable
@@ -18,6 +17,7 @@ from rich.table import Table
 from archiveinator import console
 from archiveinator.config import load as load_config
 from archiveinator.pipeline import ArchiveContext
+from archiveinator.utils import word_count
 
 # Global state for JSON output mode
 _JSON_OUTPUT = False
@@ -53,16 +53,6 @@ cache_app = typer.Typer(help="Manage the per-domain bypass strategy cache.")
 app.add_typer(cache_app, name="cache")
 
 _RETRY_DELAY_SECONDS = 2
-_DEFAULT_COOKIE_FILE = Path("cookies.json")
-
-
-def _count_words(html: str) -> int:
-    """Rough word count from HTML — strip tags, collapse whitespace."""
-    text = re.sub(r"<script[^>]*>.*?</script>", " ", html, flags=re.S | re.I)
-    text = re.sub(r"<style[^>]*>.*?</style>", " ", text, flags=re.S | re.I)
-    text = re.sub(r"<[^>]+>", " ", text)
-    text = re.sub(r"\s+", " ", text)
-    return len(text.strip().split())
 
 
 def _abort(msg: str, exit_code: int = 1, json_output: bool = False, url: str | None = None) -> None:
@@ -732,7 +722,7 @@ def archive(
 
     if json_output:
         duration_seconds = time.time() - start_time
-        word_count = _count_words(ctx.page_html or "")
+        wc = word_count(ctx.page_html or "")
         steps_run = config.active_pipeline_steps()
         # Determine if bypass was cached
         bypass_cached = ctx.bypass_cached
@@ -743,7 +733,7 @@ def archive(
             "final_url": ctx.final_url or url,
             "output_file": str(output_path) if not to_stdout else None,
             "title": ctx.page_title or "",
-            "word_count": word_count,
+            "word_count": wc,
             "partial": is_partial,
             "response_status": ctx.response_status,
             "paywalled": ctx.paywalled,
