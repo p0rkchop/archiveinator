@@ -37,6 +37,21 @@ Never test against the static `url:` field alone on a paywalled site.
 
 ---
 
+## User's Choice Override
+
+When the user explicitly names a specific site for paywall work (e.g. "work on nytimes.com", "fix the paywall for site X"), **override normal site selection order**:
+
+1. Move the named site to the **top of the priority list** — work on it before any other site
+2. If the site is in `sites.yaml`, use its existing entry (paywall type, RSS feed, etc.)
+3. If the site is **not** in `sites.yaml`, add it to the catalog first (with its paywall type, difficulty, RSS feed, and a test article URL)
+4. If the site has no working RSS feed, notify the user and ask them to provide one — do not use static article URLs for paywalled sites
+5. **Focus exclusively on this site** until it passes or is recorded as intractable (3 attempts exhausted)
+6. Only after this site is resolved, resume normal type-ordered TDD from where it was interrupted
+
+Document the override in the session notes so the resume flow respects the user's intent.
+
+---
+
 ## The TDD Loop (per site)
 
 ```

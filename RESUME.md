@@ -1,8 +1,10 @@
 # TDD Resume State
-updated: 2026-03-25 11:00 UTC
-session_branch: tdd/session-2026-03-24-2
+updated: 2026-05-08 18:40 UTC
+session_branch: tdd/session-2026-05-07
 current_paywall_type: complete (all types swept)
 sites_passed_this_session:
+  # Metered
+  - Washington Post (metered, 848-1695 words) — content_extraction bypass; previously intractable
   # Piano
   - NPR (piano, 3897 words) [prior session]
   - Boston Globe (piano, 1654 words) [prior session]
@@ -75,7 +77,6 @@ sites_intractable:
   - Seeking Alpha: PerimeterX #px-captcha + hard paywall; 95 words extracted
   - Sydney Morning Herald: Cloudflare + hard paywall; HTTP 403 on all strategies, 34 words
   - The Economist: Stealth browser gets through but only 61 words extracted
-  - Washington Post: net::ERR_HTTP2_PROTOCOL_ERROR — hard network-level bot block
   - MIT Technology Review: No output file produced (page load failure)
 
 sites_partial_save:

@@ -279,7 +279,7 @@ sites:
       difficulty: medium
 
   - name: Washington Post
-    url: https://www.washingtonpost.com/national-security/2026/03/24/us-iran-peace-talks-pakistan-turkey-egypt/
+    url: https://www.washingtonpost.com/national-security/2026/05/08/trump-ufo-files-release/
     rss_feed: https://feeds.washingtonpost.com/rss/world
     tags:
       paywall_type: metered
