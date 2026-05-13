@@ -105,8 +105,10 @@ _JS_REMOVE_OVERLAYS = """
     }
     // Restore scroll/position if overlays locked the body
     document.documentElement.style.overflow = '';
-    document.body.style.overflow = '';
-    document.body.style.position = '';
+    if (document.body) {
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+    }
     return count;
 }
 """
