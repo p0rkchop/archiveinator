@@ -41,6 +41,14 @@ class PipelineStep:
 
 
 @dataclass
+class StealthConfig:
+    viewport_width: int = 1920
+    viewport_height: int = 1080
+    locale: str = "en-US"
+    timezone: str = "America/New_York"
+
+
+@dataclass
 class UserAgentConfig:
     cycle: bool = False
     agents: list[UserAgent] = field(
@@ -89,6 +97,7 @@ class Config:
     blocklist_update_interval_days: int = 7
     user_agents: UserAgentConfig = field(default_factory=UserAgentConfig)
     pipeline: list[PipelineStep] = field(default_factory=lambda: list(DEFAULT_PIPELINE))
+    stealth: StealthConfig = field(default_factory=StealthConfig)
 
     def active_user_agent(self) -> str:
         """Return the first enabled user agent string."""
@@ -226,6 +235,14 @@ def load(path: Path | None = None) -> Config:
         config.user_agents = _parse_user_agents(data["user_agents"])
     if "pipeline" in data:
         config.pipeline = _migrate_pipeline(_parse_pipeline(data["pipeline"]), path)
+    if "stealth" in data:
+        stealth = data["stealth"]
+        config.stealth = StealthConfig(
+            viewport_width=int(stealth.get("viewport_width", 1920)),
+            viewport_height=int(stealth.get("viewport_height", 1080)),
+            locale=str(stealth.get("locale", "en-US")),
+            timezone=str(stealth.get("timezone", "America/New_York")),
+        )
 
     return config
 
@@ -263,6 +280,14 @@ user_agents:
     - name: bingbot
       enabled: false
       ua: "Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingcrawl.htm)"
+
+# Stealth browser fingerprinting override
+# Override browser properties to mimic a real user environment.
+stealth:
+  viewport_width: 1920
+  viewport_height: 1080
+  locale: "en-US"
+  timezone: "America/New_York"
 
 pipeline:
   - step: network_ad_blocking

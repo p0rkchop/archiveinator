@@ -117,13 +117,25 @@ async def run(ctx: ArchiveContext) -> None:
         console.debug(f"Extra headers: {list(ctx.extra_headers.keys())}")
 
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True, args=["--disable-http2"])
+        browser = await p.chromium.launch(headless=True, args=[
+            "--disable-http2",
+            "--disable-blink-features=AutomationControlled",
+            "--no-first-run",
+            "--no-default-browser-check",
+        ])
         try:
+            stealth = ctx.config.stealth
             browser_context = await browser.new_context(
                 user_agent=ua,
                 extra_http_headers=ctx.extra_headers,
                 java_script_enabled=ctx.js_enabled,
                 ignore_https_errors=True,
+                viewport={"width": stealth.viewport_width, "height": stealth.viewport_height},
+                locale=stealth.locale,
+                timezone_id=stealth.timezone,
+                permissions=["geolocation"],
+                color_scheme="light",
+                device_scale_factor=1,
             )
             if ctx.cookies:
                 # Log cookie domains for debugging
