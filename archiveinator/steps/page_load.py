@@ -117,12 +117,15 @@ async def run(ctx: ArchiveContext) -> None:
         console.debug(f"Extra headers: {list(ctx.extra_headers.keys())}")
 
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True, args=[
-            "--disable-http2",
-            "--disable-blink-features=AutomationControlled",
-            "--no-first-run",
-            "--no-default-browser-check",
-        ])
+        browser = await p.chromium.launch(
+            headless=True,
+            args=[
+                "--disable-http2",
+                "--disable-blink-features=AutomationControlled",
+                "--no-first-run",
+                "--no-default-browser-check",
+            ],
+        )
         try:
             stealth = ctx.config.stealth
             browser_context = await browser.new_context(
