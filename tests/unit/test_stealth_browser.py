@@ -10,6 +10,7 @@ async def test_apply_calls_stealth_async() -> None:
     from archiveinator.steps import stealth_browser
 
     page = MagicMock()
+    page.add_init_script = AsyncMock()
     stealth_browser._stealth.apply_stealth_async = AsyncMock()
 
     await stealth_browser.apply(page)

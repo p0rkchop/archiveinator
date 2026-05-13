@@ -60,5 +60,5 @@ if (navigator.permissions && navigator.permissions.query) {
 async def apply(page: Page) -> None:
     """Apply stealth evasions to a Playwright page before navigation."""
     console.debug("Applying stealth anti-fingerprinting patches")
-    page.add_init_script(_FINGERPRINT_INIT_SCRIPT)
+    await page.add_init_script(_FINGERPRINT_INIT_SCRIPT)
     await _stealth.apply_stealth_async(page)
