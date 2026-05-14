@@ -13,7 +13,7 @@ import httpx
 from archiveinator import console
 from archiveinator.blocklist import easylist_path, easyprivacy_path
 from archiveinator.config import DATA_DIR, config_path, create_default, monolith_bin
-from archiveinator.platform_info import get_monolith_asset_name, is_windows
+from archiveinator.platform_info import get_monolith_asset_name
 
 ARCHIVEINATOR_RELEASES_API = "https://api.github.com/repos/p0rkchop/archiveinator/releases/latest"
 
@@ -169,8 +169,7 @@ def _download_monolith_binary(ignore_cert_errors: bool = False) -> None:
             else:
                 raise SetupError(f"Failed to download monolith binary: {exc}") from exc
 
-    if not is_windows():
-        dest.chmod(dest.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+    dest.chmod(dest.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 
     console.success(f"monolith installed to {monolith_bin()}")
 
@@ -186,8 +185,7 @@ def _setup_monolith(ignore_cert_errors: bool = False) -> None:
     path_bin = _find_monolith_in_path()
     if path_bin:
         shutil.copy2(path_bin, dest)
-        if not is_windows():
-            dest.chmod(dest.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+        dest.chmod(dest.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
         console.success(f"monolith copied from {path_bin} to {dest}")
         return
 

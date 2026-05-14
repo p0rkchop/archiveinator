@@ -33,6 +33,9 @@ ruff format --check .
 # Type check
 mypy archiveinator/
 
+# Docker build (local test)
+docker build -t archiveinator:test .
+
 # First-time setup (installs Chromium, monolith, blocklists)
 archiveinator setup
 ```
@@ -78,7 +81,7 @@ URL → page_load → [paywall detection] → [bypass strategies] → image_dedu
 
 ### External binary dependency
 
-`monolith` is not installed via pip. It is downloaded at `archiveinator setup` time from this repo's own GitHub releases (cross-compiled in CI). The release workflow cross-compiles monolith from source for macOS (arm64), Linux (x86_64/arm64), and Windows (x86_64).
+`monolith` is not installed via pip. It is downloaded at `archiveinator setup` time from this repo's own GitHub releases (cross-compiled in CI). The release workflow cross-compiles monolith from source for macOS (arm64) and Linux (x86_64/arm64).
 
 ## Versioning & Releases
 
@@ -97,7 +100,7 @@ Work is organized into milestones named after upcoming versions (e.g., `v0.4.0`)
 
 ## CI
 
-- **`ci.yml`**: Runs on push/PR to main. Tests on Python 3.11 and 3.12 via `uv`. Excludes `e2e` and `real_url` marked tests. Also runs ruff and mypy.
+- **`ci.yml`**: Runs on push/PR to main. Tests on Python 3.11 and 3.12 via `uv`. Excludes `e2e` and `real_url` marked tests. Also runs ruff, mypy, and a Docker build test (no push).
 - **`qa-paywall.yml`**: Scheduled weekly (Monday 06:00 UTC); runs real-URL paywall tests and auto-opens a GitHub issue on failure.
 - **`update-blocklists.yml`**: Scheduled weekly; refreshes EasyList/EasyPrivacy and commits them back.
 
@@ -105,7 +108,7 @@ Work is organized into milestones named after upcoming versions (e.g., `v0.4.0`)
 
 - **Monitor CI after every push**: After `git push`, check the triggered GitHub Actions run (`gh run list --limit 1`) and wait for it to complete (`gh run watch <run-id>`). Do not proceed with further work until CI passes.
 - **Automatically fix failures**: If CI fails, immediately investigate logs, reproduce locally, fix linting (`ruff check --fix`, `ruff format .`), type errors, or test failures, then commit and push fixes.
-- **Release workflow monitoring**: After pushing a version tag, monitor the release workflow through completion. Verify all four platform binaries are built and the release is published.
+- **Release workflow monitoring**: After pushing a version tag, monitor the release workflow through completion. Verify all three platform binaries and the Docker image are built and the release is published.
 
 ## Release Process & Quality Assurance
 
@@ -118,7 +121,8 @@ When releasing a new version, two GitHub Actions run in sequence:
    - If CI fails, fix the issues locally and push again
 
 2. **Release workflow** (`release.yml`) – triggered by `v*` tag push
-   - Builds `monolith` binaries for all platforms (macOS arm64, Linux x86_64/arm64, Windows x86_64)
+   - Builds `monolith` binaries for macOS arm64 and Linux (x86_64/arm64)
+   - Builds and pushes a multi-arch Docker image to `ghcr.io`
    - Creates GitHub release with binaries as assets
    - Only runs after CI passes (manual tag push follows CI success)
 

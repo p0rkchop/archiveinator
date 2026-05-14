@@ -66,7 +66,6 @@ def test_setup_monolith_copies_from_path(monkeypatch: MonkeyPatch, tmp_path: Pat
 
     monkeypatch.setattr(setup_mod, "monolith_bin", lambda: dest)
     monkeypatch.setattr(setup_mod, "_find_monolith_in_path", lambda: src)
-    monkeypatch.setattr(setup_mod, "is_windows", lambda: False)
 
     setup_mod._setup_monolith()
 
@@ -117,7 +116,6 @@ def test_download_success(monkeypatch: MonkeyPatch, tmp_path: Path) -> None:
     dest = tmp_path / "monolith"
     monkeypatch.setattr(setup_mod, "monolith_bin", lambda: dest)
     monkeypatch.setattr(setup_mod, "get_monolith_asset_name", lambda: "archiveinator-linux-x86_64")
-    monkeypatch.setattr(setup_mod, "is_windows", lambda: False)
 
     mock_resp = MagicMock()
     mock_resp.json.return_value = _fake_release(["archiveinator-linux-x86_64"])

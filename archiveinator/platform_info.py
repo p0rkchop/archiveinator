@@ -16,11 +16,5 @@ def get_monolith_asset_name() -> str:
         if machine in ("arm64", "aarch64"):
             return "archiveinator-linux-aarch64"
         return "archiveinator-linux-x86_64"
-    elif system == "windows":
-        return "archiveinator-windows-x86_64.exe"
     else:
         raise RuntimeError(f"Unsupported platform: {system}/{machine}")
-
-
-def is_windows() -> bool:
-    return platform.system().lower() == "windows"

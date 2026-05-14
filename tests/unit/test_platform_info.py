@@ -41,22 +41,7 @@ def test_linux_arm64_alias(monkeypatch: MonkeyPatch) -> None:
     assert pi.get_monolith_asset_name() == "archiveinator-linux-aarch64"
 
 
-def test_windows(monkeypatch: MonkeyPatch) -> None:
-    _patch_platform(monkeypatch, "Windows", "x86_64")
-    assert pi.get_monolith_asset_name() == "archiveinator-windows-x86_64.exe"
-
-
 def test_unsupported_platform_raises(monkeypatch: MonkeyPatch) -> None:
     _patch_platform(monkeypatch, "FreeBSD", "x86_64")
     with pytest.raises(RuntimeError, match="Unsupported platform"):
         pi.get_monolith_asset_name()
-
-
-def test_is_windows_true(monkeypatch: MonkeyPatch) -> None:
-    monkeypatch.setattr(pi.platform, "system", lambda: "Windows")
-    assert pi.is_windows() is True
-
-
-def test_is_windows_false(monkeypatch: MonkeyPatch) -> None:
-    monkeypatch.setattr(pi.platform, "system", lambda: "Darwin")
-    assert pi.is_windows() is False

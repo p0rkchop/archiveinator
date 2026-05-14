@@ -64,21 +64,6 @@ source .venv/bin/activate
 pip3 install git+https://github.com/p0rkchop/archiveinator.git
 ```
 
-### Windows
-
-```powershell
-# 1. Create a directory for archiveinator and a virtual environment inside it
-mkdir archiveinator
-cd archiveinator
-python -m venv .venv
-
-# 2. Activate it
-.venv\Scripts\activate.bat
-
-# 3. Install archiveinator
-pip3 install git+https://github.com/p0rkchop/archiveinator.git
-```
-
 > To uninstall, just delete the `archiveinator` folder — it contains everything.
 
 ---
@@ -99,6 +84,39 @@ This will:
 4. Download EasyList and EasyPrivacy ad-blocking rule sets
 
 > **macOS note:** If you have `monolith` installed via Homebrew, setup will detect and use it automatically.
+
+---
+
+## Docker
+
+A pre-built Docker image is available for macOS and Linux:
+
+```bash
+docker run --rm \
+  -v $(pwd):/output \
+  ghcr.io/p0rkchop/archiveinator:latest \
+  archive https://example.com/article
+```
+
+The image includes the monolith binary, Playwright Chromium, and adblock blocklists — no setup step needed.
+
+### Volume mounts
+
+| Path | Purpose |
+|------|---------|
+| `/output` | Where archived HTML files are saved |
+| `/config` | Config directory (auto-created if omitted) |
+| `/data` | Cache/data directory for blocklists, monolith, UA cache |
+
+```bash
+# Full example with all mounts
+docker run --rm \
+  -v ~/archives:/output \
+  -v ~/.archiveinator-config:/config \
+  -v ~/.archiveinator-data:/data \
+  ghcr.io/p0rkchop/archiveinator:latest \
+  archive https://example.com/article
+```
 
 ---
 
@@ -129,15 +147,6 @@ source .venv/bin/activate
 
 # Your prompt will change to show the venv is active, e.g.:
 # (.venv) $
-
-# Deactivate when done
-deactivate
-```
-
-**Windows:**
-```powershell
-# Activate (from inside your archiveinator directory)
-.venv\Scripts\activate.bat
 
 # Deactivate when done
 deactivate
@@ -278,7 +287,6 @@ The config file is created automatically at first run.
 |----------|------|
 | macOS | `~/Library/Application Support/archiveinator/config.yaml` |
 | Linux | `~/.config/archiveinator/config.yaml` |
-| Windows | `%APPDATA%\archiveinator\config.yaml` |
 
 ### Full config reference
 
@@ -374,7 +382,6 @@ Successful agent/domain pairs are cached at:
 |----------|-----------|
 | macOS | `~/Library/Application Support/archiveinator/ua_cache.yaml` |
 | Linux | `~/.config/archiveinator/ua_cache.yaml` |
-| Windows | `%APPDATA%\archiveinator\ua_cache.yaml` |
 
 ---
 
@@ -387,7 +394,6 @@ Each release publishes platform-specific [monolith](https://github.com/Y2Z/monol
 | `archiveinator-darwin-aarch64` | macOS Apple Silicon |
 | `archiveinator-linux-x86_64` | Linux x86_64 |
 | `archiveinator-linux-aarch64` | Linux aarch64 |
-| `archiveinator-windows-x86_64.exe` | Windows x86_64 |
 
 ---
 
@@ -400,8 +406,7 @@ cd archiveinator
 
 # Create and activate a virtual environment
 python3 -m venv .venv
-source .venv/bin/activate        # Mac / Linux
-.venv\Scripts\activate.bat       # Windows
+source .venv/bin/activate
 
 # Install with dev dependencies
 pip3 install -e ".[dev]"
