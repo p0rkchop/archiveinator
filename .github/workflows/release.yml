@@ -155,4 +155,4 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            RELEASE_TAG=${{ github.ref_name }}
+            RELEASE_REF=${{ github.ref_name }}

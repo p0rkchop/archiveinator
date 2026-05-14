@@ -73,4 +73,4 @@ jobs:
           platforms: linux/amd64
           push: false
           build-args: |
-            RELEASE_TAG=latest
+            RELEASE_REF=main

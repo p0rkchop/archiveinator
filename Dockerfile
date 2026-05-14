@@ -1,14 +1,14 @@
 # syntax=docker/dockerfile:1
-FROM mcr.microsoft.com/playwright/python:v1.52.0-jammy
+FROM mcr.microsoft.com/playwright/python:v1.52.0-noble
 
-ARG RELEASE_TAG=latest
+ARG RELEASE_REF=main
 ENV XDG_CONFIG_HOME=/config
 ENV XDG_DATA_HOME=/data
 
 # Install archiveinator from GitHub
-RUN pip3 install "git+https://github.com/p0rkchop/archiveinator.git@${RELEASE_TAG}"
+RUN pip3 install "git+https://github.com/p0rkchop/archiveinator.git@${RELEASE_REF}"
 
-# Download monolith binary from GitHub releases
+# Download monolith binary from latest GitHub release
 RUN ARCH=$(uname -m) && \
     case "$ARCH" in \
       x86_64) ASSET="archiveinator-linux-x86_64" ;; \
@@ -16,7 +16,7 @@ RUN ARCH=$(uname -m) && \
       *) echo "Unsupported architecture: $ARCH"; exit 1 ;; \
     esac && \
     curl -fsSL -o /usr/local/bin/monolith \
-      "https://github.com/p0rkchop/archiveinator/releases/download/${RELEASE_TAG}/${ASSET}" && \
+      "https://github.com/p0rkchop/archiveinator/releases/latest/download/${ASSET}" && \
     chmod +x /usr/local/bin/monolith
 
 # Pre-download adblock blocklists
