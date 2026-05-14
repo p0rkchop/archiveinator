@@ -20,17 +20,17 @@ RUN ARCH=$(uname -m) && \
     chmod +x /usr/local/bin/monolith
 
 # Pre-download adblock blocklists
-RUN python3 -c "
+RUN python3 << 'PYEOF'
 from archiveinator.blocklist import easylist_path, easyprivacy_path
 import httpx
 for url, path in [
-    ('https://easylist.to/easylist/easylist.txt', easylist_path()),
-    ('https://easylist.to/easylist/easyprivacy.txt', easyprivacy_path()),
+    ("https://easylist.to/easylist/easylist.txt", easylist_path()),
+    ("https://easylist.to/easylist/easyprivacy.txt", easyprivacy_path()),
 ]:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_bytes(httpx.get(url, follow_redirects=True, timeout=60).content)
-print('Blocklists installed')
-"
+print("Blocklists installed")
+PYEOF
 
 RUN mkdir -p /output
 WORKDIR /output
