@@ -3,10 +3,16 @@
 from __future__ import annotations
 
 import asyncio
+import json
+import logging
 import time
+from datetime import datetime
 from typing import Any
 
 from archiveinator.config import data_dir as _data_dir
+from archiveinator.web.db import get_session_factory
+
+logger = logging.getLogger(__name__)
 
 
 class JobManager:
@@ -55,10 +61,14 @@ class JobManager:
         return job_id
 
     async def _run_job(self, job_id: int) -> None:
-        """Background task: runs the archive pipeline."""
+        """Background task: runs the archive pipeline.
+
+        The DB record is created by the POST /archive route before
+        submitting to the job manager. This method updates it on completion.
+        """
         from archiveinator.cli import _run_paywall_bypass
         from archiveinator.config import Config
-        from archiveinator.pipeline import ArchiveContext, run_pipeline
+        from archiveinator.pipeline import ArchiveContext
 
         job = self._in_flight.get(job_id)
         if job is None:
@@ -100,41 +110,90 @@ class JobManager:
             )
 
         start = time.time()
-        error: str | None = None
 
         try:
-            # Run the pipeline
-            ctx = await run_pipeline(ctx, config)
+            # --- Page load with retries ---
+            from archiveinator.steps.page_load import PageLoadError
+            from archiveinator.steps.page_load import run as page_load_run
 
-            # Paywall bypass if needed
+            last_page_error: PageLoadError | None = None
+            max_attempts = 3
+            for attempt in range(max_attempts):
+                try:
+                    await page_load_run(ctx)
+                    last_page_error = None
+                    break
+                except PageLoadError as e:
+                    last_page_error = e
+                    if attempt < max_attempts - 1:
+                        await asyncio.sleep(2)
+
+            # Handle page load failure gracefully
+            if last_page_error is not None:
+                import html as html_mod
+
+                error_str = str(last_page_error)
+                ctx.page_html = (
+                    "<!DOCTYPE html>\n<html><head><title>"
+                    "Archive Error: " + ctx.url + '</title><meta charset="utf-8"></head>\n<body>'
+                    "<h1>Archive Error</h1>"
+                    '<p>Failed to load: <a href="' + ctx.url + '">' + ctx.url + "</a></p>"
+                    "<p>Error: " + html_mod.escape(error_str[:500]) + "</p></body></html>"
+                )
+                ctx.page_title = f"Archive Error: {ctx.url}"
+                ctx.final_url = ctx.url
+                ctx.is_partial = True
+                ctx.paywalled = False
+
+            # --- Paywall bypass suite ---
             if ctx.paywalled:
                 active = config.active_pipeline_steps()
-                from typing import Any as _Any
+                _run_paywall_bypass(ctx, active)
+                if ctx.paywalled:
+                    ctx.is_partial = True
 
-                steps: list[dict[str, _Any]] = [{"step": s, "enabled": True} for s in active]
-                ctx = await _run_paywall_bypass(ctx, steps)
+            # --- Image deduplication ---
+            active_steps = config.active_pipeline_steps()
+            if "image_dedup" in active_steps:
+                from archiveinator.steps.image_dedup import run as image_dedup_run
 
-            # Determine output path
+                await image_dedup_run(ctx)
+
+            # --- Asset inlining ---
+            if "asset_inlining" in active_steps:
+                from archiveinator.steps.asset_inlining import AssetInliningError
+                from archiveinator.steps.asset_inlining import run as inline_run
+
+                try:
+                    await inline_run(ctx)
+                except AssetInliningError:
+                    ctx.is_partial = True
+
+            # --- Determine output filename ---
             from archiveinator.naming import build_filename
 
-            slug = (
-                ctx.page_title or "untitled"
-                if not ctx.is_partial
-                else f"{ctx.page_title or 'untitled'}_partial"
+            ts_dt = datetime.fromtimestamp(start)
+            fname = build_filename(
+                job["url"],
+                ctx.page_title or "untitled",
+                ts=ts_dt,
+                partial=ctx.is_partial,
             )
-            fname = build_filename(job["url"], slug, partial=ctx.is_partial)
             output_path = user_output_dir / fname
             if ctx.page_html:
                 output_path.write_text(ctx.page_html, encoding="utf-8")
 
+            word_count_val = len(ctx.page_html.split()) if ctx.page_html else 0
             elapsed = round(time.time() - start, 1)
+            rel_path = str(output_path.relative_to(_data_dir())) if ctx.page_html else None
+
             job.update(
                 status="completed",
-                output_file=str(output_path.relative_to(_data_dir())),
+                output_file=rel_path,
                 title=ctx.page_title,
                 final_url=ctx.final_url,
                 response_status=ctx.response_status,
-                word_count=len(ctx.page_html.split()) if ctx.page_html else 0,
+                word_count=word_count_val,
                 paywalled=ctx.paywalled,
                 paywall_reason=ctx.paywall_reason,
                 bypass_method=ctx.bypass_method,
@@ -144,21 +203,54 @@ class JobManager:
                 step_log=ctx.step_log,
             )
 
+            # Update DB
+            self._update_db(
+                job_id,
+                {
+                    "status": "completed",
+                    "output_file": rel_path,
+                    "title": ctx.page_title,
+                    "final_url": ctx.final_url,
+                    "response_status": ctx.response_status,
+                    "word_count": word_count_val,
+                    "paywalled": ctx.paywalled,
+                    "paywall_reason": ctx.paywall_reason,
+                    "bypass_method": ctx.bypass_method,
+                    "bypass_cached": ctx.bypass_cached,
+                    "is_partial": ctx.is_partial,
+                    "step_log_json": json.dumps(ctx.step_log),
+                    "duration_seconds": elapsed,
+                    "completed_at": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time())),
+                },
+            )
+
             if q is not None:
                 await q.put(
                     {
                         "type": "complete",
                         "job_id": job_id,
                         "title": ctx.page_title,
-                        "output_file": job["output_file"],
+                        "output_file": rel_path,
                         "duration_seconds": elapsed,
                     }
                 )
+
+            # Send email notification
+            await self._send_email_notification(job_id, "completed")
 
         except Exception as exc:
             elapsed = round(time.time() - start, 1)
             error = str(exc)
             job.update(status="failed", error=error, duration_seconds=elapsed)
+            self._update_db(
+                job_id,
+                {
+                    "status": "failed",
+                    "error": error,
+                    "duration_seconds": elapsed,
+                    "completed_at": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time())),
+                },
+            )
             if q is not None:
                 await q.put(
                     {
@@ -168,6 +260,26 @@ class JobManager:
                         "ts": elapsed,
                     }
                 )
+
+            # Send email notification
+            await self._send_email_notification(job_id, "failed")
+
+    def _update_db(self, job_id: int, updates: dict[str, Any]) -> None:
+        """Update the DB record for a job."""
+        from archiveinator.web.models import ArchiveJob
+
+        session_factory = get_session_factory()
+        session = session_factory()
+        try:
+            job = session.query(ArchiveJob).filter(ArchiveJob.id == job_id).first()
+            if job is not None:
+                for key, value in updates.items():
+                    setattr(job, key, value)
+                session.commit()
+        except Exception:
+            session.rollback()
+        finally:
+            session.close()
 
     def get(self, job_id: int) -> dict[str, Any] | None:
         """Get job state from in-memory store."""
@@ -191,6 +303,38 @@ class JobManager:
         """Update in-memory job state."""
         if job_id in self._in_flight:
             self._in_flight[job_id].update(kwargs)
+
+    async def _send_email_notification(self, job_id: int, status: str) -> None:
+        """Send email notification for job completion or failure if user opted in."""
+        from archiveinator.web.emailer import notify_job_complete, notify_job_failed
+        from archiveinator.web.models import ArchiveJob as ArchiveJobModel
+        from archiveinator.web.models import User as UserModel
+
+        session_factory = get_session_factory()
+        session = session_factory()
+        try:
+            job = session.query(ArchiveJobModel).filter(ArchiveJobModel.id == job_id).first()
+            if job is None:
+                return
+            user = session.query(UserModel).filter(UserModel.id == job.user_id).first()
+            if user is None or not user.email:
+                return
+
+            # Check if user has email notifications enabled
+            from archiveinator.web.models import UserConfig
+
+            config = session.query(UserConfig).filter(UserConfig.user_id == user.id).first()
+            if config is None or not config.email_notifications_enabled:
+                return
+
+            if status == "completed":
+                notify_job_complete(user.email, job)
+            elif status == "failed":
+                notify_job_failed(user.email, job)
+        except Exception:
+            logger.exception("Failed to send email notification for job %d", job_id)
+        finally:
+            session.close()
 
 
 # Singleton

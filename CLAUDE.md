@@ -38,6 +38,12 @@ docker build -t archiveinator:test .
 
 # First-time setup (installs Chromium, monolith, blocklists)
 archiveinator setup
+
+# Web: start dev server (install with `pip3 install -e ".[dev,web]"`)
+archiveinator serve --dev
+
+# Web: build Docker image
+docker build -t archiveinator:web-test .
 ```
 
 **Dependency management**: This project uses `uv`. To add/update deps, edit `pyproject.toml` and run `uv sync`. The `uv.lock` file is committed and provides reproducible installs.
@@ -78,6 +84,36 @@ URL → page_load → [paywall detection] → [bypass strategies] → image_dedu
 **`archiveinator/naming.py`** — Output filename format: `YYYY-MM-DD_HH-MM_hostname_title[_partial].html`
 
 **`archiveinator/setup_cmd.py`** — Downloads Playwright Chromium, the platform-appropriate `monolith` binary from GitHub releases, and ad-block rule files.
+
+### Web Architecture (`archiveinator/web/`)
+
+FastAPI application with server-rendered HTML (no Jinja2 — templates are Python f-strings via `templates.py`).
+
+**Key modules:**
+- **`app.py`** — Application factory, lifespan (DB tables, scheduler startup/shutdown), router registration
+- **`auth.py`** — Session-based auth via bcrypt + signed cookies (`get_current_user` FastAPI dependency)
+- **`db.py`** — SQLAlchemy engine + session factory (SQLite at `{data_dir}/archiveinator.db`)
+- **`models.py`** — 7 ORM models: `User`, `SiteProfile`, `UserConfig`, `ArchiveJob`, `RssFeed`, `FeedItem`, `ScheduledTask`
+- **`job_manager.py`** — In-process async job lifecycle (singleton), WebSocket progress streaming via `asyncio.Queue`
+- **`scheduler.py`** — APScheduler `AsyncIOScheduler` for cron-based archiving + RSS feed polling
+- **`feed_reader.py`** — Feedparser wrapper; `check_feed()` runs in thread executor, `check_all_feeds()` iterates all feeds
+- **`emailer.py`** — Resend.com email integration; `RESEND_API_KEY` env var, graceful skip when unset
+- **`templates.py`** — Shared `render_page()` with nav bar rendering and active-page highlighting
+
+**Routes** (`archiveinator/web/routes/`):
+- `archive.py` — POST /archive, GET /archive/{id}, WS /archive/{id}/ws, GET /download/{id}
+- `auth.py` — POST /auth/register, /auth/login, /auth/logout
+- `profiles.py` — CRUD site profiles with cookie file upload
+- `config.py` — Pipeline steps, UA list, timeouts, email notification toggle
+- `jobs.py` — Paginated job history with status/domain filtering
+- `schedules.py` — CRUD cron schedules with presets
+- `feeds.py` — CRUD RSS feeds, force-check, item list
+- `bulk.py` — Bulk import (bookmarks HTML, plain text, CSV) with progress tracking
+
+**Tech constraints:**
+- `from __future__ import annotations` in all route files (PEP 563)
+- Use `: Any` for `Depends()` params (FastAPI/Pydantic v2 can't see SQLAlchemy types)
+- Return types use `Response` (never unions like `HTMLResponse | RedirectResponse`)
 
 ### External binary dependency
 

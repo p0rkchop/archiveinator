@@ -17,6 +17,7 @@ archiveinator runs locally in a lightweight way, giving you full control over yo
 - Detects paywalls automatically and tries multiple bypass strategies in sequence
 - Collapses responsive images to a single reasonable size before archiving
 - Fully configurable pipeline — enable or disable any step in `config.yaml`
+- **Web UI** — browser-based interface for archiving, managing profiles, RSS feeds, schedules, and bulk imports (`archiveinator serve`)
 
 ---
 
@@ -430,7 +431,73 @@ Successful agent/domain pairs are cached at:
 
 ---
 
-## Releases
+## Web UI
+
+archiveinator includes a browser-based web interface for managing archives, site profiles, RSS feeds, scheduled archiving, and bulk imports. It's included in the `web` extra.
+
+### Starting the server
+
+```bash
+# Install with web dependencies
+pip3 install "archiveinator[web] @ git+https://github.com/p0rkchop/archiveinator.git"
+
+# Start the web server
+archiveinator serve
+
+# With custom host and port
+archiveinator serve --host 0.0.0.0 --port 8080
+
+# Development mode (auto-reload, verbose logging)
+archiveinator serve --dev
+```
+
+Open [http://localhost:8080](http://localhost:8080) and register a new account.
+
+### Web features
+
+| Feature | Description |
+|---------|-------------|
+| **Dashboard** | Archive any URL with one click, see recent jobs and quick stats |
+| **Site Profiles** | Per-domain cookie profiles for authenticated archiving. Upload Cookie-Editor, EditThisCookie, or Playwright storage state exports |
+| **RSS Feeds** | Subscribe to RSS/Atom feeds and auto-archive new articles |
+| **Schedules** | Set up recurring archives on cron schedules (hourly, daily, weekdays, or custom) |
+| **Bulk Import** | Upload bookmark exports (Netscape HTML), plain text URL lists, or CSV files to archive en masse |
+| **Job History** | Browse past archives with filtering by status and domain |
+| **Settings** | Configure pipeline steps, user agents, timeouts, and email notifications |
+
+### Environment variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `RESEND_API_KEY` | _(none)_ | [Resend](https://resend.com) API key for email notifications. If unset, email sending is silently skipped |
+| `RESEND_FROM` | `archiveinator <onboarding@resend.dev>` | From address for notification emails |
+
+### Docker
+
+The Docker image includes the web UI and starts the server by default:
+
+```bash
+# Run with persistent data volume
+docker run --rm \
+  -p 8080:8080 \
+  -v archive-data:/data \
+  ghcr.io/p0rkchop/archiveinator:latest
+
+# With email notifications and pinned version
+docker run --rm \
+  -p 8080:8080 \
+  -v archive-data:/data \
+  -e RESEND_API_KEY=re_xxx \
+  ghcr.io/p0rkchop/archiveinator:0.9.0
+```
+
+| Mount | Purpose |
+|-------|---------|
+| `/data` | SQLite database, config, archives, and caches **(persist this)** |
+
+### CLI fallback
+
+The CLI still works normally alongside the web UI. Use `archiveinator archive <url>` as before — the web server doesn't conflict.
 
 Each release publishes platform-specific [monolith](https://github.com/Y2Z/monolith) binaries compiled from source. These are what `archiveinator setup` downloads automatically — you do not need to manage them yourself.
 
@@ -465,6 +532,10 @@ pytest tests/unit/
 # Lint and type check
 ruff check .
 mypy archiveinator/
+
+# Web UI development (install with web extras)
+pip3 install -e ".[dev,web]"
+archiveinator serve --dev
 
 # Deactivate when done
 deactivate

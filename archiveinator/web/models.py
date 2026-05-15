@@ -55,6 +55,7 @@ class UserConfig(Base):
     ua_list_json: Mapped[str | None] = mapped_column(Text, nullable=True)
     timeout_seconds: Mapped[int] = mapped_column(Integer, default=40)
     output_retention_days: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    email_notifications_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, server_default=func.now(), onupdate=func.now()

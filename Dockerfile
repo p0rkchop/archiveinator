@@ -5,8 +5,8 @@ ARG RELEASE_REF=main
 ENV XDG_CONFIG_HOME=/config
 ENV XDG_DATA_HOME=/data
 
-# Install archiveinator from GitHub
-RUN pip3 install "git+https://github.com/p0rkchop/archiveinator.git@${RELEASE_REF}"
+# Install archiveinator with web extras from GitHub
+RUN pip3 install "archiveinator[web] @ git+https://github.com/p0rkchop/archiveinator.git@${RELEASE_REF}"
 
 # Download monolith binary from latest GitHub release
 RUN ARCH=$(uname -m) && \
@@ -32,6 +32,8 @@ for url, path in [
 print("Blocklists installed")
 PYEOF
 
-RUN mkdir -p /output
-WORKDIR /output
+RUN mkdir -p /data/output /data/bin
+WORKDIR /data/output
+EXPOSE 8080
 ENTRYPOINT ["archiveinator"]
+CMD ["serve"]

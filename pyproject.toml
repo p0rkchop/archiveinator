@@ -48,6 +48,7 @@ web = [
     "aiofiles>=24.0.0",
     "resend>=0.8.0",
     "itsdangerous>=2.2.0",
+    "feedparser>=6.0.0",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -59,7 +60,7 @@ line-length = 100
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
-ignore = ["E501"]
+ignore = ["E501", "B008"]
 
 [tool.mypy]
 python_version = "3.11"

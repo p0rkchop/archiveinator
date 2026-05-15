@@ -815,6 +815,30 @@ def login(
         _abort(f"Login command failed: {e}")
 
 
+@app.command()
+def serve(
+    host: str = typer.Option("0.0.0.0", "--host", help="Bind address"),
+    port: int = typer.Option(8080, "--port", "-p", help="Port to listen on"),
+    dev: bool = typer.Option(False, "--dev", help="Enable auto-reload, debug logging"),
+    workers: int = typer.Option(1, "--workers", "-w", help="Number of uvicorn workers"),
+) -> None:
+    """Start the web UI server."""
+    from archiveinator.web import create_app
+
+    app_instance = create_app()
+
+    import uvicorn
+
+    uvicorn.run(
+        app_instance,
+        host=host,
+        port=port,
+        reload=dev,
+        log_level="debug" if dev else "info",
+        workers=workers,
+    )
+
+
 # --- Cache subcommands ---
 
 
