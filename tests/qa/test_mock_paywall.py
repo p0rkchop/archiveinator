@@ -130,8 +130,15 @@ def test_http_403_triggers_bypass_suite(
 
     result = runner.invoke(
         app,
-        ["archive", httpserver.url_for("/article"), "--output-dir", str(tmp_path),
-         "--timeout", "5", "--verbose"],
+        [
+            "archive",
+            httpserver.url_for("/article"),
+            "--output-dir",
+            str(tmp_path),
+            "--timeout",
+            "5",
+            "--verbose",
+        ],
     )
 
     output = _plain(result.output)
@@ -154,8 +161,14 @@ def test_http_403_produces_archive_not_crash(
 
     result = runner.invoke(
         app,
-        ["archive", httpserver.url_for("/article"), "--output-dir", str(tmp_path),
-         "--timeout", "5"],
+        [
+            "archive",
+            httpserver.url_for("/article"),
+            "--output-dir",
+            str(tmp_path),
+            "--timeout",
+            "5",
+        ],
     )
 
     assert result.exit_code == 0
@@ -178,8 +191,15 @@ def test_perimeterx_bot_page_detected(
 
     result = runner.invoke(
         app,
-        ["archive", httpserver.url_for("/article"), "--output-dir", str(tmp_path),
-         "--timeout", "5", "--verbose"],
+        [
+            "archive",
+            httpserver.url_for("/article"),
+            "--output-dir",
+            str(tmp_path),
+            "--timeout",
+            "5",
+            "--verbose",
+        ],
     )
 
     output = _plain(result.output)
@@ -204,8 +224,14 @@ def test_perimeterx_bot_page_produces_archive(
 
     result = runner.invoke(
         app,
-        ["archive", httpserver.url_for("/article"), "--output-dir", str(tmp_path),
-         "--timeout", "5"],
+        [
+            "archive",
+            httpserver.url_for("/article"),
+            "--output-dir",
+            str(tmp_path),
+            "--timeout",
+            "5",
+        ],
     )
 
     assert result.exit_code == 0
@@ -232,8 +258,15 @@ def test_piano_paywall_detected(
 
     result = runner.invoke(
         app,
-        ["archive", httpserver.url_for("/article"), "--output-dir", str(tmp_path),
-         "--timeout", "5", "--verbose"],
+        [
+            "archive",
+            httpserver.url_for("/article"),
+            "--output-dir",
+            str(tmp_path),
+            "--timeout",
+            "5",
+            "--verbose",
+        ],
     )
 
     output = _plain(result.output)
@@ -253,8 +286,14 @@ def test_piano_overlay_removed_from_archive(
 
     runner.invoke(
         app,
-        ["archive", httpserver.url_for("/article"), "--output-dir", str(tmp_path),
-         "--timeout", "5"],
+        [
+            "archive",
+            httpserver.url_for("/article"),
+            "--output-dir",
+            str(tmp_path),
+            "--timeout",
+            "5",
+        ],
     )
 
     html_files = list(tmp_path.glob("*.html"))
@@ -280,8 +319,15 @@ def test_low_word_count_detected(
 
     result = runner.invoke(
         app,
-        ["archive", httpserver.url_for("/article"), "--output-dir", str(tmp_path),
-         "--timeout", "5", "--verbose"],
+        [
+            "archive",
+            httpserver.url_for("/article"),
+            "--output-dir",
+            str(tmp_path),
+            "--timeout",
+            "5",
+            "--verbose",
+        ],
     )
 
     output = _plain(result.output)
@@ -305,8 +351,14 @@ def test_low_word_count_produces_archive(
 
     result = runner.invoke(
         app,
-        ["archive", httpserver.url_for("/article"), "--output-dir", str(tmp_path),
-         "--timeout", "5"],
+        [
+            "archive",
+            httpserver.url_for("/article"),
+            "--output-dir",
+            str(tmp_path),
+            "--timeout",
+            "5",
+        ],
     )
 
     assert result.exit_code == 0
