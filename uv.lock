@@ -71,7 +71,7 @@ wheels = [
 
 [[package]]
 name = "archiveinator"
-version = "0.9.4"
+version = "0.9.6"
 source = { editable = "." }
 dependencies = [
     { name = "adblock" },
