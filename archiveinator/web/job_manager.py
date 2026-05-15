@@ -216,7 +216,7 @@ class JobManager:
                     "is_partial": ctx.is_partial,
                     "step_log_json": json.dumps(ctx.step_log),
                     "duration_seconds": elapsed,
-                    "completed_at": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time())),
+                    "completed_at": datetime.now(),
                 },
             )
 
@@ -244,7 +244,7 @@ class JobManager:
                     "status": "failed",
                     "error": error,
                     "duration_seconds": elapsed,
-                    "completed_at": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time())),
+                    "completed_at": datetime.now(),
                 },
             )
             if q is not None:
@@ -274,6 +274,7 @@ class JobManager:
                 session.commit()
         except Exception:
             session.rollback()
+            logger.exception("Failed to update DB for job %d", job_id)
         finally:
             session.close()
 

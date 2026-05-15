@@ -13,16 +13,18 @@ RUN pip3 install "archiveinator[web] @ git+https://github.com/p0rkchop/archivein
 # newer playwright, so we re-install the matching browser.
 RUN python3 -m playwright install chromium
 
-# Download monolith binary from latest GitHub release
-RUN ARCH=$(uname -m) && \
+# Download monolith binary from latest GitHub release.
+# Install to the path monolith_bin() expects: $XDG_DATA_HOME/archiveinator/bin/monolith
+RUN mkdir -p /data/archiveinator/bin /data/archiveinator/output && \
+    ARCH=$(uname -m) && \
     case "$ARCH" in \
       x86_64) ASSET="archiveinator-linux-x86_64" ;; \
       aarch64) ASSET="archiveinator-linux-aarch64" ;; \
       *) echo "Unsupported architecture: $ARCH"; exit 1 ;; \
     esac && \
-    curl -fsSL -o /usr/local/bin/monolith \
+    curl -fsSL -o /data/archiveinator/bin/monolith \
       "https://github.com/p0rkchop/archiveinator/releases/latest/download/${ASSET}" && \
-    chmod +x /usr/local/bin/monolith
+    chmod +x /data/archiveinator/bin/monolith
 
 # Pre-download adblock blocklists
 RUN python3 << 'PYEOF'
@@ -37,7 +39,6 @@ for url, path in [
 print("Blocklists installed")
 PYEOF
 
-RUN mkdir -p /data/output /data/bin
 WORKDIR /data/output
 EXPOSE 8080
 ENTRYPOINT ["archiveinator"]
