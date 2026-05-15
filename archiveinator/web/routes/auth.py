@@ -22,8 +22,11 @@ router = APIRouter(tags=["auth"])
 
 
 @router.get("/auth/register", response_class=HTMLResponse)
-async def register_form() -> Response:
-    html = """<!DOCTYPE html>
+async def register_form(request: Request) -> Response:
+    from archiveinator.web.templates import esc_html
+
+    next_url = esc_html(request.query_params.get("next", "/dashboard"))
+    html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -36,6 +39,7 @@ async def register_form() -> Response:
 <h1>archiveinator</h1>
 <h2>Create Account</h2>
 <form method="post" action="/auth/register">
+<input type="hidden" name="next" value="{next_url}">
 <div class="form-group">
 <label for="username">Username</label>
 <input type="text" id="username" name="username" required autofocus>
@@ -68,6 +72,7 @@ async def register(
     password: str = Form(...),
     confirm: str = Form(...),
     email: str | None = Form(default=None),
+    next: str = Form(default="/dashboard"),
     db: Any = Depends(get_session),
 ) -> Response:
     if password != confirm:
@@ -101,14 +106,19 @@ async def register(
     db.add(default_config)
 
     login_user(request, user.id, user.username)
-    return RedirectResponse(url="/dashboard", status_code=302)
+    if not next.startswith("/"):
+        next = "/dashboard"
+    return RedirectResponse(url=next, status_code=302)
 
 
 @router.get("/auth/login", response_class=HTMLResponse)
 async def login_form(request: Request) -> Response:
     if request.session.get("user_id"):
         return RedirectResponse(url="/dashboard", status_code=302)
-    html = """<!DOCTYPE html>
+    from archiveinator.web.templates import esc_html
+
+    next_url = esc_html(request.query_params.get("next", "/dashboard"))
+    html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -121,6 +131,7 @@ async def login_form(request: Request) -> Response:
 <h1>archiveinator</h1>
 <h2>Log In</h2>
 <form method="post" action="/auth/login">
+<input type="hidden" name="next" value="{next_url}">
 <div class="form-group">
 <label for="username">Username</label>
 <input type="text" id="username" name="username" required autofocus>
@@ -143,6 +154,7 @@ async def login(
     request: Request,
     username: str = Form(...),
     password: str = Form(...),
+    next: str = Form(default="/dashboard"),
     db: Any = Depends(get_session),
 ) -> Response:
     user = db.query(User).filter(User.username == username).first()
@@ -150,7 +162,10 @@ async def login(
         return html_error("Invalid username or password")
 
     login_user(request, user.id, user.username)
-    return RedirectResponse(url="/dashboard", status_code=302)
+    # Only redirect to relative paths (prevent open-redirect attacks)
+    if not next.startswith("/"):
+        next = "/dashboard"
+    return RedirectResponse(url=next, status_code=302)
 
 
 @router.post("/auth/logout")

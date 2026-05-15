@@ -5,9 +5,10 @@ from __future__ import annotations
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
-from fastapi.responses import RedirectResponse
+from fastapi import FastAPI, Request, status as http_status
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.exceptions import HTTPException
 from starlette.middleware.sessions import SessionMiddleware
 
 from archiveinator.web.models import create_all
@@ -93,6 +94,21 @@ def create_app() -> FastAPI:
     app.include_router(jobs_router)
     app.include_router(profiles_router)
     app.include_router(schedules_router)
+
+    # Redirect 401 responses to login page for browser requests (HTML-accepting)
+    @app.exception_handler(HTTPException)
+    async def _auth_exception_handler(
+        req: Request, exc: HTTPException
+    ) -> RedirectResponse | JSONResponse:
+        if exc.status_code == http_status.HTTP_401_UNAUTHORIZED:
+            accept = req.headers.get("accept", "")
+            if "text/html" in accept and "/auth/" not in req.url.path:
+                return RedirectResponse(
+                    url="/auth/login?next=" + req.url.path, status_code=302
+                )
+        return JSONResponse(
+            status_code=exc.status_code, content={"detail": exc.detail or ""}
+        )
 
     # Root redirect to dashboard
     @app.get("/")
