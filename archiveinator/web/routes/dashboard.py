@@ -44,10 +44,17 @@ async def dashboard(
             "pending": "badge-pending",
             "running": "badge-running",
         }.get(j.status, "badge-pending")
+        actions = ""
+        if j.status == "completed" and j.output_file:
+            actions = (
+                f'<a href="/download/{j.id}?view=1" class="btn btn-sm">View</a>'
+                f'<a href="/download/{j.id}" class="btn btn-sm">Download</a>'
+            )
         jobs_html += f"""<li>
   <span class="badge {badge_class}">{j.status}</span>
   <span class="job-url">{esc_html(j.title or j.url)}</span>
   <small style="color:var(--text-muted)">{j.created_at.strftime("%Y-%m-%d %H:%M") if j.created_at else ""}</small>
+  <span class="job-actions">{actions}</span>
 </li>"""
 
     body = f"""<div class="hero">
@@ -95,7 +102,10 @@ async def dashboard(
 </div>
 
 <div class="card">
-  <h2>Recent Archives</h2>
+  <div class="card-header">
+    <h2>Recent Archives</h2>
+    <a href="/jobs" class="btn btn-sm">View all</a>
+  </div>
   {"<ul class='job-list'>" + jobs_html + "</ul>" if jobs_html else '<p class="empty-state">No archives yet. Enter a URL above to get started.</p>'}
 </div>
 

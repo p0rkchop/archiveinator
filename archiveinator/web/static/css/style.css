@@ -441,6 +441,7 @@ tr:hover td { background: #f1f3f5; }
 }
 .job-list li:last-child { border-bottom: none; }
 .job-list .job-url { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.job-list .job-actions { display: flex; gap: 0.375rem; flex-shrink: 0; }
 
 /* Stats row */
 .stats {
