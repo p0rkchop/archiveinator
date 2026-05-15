@@ -535,6 +535,12 @@ def archive(
     timeout: int | None = typer.Option(
         None, "--timeout", "-t", help="Page load timeout in seconds (overrides config)"
     ),
+    no_netblock: bool = typer.Option(
+        False, "--no-netblock", help="Disable network-level ad blocking for this run"
+    ),
+    no_dom_cleanup: bool = typer.Option(
+        False, "--no-dom-cleanup", help="Disable DOM ad node removal for this run"
+    ),
 ) -> None:
     """Archive a web page as a self-contained HTML file."""
     from archiveinator.naming import build_filename
@@ -577,6 +583,12 @@ def archive(
         console.debug(f"Timeout overridden via CLI: {timeout}s")
 
     ctx = ArchiveContext(url=url, config=config)
+    if no_netblock:
+        ctx.disabled_steps.add("network_ad_blocking")
+        console.debug("network_ad_blocking disabled via --no-netblock")
+    if no_dom_cleanup:
+        ctx.disabled_steps.add("dom_ad_cleanup")
+        console.debug("dom_ad_cleanup disabled via --no-dom-cleanup")
     if cookies_file:
         try:
             cookies = _load_cookies(cookies_file)

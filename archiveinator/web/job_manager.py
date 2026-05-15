@@ -37,6 +37,7 @@ class JobManager:
         user_id: int,
         url: str,
         profile_id: int | None = None,
+        disabled_steps: set[str] | None = None,
     ) -> None:
         """Enqueue an archive job using the DB job ID as the key."""
         async with self._lock:
@@ -47,6 +48,7 @@ class JobManager:
                 "url": url,
                 "status": "pending",
                 "profile_id": profile_id,
+                "disabled_steps": disabled_steps or set(),
                 "created_at": now,
             }
             self._queues[db_job_id] = asyncio.Queue()
@@ -76,6 +78,7 @@ class JobManager:
         user_output_dir.mkdir(parents=True, exist_ok=True)
 
         ctx = ArchiveContext(url=job["url"], config=config)
+        ctx.disabled_steps = job.get("disabled_steps", set())
 
         # Hook ctx.log to also push to WebSocket
         original_log = ctx.log

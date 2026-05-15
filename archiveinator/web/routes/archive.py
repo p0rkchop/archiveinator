@@ -21,6 +21,8 @@ router = APIRouter(tags=["archive"])
 async def submit_archive(
     request: Request,
     url: str = Form(...),
+    no_netblock: bool = Form(False),
+    no_dom_cleanup: bool = Form(False),
     db: Any = Depends(get_session),
     user: Any = Depends(get_current_user),
 ) -> JSONResponse:
@@ -57,9 +59,18 @@ async def submit_archive(
     db.flush()
     job_id = job.id
 
+    # Build per-job disabled steps from form checkboxes
+    disabled: set[str] = set()
+    if no_netblock:
+        disabled.add("network_ad_blocking")
+    if no_dom_cleanup:
+        disabled.add("dom_ad_cleanup")
+
     # Submit to job manager using the DB job ID as the key
     jm = get_job_manager()
-    await jm.submit(job_id, user.id, url, profile_id=profile.id if profile else None)
+    await jm.submit(
+        job_id, user.id, url, profile_id=profile.id if profile else None, disabled_steps=disabled
+    )
 
     return JSONResponse({"job_id": job_id})
 

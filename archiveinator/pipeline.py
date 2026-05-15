@@ -32,6 +32,8 @@ class ArchiveContext:
     use_stealth: bool = False
     js_enabled: bool = True
     bypass_cached: bool = False
+    # Per-run step overrides — steps in this set are skipped regardless of config
+    disabled_steps: set[str] = field(default_factory=set)
     # Diagnostics — steps append notes here
     step_log: list[str] = field(default_factory=list)
 

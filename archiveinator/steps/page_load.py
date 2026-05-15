@@ -109,7 +109,7 @@ async def run(ctx: ArchiveContext) -> None:
     """
     ua = ctx.ua_override or ctx.config.active_user_agent()
     timeout_ms = ctx.config.timeout_seconds * 1000
-    active_steps = ctx.config.active_pipeline_steps()
+    active_steps = [s for s in ctx.config.active_pipeline_steps() if s not in ctx.disabled_steps]
 
     console.step(f"Loading page: {ctx.url}")
     console.debug(f"User-agent: {ua}")

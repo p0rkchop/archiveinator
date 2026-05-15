@@ -57,6 +57,16 @@ async def dashboard(
   <form class="archive-form" id="archive-form" method="post" action="/archive">
     <input type="url" name="url" placeholder="https://example.com/article" required autofocus>
     <button type="submit" class="btn btn-primary">Archive</button>
+    <div class="archive-options">
+      <label class="archive-option">
+        <input type="checkbox" name="no_netblock" value="1">
+        Disable network ad blocking
+      </label>
+      <label class="archive-option">
+        <input type="checkbox" name="no_dom_cleanup" value="1">
+        Disable DOM ad cleanup
+      </label>
+    </div>
   </form>
 
   <div class="profile-indicator" id="profile-indicator"></div>
