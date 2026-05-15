@@ -16,7 +16,7 @@ from archiveinator.web.auth import get_current_user
 from archiveinator.web.db import get_session
 from archiveinator.web.job_manager import get_job_manager
 from archiveinator.web.models import ArchiveJob
-from archiveinator.web.templates import render_page
+from archiveinator.web.templates import esc_html, render_page
 
 router = APIRouter(tags=["bulk"])
 
@@ -290,7 +290,7 @@ async def bulk_status(
             actions = f'<a href="/download/{u["job_id"]}" class="btn btn-sm">View</a>'
 
         rows += f"""<tr>
-  <td class="cell-url">{u["url"][:80]}</td>
+  <td class="cell-url">{esc_html(u["url"][:80])}</td>
   <td><span class="badge {badge_cls}">{u["status"]}</span></td>
   <td class="cell-meta">{u.get("error", "")[:50] or ""}</td>
   <td>{actions}</td>

@@ -6,6 +6,7 @@ Silently skips when RESEND_API_KEY is not set.
 
 from __future__ import annotations
 
+import html as _html_mod
 import logging
 import os
 
@@ -33,6 +34,7 @@ def _build_job_complete_email(job: ArchiveJob) -> tuple[str, str]:
     bypass_info = job.bypass_method or "N/A"
     partial_info = "Yes (partial capture)" if job.is_partial else "No"
 
+    esc = _html_mod.escape
     subject = f"Archive complete: {title[:80]}"
 
     html = f"""<!DOCTYPE html>
@@ -42,9 +44,9 @@ def _build_job_complete_email(job: ArchiveJob) -> tuple[str, str]:
   <h2>Archive Complete</h2>
   <table style="width: 100%; border-collapse: collapse;">
     <tr><td style="padding: 8px; color: #666;">URL</td>
-        <td style="padding: 8px;"><a href="{url}">{url[:120]}</a></td></tr>
+        <td style="padding: 8px;"><a href="{esc(url, quote=True)}">{esc(url[:120])}</a></td></tr>
     <tr><td style="padding: 8px; color: #666;">Title</td>
-        <td style="padding: 8px;"><strong>{title}</strong></td></tr>
+        <td style="padding: 8px;"><strong>{esc(title)}</strong></td></tr>
     <tr><td style="padding: 8px; color: #666;">Duration</td>
         <td style="padding: 8px;">{duration}</td></tr>
     <tr><td style="padding: 8px; color: #666;">Paywall detected</td>
@@ -65,6 +67,7 @@ def _build_job_failed_email(job: ArchiveJob) -> tuple[str, str]:
     title = job.title or url
     error = job.error or "Unknown error"
 
+    esc = _html_mod.escape
     subject = f"Archive failed: {title[:80]}"
 
     html = f"""<!DOCTYPE html>
@@ -74,11 +77,11 @@ def _build_job_failed_email(job: ArchiveJob) -> tuple[str, str]:
   <h2>Archive Failed</h2>
   <table style="width: 100%; border-collapse: collapse;">
     <tr><td style="padding: 8px; color: #666;">URL</td>
-        <td style="padding: 8px;"><a href="{url}">{url[:120]}</a></td></tr>
+        <td style="padding: 8px;"><a href="{esc(url, quote=True)}">{esc(url[:120])}</a></td></tr>
     <tr><td style="padding: 8px; color: #666;">Title</td>
-        <td style="padding: 8px;"><strong>{title}</strong></td></tr>
+        <td style="padding: 8px;"><strong>{esc(title)}</strong></td></tr>
     <tr><td style="padding: 8px; color: #666;">Error</td>
-        <td style="padding: 8px; color: #cc0000;">{error[:200]}</td></tr>
+        <td style="padding: 8px; color: #cc0000;">{esc(error[:200])}</td></tr>
   </table>
 </body>
 </html>"""

@@ -2,7 +2,14 @@
 
 from __future__ import annotations
 
+import html
+
 from fastapi import Request
+
+
+def esc_html(s: str) -> str:
+    """Escape a string for safe HTML insertion."""
+    return html.escape(s, quote=True)
 
 
 def render_page(title: str, body: str, request: Request) -> str:

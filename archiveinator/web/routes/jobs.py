@@ -10,7 +10,7 @@ from fastapi.responses import HTMLResponse, Response
 from archiveinator.web.auth import get_current_user
 from archiveinator.web.db import get_session
 from archiveinator.web.models import ArchiveJob
-from archiveinator.web.templates import render_page
+from archiveinator.web.templates import esc_html, render_page
 
 router = APIRouter(tags=["jobs"])
 
@@ -69,7 +69,7 @@ async def job_history(
 
         rows += f"""<tr>
   <td class="cell-ts">{ts}</td>
-  <td class="cell-url"><a href="/download/{j.id}?view=1">{j.title or j.url[:80]}</a></td>
+  <td class="cell-url"><a href="/download/{j.id}?view=1">{esc_html(j.title or j.url[:80])}</a></td>
   <td>{_badge_html(j.status)}</td>
   <td class="cell-meta">{paywall_info}</td>
   <td class="cell-meta">{j.duration_seconds or "—"}s</td>

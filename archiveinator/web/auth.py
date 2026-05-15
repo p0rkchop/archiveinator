@@ -22,7 +22,8 @@ def verify_password(password: str, password_hash: str) -> bool:
 
 
 def login_user(request: Request, user_id: int, username: str) -> None:
-    """Set the user's session."""
+    """Set the user's session, clearing any pre-existing data first."""
+    request.session.clear()
     request.session["user_id"] = user_id
     request.session["username"] = username
 

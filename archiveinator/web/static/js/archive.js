@@ -73,8 +73,8 @@
                 <h2>${escHtml(msg.title || "Untitled")}</h2>
                 <p class="meta">
                   <span>⏱ ${msg.duration_seconds}s</span>
-                  <span>📄 <a href="/download/${msg.job_id}" target="_blank">Download HTML</a></span>
-                  <span><a href="/download/${msg.job_id}?view=1" target="_blank">View preview</a></span>
+                  <span>📄 <a href="/download/${msg.job_id}" target="_blank" rel="noopener">Download HTML</a></span>
+                  <span><a href="/download/${msg.job_id}?view=1" target="_blank" rel="noopener">View preview</a></span>
                 </p>
               </div>`;
             break;

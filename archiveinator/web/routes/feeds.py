@@ -10,7 +10,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from archiveinator.web.auth import get_current_user
 from archiveinator.web.db import get_session
 from archiveinator.web.models import FeedItem, RssFeed, SiteProfile
-from archiveinator.web.templates import render_page
+from archiveinator.web.templates import esc_html, render_page
 
 router = APIRouter(tags=["feeds"])
 
@@ -36,9 +36,11 @@ async def feed_list(
             f.last_checked_at.strftime("%Y-%m-%d %H:%M") if f.last_checked_at else "Never"
         )
 
+        feed_display = esc_html(f.label or f.feed_url[:50])
+        feed_url_display = esc_html(f.feed_url[:60])
         rows += f"""<tr>
-  <td>{f.label or f.feed_url[:50]}</td>
-  <td class="cell-url"><a href="{f.feed_url}" target="_blank">{f.feed_url[:60]}</a></td>
+  <td>{feed_display}</td>
+  <td class="cell-url"><a href="{f.feed_url}" target="_blank" rel="noopener">{feed_url_display}</a></td>
   <td>{item_count}</td>
   <td>{last_checked}</td>
   <td class="actions">
@@ -147,6 +149,9 @@ async def feed_create(
     """Add a new RSS feed."""
     feed_url = feed_url.strip()
 
+    if not feed_url.startswith(("http://", "https://")):
+        return RedirectResponse(url="/feeds", status_code=302)
+
     # Check for duplicate
     existing = (
         db.query(RssFeed).filter(RssFeed.user_id == user.id, RssFeed.feed_url == feed_url).first()
@@ -232,7 +237,7 @@ async def feed_items(
         if item.job_id:
             status = f'<a href="/download/{item.job_id}" class="btn btn-sm">View</a>'
         rows += f"""<tr>
-  <td class="cell-url"><a href="{item.url}" target="_blank">{item.title or item.url[:60]}</a></td>
+  <td class="cell-url"><a href="{item.url}" target="_blank" rel="noopener">{esc_html(item.title or item.url[:60])}</a></td>
   <td>{published}</td>
   <td>{"Archived" if item.archived else "Pending"}</td>
   <td>{status}</td>
@@ -254,7 +259,7 @@ async def feed_items(
 
     body = f"""<div class="card">
   <div class="card-header">
-    <h2>Feed Items: {feed.label or feed.feed_url}</h2>
+    <h2>Feed Items: {esc_html(feed.label or feed.feed_url)}</h2>
     <a href="/feeds" class="btn">Back to Feeds</a>
   </div>
   {table}

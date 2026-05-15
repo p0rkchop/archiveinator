@@ -10,7 +10,7 @@ from fastapi.responses import HTMLResponse
 from archiveinator.web.auth import get_current_user
 from archiveinator.web.db import get_session
 from archiveinator.web.models import ArchiveJob
-from archiveinator.web.templates import render_page
+from archiveinator.web.templates import esc_html, render_page
 
 router = APIRouter(tags=["dashboard"])
 
@@ -46,7 +46,7 @@ async def dashboard(
         }.get(j.status, "badge-pending")
         jobs_html += f"""<li>
   <span class="badge {badge_class}">{j.status}</span>
-  <span class="job-url">{j.title or j.url}</span>
+  <span class="job-url">{esc_html(j.title or j.url)}</span>
   <small style="color:var(--text-muted)">{j.created_at.strftime("%Y-%m-%d %H:%M") if j.created_at else ""}</small>
 </li>"""
 

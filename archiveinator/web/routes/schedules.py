@@ -10,7 +10,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from archiveinator.web.auth import get_current_user
 from archiveinator.web.db import get_session
 from archiveinator.web.models import ScheduledTask, SiteProfile
-from archiveinator.web.templates import render_page
+from archiveinator.web.templates import esc_html, render_page
 
 router = APIRouter(tags=["schedules"])
 
@@ -42,8 +42,8 @@ async def schedule_list(
     for s in schedules:
         last_run = s.last_run_at.strftime("%Y-%m-%d %H:%M") if s.last_run_at else "Never"
         rows += f"""<tr>
-  <td>{s.label or s.url[:50]}</td>
-  <td><code>{s.cron_expression}</code></td>
+  <td>{esc_html(s.label or s.url[:50])}</td>
+  <td><code>{esc_html(s.cron_expression)}</code></td>
   <td>
     <span class="badge {"badge-success" if s.enabled else "badge-pending"}">
       {"Enabled" if s.enabled else "Disabled"}
@@ -107,9 +107,7 @@ async def schedule_new_form(
 
     profile_options = '<option value="">None (use defaults)</option>'
     for p in profiles:
-        profile_options += (
-            f'<option value="{p.id}">{p.domain}{" — " + p.label if p.label else ""}</option>'
-        )
+        profile_options += f'<option value="{p.id}">{esc_html(p.domain)}{" — " + esc_html(p.label) if p.label else ""}</option>'
 
     body = f"""<div class="card">
   <h2>New Scheduled Archive</h2>
@@ -168,11 +166,44 @@ async def schedule_create(
     site_profile_id: int | None = Form(default=None),
 ) -> Response:
     """Create a new scheduled archive task."""
+    url = url.strip()
+    cron_expression = cron_expression.strip()
+
+    # Validate cron expression
+    try:
+        from apscheduler.triggers.cron import CronTrigger
+
+        CronTrigger.from_crontab(cron_expression)
+    except (ValueError, TypeError) as e:
+        return HTMLResponse(
+            render_page(
+                "Error",
+                f'<div class="card"><p class="error-message">Invalid cron expression: {esc_html(str(e))}</p><a href="/schedules/new" class="btn">Back</a></div>',
+                request,
+            ),
+        )
+
+    # Validate profile ownership
+    if site_profile_id is not None:
+        profile = (
+            db.query(SiteProfile)
+            .filter(SiteProfile.id == site_profile_id, SiteProfile.user_id == user.id)
+            .first()
+        )
+        if profile is None:
+            return HTMLResponse(
+                render_page(
+                    "Error",
+                    '<div class="card"><p class="error-message">Site profile not found.</p><a href="/schedules/new" class="btn">Back</a></div>',
+                    request,
+                ),
+            )
+
     schedule = ScheduledTask(
         user_id=user.id,
-        url=url.strip(),
+        url=url,
         label=label or None,
-        cron_expression=cron_expression.strip(),
+        cron_expression=cron_expression,
         site_profile_id=site_profile_id,
     )
     db.add(schedule)
@@ -184,8 +215,8 @@ async def schedule_create(
     add_archive_schedule(
         schedule_id=schedule.id,
         user_id=user.id,
-        url=url.strip(),
-        cron_expression=cron_expression.strip(),
+        url=url,
+        cron_expression=cron_expression,
         profile_id=site_profile_id,
     )
 

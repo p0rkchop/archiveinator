@@ -12,7 +12,7 @@ from archiveinator.config import DEFAULT_PIPELINE
 from archiveinator.web.auth import get_current_user
 from archiveinator.web.db import get_session
 from archiveinator.web.models import UserConfig
-from archiveinator.web.templates import render_page
+from archiveinator.web.templates import esc_html, render_page
 
 router = APIRouter(tags=["config"])
 
@@ -58,7 +58,7 @@ def _pipeline_checkbox(step: dict[str, Any]) -> str:
     return (
         f'<label class="pipeline-step">'
         f'<input type="checkbox" name="pipeline_{step["step"]}" value="1"{checked}{disabled}>'
-        f'<span class="step-name">{step["step"]}</span>'
+        f'<span class="step-name">{esc_html(step["step"])}</span>'
         f"</label>"
     )
 
@@ -83,8 +83,8 @@ async def config_page(
         checked = " checked" if ua.get("enabled", True) else ""
         ua_rows += f"""<tr>
   <td><input type="checkbox" name="ua_enabled_{i}" value="1"{checked}></td>
-  <td><input type="text" name="ua_name_{i}" value="{ua.get("name", "")}" class="input-sm"></td>
-  <td><input type="text" name="ua_value_{i}" value="{ua.get("ua", "")}" class="input-sm ua-value"></td>
+  <td><input type="text" name="ua_name_{i}" value="{esc_html(ua.get("name", ""))}" class="input-sm"></td>
+  <td><input type="text" name="ua_value_{i}" value="{esc_html(ua.get("ua", ""))}" class="input-sm ua-value"></td>
 </tr>"""
 
     body = f"""<div class="card">
@@ -129,7 +129,7 @@ async def config_page(
       </div>
       <div class="form-group">
         <label for="email_address">Email address (set during registration)</label>
-        <input type="email" id="email_address" value="{user.email or ""}" disabled class="input-sm">
+        <input type="email" id="email_address" value="{esc_html(user.email or "")}" disabled class="input-sm">
         <p class="help-text">Update your email on the registration page. Leave blank to use the address provided at sign-up.</p>
       </div>
     </fieldset>

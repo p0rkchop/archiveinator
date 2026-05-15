@@ -11,7 +11,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from archiveinator.web.auth import get_current_user
 from archiveinator.web.db import get_session
 from archiveinator.web.models import SiteProfile
-from archiveinator.web.templates import render_page
+from archiveinator.web.templates import esc_html, render_page
 
 router = APIRouter(tags=["profiles"])
 
@@ -33,17 +33,19 @@ async def profile_list(
     rows = ""
     for p in profiles:
         cookie_count = len(json.loads(p.cookies_json)) if p.cookies_json else 0
+        d = esc_html(p.domain)
+        js_domain = p.domain.replace("\\", "\\\\").replace("'", "\\'")
         rows += f"""<tr>
-  <td><a href="/profiles/{p.id}/edit">{p.domain}</a></td>
-  <td>{p.label or ""}</td>
+  <td><a href="/profiles/{p.id}/edit">{d}</a></td>
+  <td>{esc_html(p.label or "")}</td>
   <td>{cookie_count}</td>
   <td>{"✓" if p.use_stealth else ""}</td>
-  <td>{p.ua_override or "—"}</td>
+  <td>{esc_html(p.ua_override) if p.ua_override else "—"}</td>
   <td>{p.timeout_seconds or "—"}s</td>
   <td class="actions">
     <a href="/profiles/{p.id}/edit" class="btn btn-sm">Edit</a>
     <form method="post" action="/profiles/{p.id}/delete" style="display:inline"
-          onsubmit="return confirm('Delete profile for {p.domain}?')">
+          onsubmit="return confirm('Delete profile for {js_domain}?')">
       <button type="submit" class="btn btn-sm btn-danger">Delete</button>
     </form>
   </td>
@@ -206,12 +208,13 @@ async def profile_edit_form(
   <p><strong>{cookie_count}</strong> cookies stored</p>
 </div>"""
 
+    d = esc_html(profile.domain)
     body = f"""<div class="card">
-  <h2>Edit Profile: {profile.domain}</h2>
+  <h2>Edit Profile: {d}</h2>
   <form method="post" action="/profiles/{profile.id}/edit" class="profile-form">
     <div class="form-group">
       <label for="label">Label</label>
-      <input type="text" id="label" name="label" value="{profile.label or ""}">
+      <input type="text" id="label" name="label" value="{esc_html(profile.label or "")}">
     </div>
     <div class="form-group">
       <label for="cookies_file">Replace Cookies (JSON)</label>
@@ -231,7 +234,7 @@ async def profile_edit_form(
       <div class="form-group">
         <label for="ua_override">User-Agent Override</label>
         <input type="text" id="ua_override" name="ua_override"
-               value="{profile.ua_override or ""}">
+               value="{esc_html(profile.ua_override or "")}">
       </div>
       <div class="form-group">
         <label for="timeout_seconds">Timeout (seconds)</label>
@@ -255,7 +258,7 @@ async def profile_edit_form(
 
 <script src="/static/js/profiles.js"></script>"""
 
-    return HTMLResponse(render_page(f"Edit {profile.domain}", body, request))
+    return HTMLResponse(render_page(f"Edit {d}", body, request))
 
 
 @router.post("/profiles/{profile_id}/edit")
