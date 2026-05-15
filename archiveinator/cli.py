@@ -851,6 +851,104 @@ def serve(
     )
 
 
+@app.command()
+def ladder(
+    port: int = typer.Option(8181, "--port", "-p", help="Local port to bind Ladder to"),
+    rules: str | None = typer.Option(
+        None,
+        "--rules",
+        "-r",
+        help="Path to YAML rules directory (default: {config_dir}/ladder-rules/)",
+    ),
+) -> None:
+    """Start a Ladder HTTP proxy for paywall bypass research.
+
+    Ladder is a lightweight HTTP proxy (everywall/ladder) that lets you
+    test header/referrer bypass combinations against paywalled sites without
+    running a full Playwright pipeline.
+
+    Requires Docker to be installed and running.
+    """
+    import shutil
+    import subprocess
+    import time as _time
+
+    _LADDER_IMAGE = "ghcr.io/everywall/ladder:latest"
+    _CONTAINER_NAME = "archiveinator-ladder"
+
+    # Check Docker is available
+    if shutil.which("docker") is None:
+        typer.echo(
+            "Error: Docker not found. Install Docker Desktop and ensure it is running.",
+            err=True,
+        )
+        raise typer.Exit(1)
+
+    # Resolve rules directory
+    from archiveinator.config import CONFIG_DIR
+
+    rules_dir = Path(rules).expanduser().resolve() if rules else CONFIG_DIR / "ladder-rules"
+    rules_dir.mkdir(parents=True, exist_ok=True)
+
+    # Pull image (shows progress via inherited stdout)
+    typer.echo(f"Pulling {_LADDER_IMAGE} …")
+    pull = subprocess.run(["docker", "pull", _LADDER_IMAGE])
+    if pull.returncode != 0:
+        typer.echo("Error: failed to pull Ladder image.", err=True)
+        raise typer.Exit(1)
+
+    # Stop any existing container with the same name
+    subprocess.run(
+        ["docker", "rm", "-f", _CONTAINER_NAME],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+
+    # Build docker run command
+    cmd = [
+        "docker",
+        "run",
+        "--name",
+        _CONTAINER_NAME,
+        "--rm",
+        "-p",
+        f"127.0.0.1:{port}:8080",
+        "-v",
+        f"{rules_dir}:/app/rules:ro",
+        _LADDER_IMAGE,
+    ]
+
+    proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+    # Brief pause so the container is up before printing the URL
+    _time.sleep(1)
+    if proc.poll() is not None:
+        typer.echo(
+            "Error: Ladder container exited immediately. Is the port already in use?", err=True
+        )
+        raise typer.Exit(1)
+
+    base = f"http://localhost:{port}"
+    typer.echo(f"\n✓ Ladder running at {base}")
+    typer.echo(f"  Proxy a URL:   {base}/https://example.com")
+    typer.echo(f"  JSON API:      {base}/api/https://example.com")
+    typer.echo(f"  Raw HTML:      {base}/raw/https://example.com")
+    typer.echo(f"  Rules dir:     {rules_dir}")
+    typer.echo("\nPress Ctrl+C to stop.\n")
+
+    try:
+        proc.wait()
+    except KeyboardInterrupt:
+        typer.echo("\nStopping Ladder …")
+        subprocess.run(
+            ["docker", "stop", _CONTAINER_NAME],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        proc.wait()
+        typer.echo("Ladder stopped.")
+
+
 # --- Cache subcommands ---
 
 
