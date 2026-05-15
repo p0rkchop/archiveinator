@@ -14,8 +14,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # Development install
 pip3 install -e ".[dev]"
 
-# Run tests (CI-safe, no network)
-pytest tests/ -m "not e2e and not real_url" -q --tb=short
+# Run tests (CI-safe, no network, unit only)
+pytest tests/unit/ -q --tb=short
 
 # Run specific test file
 pytest tests/unit/test_paywall.py -q

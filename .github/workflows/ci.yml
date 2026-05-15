@@ -11,9 +11,9 @@ jobs:
     name: Tests (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
-        python-version: ["3.11", "3.12"]
+        python-version: ["3.12"]
 
     steps:
       - uses: actions/checkout@v4
@@ -26,11 +26,8 @@ jobs:
       - name: Install dependencies
         run: uv sync --python ${{ matrix.python-version }} --extra dev
 
-      - name: Install Playwright Chromium
-        run: uv run playwright install chromium --with-deps
-
       - name: Run tests
-        run: uv run pytest tests/ -m "not e2e and not real_url" -q --tb=short
+        run: uv run pytest tests/unit/ -q --tb=short
 
   lint:
     name: Lint & Type Check

@@ -130,7 +130,8 @@ def test_http_403_triggers_bypass_suite(
 
     result = runner.invoke(
         app,
-        ["archive", httpserver.url_for("/article"), "--output-dir", str(tmp_path), "--verbose"],
+        ["archive", httpserver.url_for("/article"), "--output-dir", str(tmp_path),
+         "--timeout", "5", "--verbose"],
     )
 
     output = _plain(result.output)
@@ -153,7 +154,8 @@ def test_http_403_produces_archive_not_crash(
 
     result = runner.invoke(
         app,
-        ["archive", httpserver.url_for("/article"), "--output-dir", str(tmp_path)],
+        ["archive", httpserver.url_for("/article"), "--output-dir", str(tmp_path),
+         "--timeout", "5"],
     )
 
     assert result.exit_code == 0
@@ -172,10 +174,12 @@ def test_perimeterx_bot_page_detected(
         _PERIMETERX_BOT_PAGE, status=200, content_type="text/html"
     )
     _setup_monolith_mock(tmp_path, monkeypatch)
+    monkeypatch.setattr("archiveinator.cli._RETRY_DELAY_SECONDS", 0)
 
     result = runner.invoke(
         app,
-        ["archive", httpserver.url_for("/article"), "--output-dir", str(tmp_path), "--verbose"],
+        ["archive", httpserver.url_for("/article"), "--output-dir", str(tmp_path),
+         "--timeout", "5", "--verbose"],
     )
 
     output = _plain(result.output)
@@ -196,10 +200,12 @@ def test_perimeterx_bot_page_produces_archive(
         _PERIMETERX_BOT_PAGE, status=200, content_type="text/html"
     )
     _setup_monolith_mock(tmp_path, monkeypatch)
+    monkeypatch.setattr("archiveinator.cli._RETRY_DELAY_SECONDS", 0)
 
     result = runner.invoke(
         app,
-        ["archive", httpserver.url_for("/article"), "--output-dir", str(tmp_path)],
+        ["archive", httpserver.url_for("/article"), "--output-dir", str(tmp_path),
+         "--timeout", "5"],
     )
 
     assert result.exit_code == 0
@@ -222,10 +228,12 @@ def test_piano_paywall_detected(
         _PIANO_PAYWALL_PAGE, status=200, content_type="text/html"
     )
     _setup_monolith_mock(tmp_path, monkeypatch)
+    monkeypatch.setattr("archiveinator.cli._RETRY_DELAY_SECONDS", 0)
 
     result = runner.invoke(
         app,
-        ["archive", httpserver.url_for("/article"), "--output-dir", str(tmp_path), "--verbose"],
+        ["archive", httpserver.url_for("/article"), "--output-dir", str(tmp_path),
+         "--timeout", "5", "--verbose"],
     )
 
     output = _plain(result.output)
@@ -241,10 +249,12 @@ def test_piano_overlay_removed_from_archive(
         _PIANO_PAYWALL_PAGE, status=200, content_type="text/html"
     )
     _setup_monolith_mock(tmp_path, monkeypatch)
+    monkeypatch.setattr("archiveinator.cli._RETRY_DELAY_SECONDS", 0)
 
     runner.invoke(
         app,
-        ["archive", httpserver.url_for("/article"), "--output-dir", str(tmp_path)],
+        ["archive", httpserver.url_for("/article"), "--output-dir", str(tmp_path),
+         "--timeout", "5"],
     )
 
     html_files = list(tmp_path.glob("*.html"))
@@ -266,10 +276,12 @@ def test_low_word_count_detected(
         _LOW_WORD_COUNT_STUB, status=200, content_type="text/html"
     )
     _setup_monolith_mock(tmp_path, monkeypatch)
+    monkeypatch.setattr("archiveinator.cli._RETRY_DELAY_SECONDS", 0)
 
     result = runner.invoke(
         app,
-        ["archive", httpserver.url_for("/article"), "--output-dir", str(tmp_path), "--verbose"],
+        ["archive", httpserver.url_for("/article"), "--output-dir", str(tmp_path),
+         "--timeout", "5", "--verbose"],
     )
 
     output = _plain(result.output)
@@ -289,10 +301,12 @@ def test_low_word_count_produces_archive(
         _LOW_WORD_COUNT_STUB, status=200, content_type="text/html"
     )
     _setup_monolith_mock(tmp_path, monkeypatch)
+    monkeypatch.setattr("archiveinator.cli._RETRY_DELAY_SECONDS", 0)
 
     result = runner.invoke(
         app,
-        ["archive", httpserver.url_for("/article"), "--output-dir", str(tmp_path)],
+        ["archive", httpserver.url_for("/article"), "--output-dir", str(tmp_path),
+         "--timeout", "5"],
     )
 
     assert result.exit_code == 0
