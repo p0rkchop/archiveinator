@@ -62,7 +62,7 @@ def create_app() -> FastAPI:
     if _APP is not None:
         return _APP
 
-    app = FastAPI(title="archiveinator", version="0.9.0", lifespan=_lifespan)
+    app = FastAPI(title="archiveinator", version="0.9.2", lifespan=_lifespan)
 
     # Session middleware (signs cookies with stable key)
     app.add_middleware(SessionMiddleware, secret_key=get_secret_key())
