@@ -13,12 +13,12 @@ from archiveinator.web.models import User
 
 def hash_password(password: str) -> str:
     """Hash a password with bcrypt. Returns a string suitable for DB storage."""
-    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")  # type: ignore[no-any-return]
 
 
 def verify_password(password: str, password_hash: str) -> bool:
     """Verify a password against its bcrypt hash."""
-    return bcrypt.checkpw(password.encode("utf-8"), password_hash.encode("utf-8"))
+    return bcrypt.checkpw(password.encode("utf-8"), password_hash.encode("utf-8"))  # type: ignore[no-any-return]
 
 
 def login_user(request: Request, user_id: int, username: str) -> None:
