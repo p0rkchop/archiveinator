@@ -23,9 +23,8 @@ class JobManager:
     """
 
     def __init__(self) -> None:
-        self._next_id = 1
         self._lock = asyncio.Lock()
-        # job_id -> dict of job state (subset of what's in DB)
+        # job_id -> dict of job state (keyed by DB job ID)
         self._in_flight: dict[int, dict[str, Any]] = {}
         # job_id -> asyncio.Queue for WebSocket progress
         self._queues: dict[int, asyncio.Queue[dict[str, Any]]] = {}
@@ -34,31 +33,28 @@ class JobManager:
 
     async def submit(
         self,
+        db_job_id: int,
         user_id: int,
         url: str,
         profile_id: int | None = None,
-    ) -> int:
-        """Create and enqueue a new archive job. Returns the job ID."""
+    ) -> None:
+        """Enqueue an archive job using the DB job ID as the key."""
         async with self._lock:
-            job_id = self._next_id
-            self._next_id += 1
             now = time.time()
-
-            self._in_flight[job_id] = {
-                "id": job_id,
+            self._in_flight[db_job_id] = {
+                "id": db_job_id,
                 "user_id": user_id,
                 "url": url,
                 "status": "pending",
                 "profile_id": profile_id,
                 "created_at": now,
             }
-            self._queues[job_id] = asyncio.Queue()
+            self._queues[db_job_id] = asyncio.Queue()
 
-        nq = self._queues[job_id]
-        await nq.put({"type": "job_created", "job_id": job_id, "url": url})
+        nq = self._queues[db_job_id]
+        await nq.put({"type": "job_created", "job_id": db_job_id, "url": url})
 
-        self._tasks[job_id] = asyncio.create_task(self._run_job(job_id))
-        return job_id
+        self._tasks[db_job_id] = asyncio.create_task(self._run_job(db_job_id))
 
     async def _run_job(self, job_id: int) -> None:
         """Background task: runs the archive pipeline.

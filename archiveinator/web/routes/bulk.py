@@ -246,8 +246,8 @@ async def bulk_import(
         bulk_state["urls"][idx]["status"] = "queued"
         bulk_state["queued"] += 1
 
-        # Submit to job manager (rate-limited internally)
-        await jm.submit(user.id, url)
+        # Submit to job manager using the DB job ID as the key
+        await jm.submit(job.id, user.id, url)
         # Simplified tracking — just mark as submitted
         bulk_state["urls"][idx]["status"] = "running"
 

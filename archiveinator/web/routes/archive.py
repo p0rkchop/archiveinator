@@ -57,9 +57,9 @@ async def submit_archive(
     db.flush()
     job_id = job.id
 
-    # Submit to job manager
+    # Submit to job manager using the DB job ID as the key
     jm = get_job_manager()
-    await jm.submit(user.id, url, profile_id=profile.id if profile else None)
+    await jm.submit(job_id, user.id, url, profile_id=profile.id if profile else None)
 
     return JSONResponse({"job_id": job_id})
 

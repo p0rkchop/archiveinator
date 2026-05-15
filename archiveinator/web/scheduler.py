@@ -144,8 +144,8 @@ async def _run_scheduled_archive(
         )
         session.commit()
 
-        # Submit to job manager
-        await jm.submit(user_id, url, profile_id=profile_id)
+        # Submit to job manager using the DB job ID as the key
+        await jm.submit(job_id, user_id, url, profile_id=profile_id)
     except Exception:
         session.rollback()
         logger.exception("Failed to create scheduled archive job")
