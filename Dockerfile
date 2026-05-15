@@ -8,6 +8,11 @@ ENV XDG_DATA_HOME=/data
 # Install archiveinator with web extras from GitHub
 RUN pip3 install "archiveinator[web] @ git+https://github.com/p0rkchop/archiveinator.git@${RELEASE_REF}"
 
+# Ensure Chromium matches the installed playwright pip package version.
+# The base image ships an older playwright/chromium pair; pip may pull a
+# newer playwright, so we re-install the matching browser.
+RUN python3 -m playwright install chromium
+
 # Download monolith binary from latest GitHub release
 RUN ARCH=$(uname -m) && \
     case "$ARCH" in \
