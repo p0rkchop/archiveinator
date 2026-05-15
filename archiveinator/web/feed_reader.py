@@ -83,7 +83,9 @@ def check_feed(feed_id: int) -> int:
             item.job_id = job.id
 
             jm = get_job_manager()
-            asyncio.create_task(jm.submit(job.id, feed.user_id, url, profile_id=feed.site_profile_id))
+            asyncio.create_task(
+                jm.submit(job.id, feed.user_id, url, profile_id=feed.site_profile_id)
+            )
 
             new_count += 1
 
