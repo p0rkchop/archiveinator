@@ -38,6 +38,18 @@ dev = [
     "feedparser>=6.0.0",
 ]
 
+web = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.34.0",
+    "sqlalchemy>=2.0.0",
+    "apscheduler>=3.10.0",
+    "bcrypt>=4.2.0",
+    "python-multipart>=0.0.18",
+    "aiofiles>=24.0.0",
+    "resend>=0.8.0",
+    "itsdangerous>=2.2.0",
+]
+
 [tool.hatch.build.targets.wheel]
 packages = ["archiveinator"]
 
