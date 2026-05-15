@@ -89,34 +89,79 @@ This will:
 
 ## Docker
 
-A pre-built Docker image is available for macOS and Linux:
+If you have Docker installed, this is the fastest way to get started — no Python, virtual environments, or setup steps needed. The image ships with Playwright Chromium, the monolith binary, and pre-downloaded adblock blocklists.
+
+### Pull the image
 
 ```bash
+docker pull ghcr.io/p0rkchop/archiveinator:latest
+```
+
+Available tags:
+
+| Tag | Description |
+|-----|-------------|
+| `latest` | Most recent stable release |
+| `0` | Latest in the v0.x series |
+| `0.9` | Latest in the v0.9.x series |
+| `0.9.0` | Pinned to this exact release |
+
+### Quick start
+
+```bash
+# Archive a page to the current directory
 docker run --rm \
   -v $(pwd):/output \
   ghcr.io/p0rkchop/archiveinator:latest \
   archive https://example.com/article
 ```
 
-The image includes the monolith binary, Playwright Chromium, and adblock blocklists — no setup step needed.
+The archived HTML file will appear in your current directory. That's it — no setup, no venv activation.
 
 ### Volume mounts
 
 | Path | Purpose |
 |------|---------|
-| `/output` | Where archived HTML files are saved |
-| `/config` | Config directory (auto-created if omitted) |
-| `/data` | Cache/data directory for blocklists, monolith, UA cache |
+| `/output` | Where archived HTML files are saved **(mount this)** |
+| `/config` | Config directory — mounts a `config.yaml` for custom settings (auto-created if omitted) |
+| `/data` | Cache/data directory — persists blocklists, monolith binary, and UA cache across runs (auto-created if omitted) |
 
 ```bash
-# Full example with all mounts
+# Full example with all mounts and a pinned version
 docker run --rm \
   -v ~/archives:/output \
   -v ~/.archiveinator-config:/config \
   -v ~/.archiveinator-data:/data \
-  ghcr.io/p0rkchop/archiveinator:latest \
+  ghcr.io/p0rkchop/archiveinator:0.9.0 \
   archive https://example.com/article
 ```
+
+> **Tip:** Mounting `/data` is recommended for repeated use — it caches blocklists and the monolith binary, so they don't re-download on every run.
+
+### Pipelines and scripting
+
+The image works in any context that runs Docker:
+
+```bash
+# Archive a list of URLs from a file
+while read -r url; do
+  docker run --rm -v ~/archives:/output ghcr.io/p0rkchop/archiveinator:latest archive "$url"
+done < urls.txt
+
+# Capture cookies via interactive login
+docker run --rm -it \
+  -v ~/archives:/output \
+  ghcr.io/p0rkchop/archiveinator:latest \
+  login https://example.com -o /output/cookies.json
+```
+
+### Upgrading
+
+```bash
+docker pull ghcr.io/p0rkchop/archiveinator:latest
+```
+
+New images are published automatically with each release. Pin to a specific version tag (e.g. `0.9.0`) if you want reproducible, controlled upgrades.
 
 ---
 
