@@ -99,6 +99,35 @@ The cache is stored alongside the config file:
 
 ---
 
+## Researching a New Paywalled Site
+
+When a site's paywall isn't handled by the built-in strategies, use `archiveinator ladder` to quickly test header and referrer combinations before writing any code.
+
+```bash
+# Start the proxy
+archiveinator ladder
+
+# Test variations with curl — no browser spin-up, instant feedback
+curl http://localhost:8181/https://example.com          # default Googlebot UA
+curl http://localhost:8181/raw/https://example.com      # raw HTML
+curl http://localhost:8181/api/https://example.com | jq '.body' | wc -w  # word count
+```
+
+Once you find a combination that works, create a rule file:
+
+```yaml
+# ~/.config/archiveinator/ladder-rules/example.yaml
+domains:
+  - example.com
+rules:
+  referer: "https://news.google.com/"
+  user_agent: "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
+```
+
+Restart `archiveinator ladder` to load the new rule, then verify with `curl`. When the approach is confirmed, encode it as a site profile in the Web UI (Settings → Site Profiles) using the same UA and referrer values — future archives of that domain will pick it up automatically.
+
+---
+
 ## Partial Archives
 
 If **all** strategies are exhausted without success, a partial archive of whatever HTML was retrieved is saved with `_partial` in the filename:

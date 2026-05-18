@@ -34,39 +34,57 @@ archiveinator setup
 
 ```
 archiveinator/
-  archiveinator/          # Main package
-    __init__.py
-    cli.py                # CLI commands (archive, setup, login, serve)
-    config.py             # Config model, defaults, migration
-    pipeline.py           # Pipeline runner and step registry
-    archive.py            # Core archive logic
-    asset_inlining.py     # monolith integration
-    web/                  # Web UI (FastAPI)
-      __init__.py
-      app.py              # FastAPI app factory, middleware
-      auth.py             # Password hashing, session management
-      db.py               # SQLAlchemy engine/session
-      models.py           # All 7 database models
-      job_manager.py      # In-memory job lifecycle + WebSocket events
-      feed_reader.py      # RSS/Atom feed parsing + polling
-      scheduler.py        # APScheduler for feeds + scheduled archiving
-      emailer.py          # Resend.com email integration
-      templates.py        # HTML templating helpers
-      routes/             # Route handlers
+  archiveinator/
+    cli.py                # CLI entry point (archive, setup, login, serve, ladder, cache)
+    config.py             # Config model, defaults, YAML migration
+    pipeline.py           # ArchiveContext dataclass
+    bypass_cache.py       # Per-domain bypass strategy cache (YAML)
+    ua_manager.py         # UA cycling and per-domain tracking
+    naming.py             # Output filename format
+    setup_cmd.py          # archiveinator setup logic
+    blocklist.py          # EasyList/EasyPrivacy loading
+    steps/
+      page_load.py        # Playwright page load + ad blocking + paywall detection
+      paywall.py          # Paywall/bot detection logic
+      js_overlay.py       # JS overlay/modal removal (93 selectors)
+      stealth_browser.py  # playwright-stealth anti-fingerprinting
+      ad_blocking.py      # Network-level request interception
+      dom_cleanup.py      # DOM ad node removal
+      google_news.py      # Google News referrer bypass
+      header_tricks.py    # Googlebot UA + header spoofing
+      ua_cycling.py       # User agent cycling bypass
+      image_dedup.py      # picture/srcset deduplication
+      asset_inlining.py   # monolith binary integration
+      content_extraction.py  # trafilatura text fallback
+      archive_fallback.py # Wayback Machine + archive.today fallback
+    web/
+      app.py              # FastAPI factory, lifespan, middleware
+      auth.py             # Session auth, bcrypt
+      db.py               # SQLAlchemy engine + session factory
+      models.py           # 7 ORM models (User, ArchiveJob, SiteProfile, ...)
+      job_manager.py      # Async job lifecycle + WebSocket progress streaming
+      scheduler.py        # APScheduler: cron schedules + RSS polling
+      feed_reader.py      # feedparser RSS/Atom parsing
+      emailer.py          # Resend.com email notifications
+      templates.py        # render_page() and HTML helpers
+      routes/
         archive.py        # POST /archive, WS /archive/{id}/ws, GET /download/{id}
         auth.py           # /auth/register, /auth/login, /auth/logout
-        bulk.py           # POST /bulk (multi-format import)
-        config.py         # GET/PUT /config (user settings)
-        dashboard.py      # GET /dashboard (main page)
-        feeds.py          # CRUD /feeds
-        jobs.py           # GET /jobs (history)
-        profiles.py       # CRUD /profiles
-        schedules.py      # CRUD /schedules
-      static/             # CSS, JS
-      templates/          # Jinja2 templates (rendered server-side)
+        bulk.py           # Bulk import (bookmarks HTML, text, CSV)
+        config.py         # User pipeline settings
+        dashboard.py      # Main dashboard
+        feeds.py          # RSS feed management
+        jobs.py           # Archive history
+        profiles.py       # Site profiles + cookie upload
+        schedules.py      # Cron schedule management
+      static/             # CSS and JavaScript
   tests/
-    unit/                 # Fast unit tests (no network)
-    integration/          # Tests requiring network + Playwright
+    unit/                 # Fast tests (no network, no browser)
+    qa/
+      test_mock_paywall.py   # Mock HTTP server paywall scenarios
+      test_real_urls.py      # Live site bypass validation
+      sites.yaml             # 80+ paywalled site catalog
+  docs/                   # GitHub Pages (Just the Docs)
 ```
 
 ---
@@ -75,13 +93,18 @@ archiveinator/
 
 ```bash
 # Unit tests (fast, no network required)
-pytest tests/unit/
+pytest tests/unit/ -q
 
-# Integration tests (require network + Playwright Chromium)
-pytest tests/integration/
+# Mock paywall tests (local server, no external network)
+pytest tests/qa/test_mock_paywall.py -m mock_paywall -q
 
-# All tests
-pytest tests/
+# Real-URL tests (requires network + full setup)
+pytest tests/qa/test_real_urls.py -m real_url -q
+
+# Filter real-URL tests by difficulty or paywall type
+pytest tests/qa/test_real_urls.py -m real_url --qa-difficulty easy
+pytest tests/qa/test_real_urls.py -m real_url --qa-paywall-type piano
+pytest tests/qa/test_real_urls.py -m real_url --qa-site "NYT"
 ```
 
 ---
@@ -95,9 +118,32 @@ ruff check .
 # Format check
 ruff format --check .
 
+# Auto-fix lint and format
+ruff check --fix . && ruff format .
+
 # Type check
 mypy archiveinator/
 ```
+
+---
+
+## Researching a New Paywalled Site
+
+Use `archiveinator ladder` to quickly test header/referrer bypass combinations without modifying code:
+
+```bash
+# Start the Ladder proxy (requires Docker)
+archiveinator ladder
+
+# Test in a separate terminal
+curl http://localhost:8181/https://target-site.com
+curl http://localhost:8181/api/https://target-site.com | jq '.body' | wc -w
+
+# Iterate with a YAML rule file
+# ~/.config/archiveinator/ladder-rules/target.yaml
+```
+
+See [Paywall Bypass → Researching a New Site](../paywall-bypass/#researching-a-new-paywalled-site) for the full workflow.
 
 ---
 
@@ -117,26 +163,31 @@ The SQLite database is created at the platform data directory on first startup (
 
 ## CI/CD
 
-GitHub Actions workflow (`.github/workflows/ci.yml`):
+GitHub Actions workflows:
 
-| Job | Description |
-|:----|:------------|
-| `test` | Runs unit tests on Python 3.12 |
-| `lint` | Ruff lint + format check, mypy type check |
-| `release` | Builds and publishes Docker image on tag push |
+| Workflow | Trigger | Jobs |
+|:---------|:--------|:-----|
+| `ci.yml` | Push / PR to main | Tests (Python 3.12), Lint + Type check, Docker build test |
+| `release.yml` | `v*` tag push | Build monolith binaries, create GitHub Release, build + push Docker image |
+| `qa-paywall.yml` | Weekly (Mon 06:00 UTC) | Real-URL paywall bypass tests; opens issue on failure |
+| `update-blocklists.yml` | Weekly (Mon 03:00 UTC) | Refresh EasyList + EasyPrivacy, commit back |
 
 ---
 
 ## Release Process
 
-1. Bump version in `pyproject.toml`
-2. Commit and push
-3. Tag the commit: `git tag v0.X.Y`
-4. Push the tag: `git push origin v0.X.Y`
-5. The release workflow builds the Docker image, creates a GitHub Release, and publishes to ghcr.io
+1. Bump `version` in `pyproject.toml` and `archiveinator/web/app.py`
+2. Run `uv lock` to update the lockfile
+3. Commit: `git commit -m "release: bump to vX.Y.Z"`
+4. Push: `git push origin main`
+5. Wait for CI to pass
+6. Tag and push: `git tag vX.Y.Z && git push origin vX.Y.Z`
+7. The release workflow builds binaries, Docker image, and creates the GitHub Release automatically
 
 ---
 
 ## Documentation
 
-Documentation lives in the `docs/` folder and is published via GitHub Pages using the [Just the Docs](https://just-the-docs.com/) theme. Pages deploy automatically from the main branch `/docs` folder.
+Documentation lives in `docs/` and is published via GitHub Pages using the [Just the Docs](https://just-the-docs.com/) theme. Pages deploy automatically from the main branch `/docs` folder after every push.
+
+To preview locally, install Jekyll and run `bundle exec jekyll serve` in the `docs/` directory.

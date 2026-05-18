@@ -24,9 +24,13 @@ archiveinator archive <url>
 |:-----|:------|:------------|
 | `--output-dir PATH` | `-o` | Directory to save the archive (overrides config) |
 | `--stdout` | `-s` | Write HTML to stdout; status messages go to stderr |
+| `--json` | `-j` | Output JSON metadata to stdout |
 | `--verbose` | `-v` | Show pipeline step messages and paywall bypass attempts |
 | `--stealth` | | Force stealth browser mode (anti-fingerprinting) |
 | `--cookies-file PATH` | `-c` | JSON file containing cookies for authentication |
+| `--timeout SECONDS` | `-t` | Page load timeout in seconds (overrides config) |
+| `--no-netblock` | | Disable network-level ad blocking for this run |
+| `--no-dom-cleanup` | | Disable DOM ad node removal for this run |
 
 `--stdout` and `--output-dir` are mutually exclusive.
 
@@ -55,6 +59,9 @@ archiveinator archive https://example.com/private -c cookies.json
 
 # Force stealth browser (anti-fingerprinting)
 archiveinator archive https://example.com/article --stealth
+
+# Skip ad blocking for this run (useful when debugging)
+archiveinator archive https://example.com/article --no-netblock --no-dom-cleanup
 ```
 
 ---
@@ -144,6 +151,73 @@ See the [Web UI Guide](web-ui/) for full documentation.
 
 ---
 
+## `archiveinator ladder`
+
+Start a [Ladder](https://github.com/everywall/ladder) HTTP proxy for paywall bypass research.
+
+```bash
+archiveinator ladder
+```
+
+Automatically pulls the Ladder Docker image and starts it on `localhost:8181`. Useful when investigating a new paywalled site — iterate on header/referrer combos with a quick `curl` instead of running the full Playwright pipeline each time. Requires Docker.
+
+### Options
+
+| Flag | Short | Description |
+|:-----|:------|:------------|
+| `--port PORT` | `-p` | Local port to bind Ladder to (default: `8181`) |
+| `--rules PATH` | `-r` | Directory of YAML rule files (default: `{config_dir}/ladder-rules/`) |
+
+### Endpoints
+
+Once running, Ladder exposes three endpoints:
+
+| Endpoint | Returns |
+|:---------|:--------|
+| `http://localhost:8181/<url>` | Proxied HTML page |
+| `http://localhost:8181/api/<url>` | JSON `{ body, headers }` |
+| `http://localhost:8181/raw/<url>` | Raw HTML string |
+
+Ladder defaults to Googlebot UA + `X-Forwarded-For: 66.249.66.1` for all requests.
+
+### YAML Rules
+
+Drop `.yaml` files into the rules directory to apply per-site header overrides:
+
+```yaml
+# ~/.config/archiveinator/ladder-rules/nytimes.yaml
+domains:
+  - nytimes.com
+rules:
+  user_agent: "Mozilla/5.0 ..."
+  referer: "https://news.google.com/"
+  headers:
+    X-Forwarded-For: "66.249.66.1"
+```
+
+### Examples
+
+```bash
+# Start with defaults
+archiveinator ladder
+
+# Test a URL through the proxy
+curl http://localhost:8181/https://nytimes.com
+
+# Get JSON with body + response headers
+curl http://localhost:8181/api/https://nytimes.com | jq '.body' | wc -w
+
+# Custom port
+archiveinator ladder --port 9090
+
+# Custom rules directory
+archiveinator ladder --rules ~/my-ladder-rules/
+```
+
+Press Ctrl+C to stop and remove the container.
+
+---
+
 ## `archiveinator update-blocklists`
 
 Download the latest ad-blocking rule sets.
@@ -156,6 +230,23 @@ Fetches the latest EasyList and EasyPrivacy rules. Also runs automatically on a 
 
 ---
 
+## `archiveinator cache`
+
+Manage the per-domain bypass strategy cache.
+
+```bash
+archiveinator cache list
+archiveinator cache clear [--domain DOMAIN]
+```
+
+| Subcommand | Description |
+|:-----------|:------------|
+| `cache list` | Show all cached bypass strategies and their success counts |
+| `cache clear` | Clear all cached entries |
+| `cache clear --domain DOMAIN` | Clear the cached entry for one domain |
+
+---
+
 ## `archiveinator --help`
 
 ```bash
@@ -164,6 +255,7 @@ archiveinator --help
 
 # Command-specific help
 archiveinator archive --help
+archiveinator ladder --help
 archiveinator login --help
 archiveinator serve --help
 ```
