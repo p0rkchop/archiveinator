@@ -115,9 +115,9 @@ See the full [Pipeline](pipeline) documentation for a detailed explanation of ea
 | `js_overlay_removal` | ✅ on | Removes JS-rendered paywall modals and overlays from the live DOM; restores body scroll |
 | `js_disabled` | ✅ on | Retries page load with JavaScript disabled — bypasses some client-side paywalls |
 | `stealth_browser` | ✅ on | Retries with playwright-stealth JS-layer patches. Triggered by: bot challenge, HTTP 403, timeout |
-| `patchright_load` | ✅ on | Retries with CDP-patched Chromium (binary-level, invisible to PerimeterX/DataDome). Triggered by: bot challenge, HTTP 403. Requires `patchright` package |
+| `patchright_load` | ✅ on | Retries with CDP-patched Chromium (binary-level, invisible to PerimeterX/DataDome). Triggered by: bot challenge, HTTP 403 |
 | `flaresolverr` | ✅ on | Obtains `cf_clearance` cookie from a FlareSolverr sidecar. Triggered by: Cloudflare detection. Requires `flaresolverr_url` config key |
-| `camoufox_load` | ✅ on | Retries with patched Firefox engine (distinct TLS/HTTP2 fingerprint from Chromium). Always tried if still paywalled. Requires `camoufox` package |
+| `camoufox_load` | ✅ on | Retries with patched Firefox engine (distinct TLS/HTTP2 fingerprint from Chromium). Always tried if still paywalled |
 | `ua_cycling` | ✅ on | Retries with next configured user agent (requires `user_agents.cycle: true`) |
 | `header_tricks` | ✅ on | Retries with Googlebot UA, Google referer, and X-Forwarded-For header |
 | `google_news` | ✅ on | Retries with Google News referer and Googlebot UA |

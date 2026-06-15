@@ -113,7 +113,6 @@ Retries using [Patchright](https://github.com/Kaliiiiiiiiii-Vinyzu/patchright) �
 - Patches at the **binary level**, not the JS layer — bypasses detection that playwright-stealth cannot
 - Triggered by: PerimeterX or DataDome bot challenge
 - Effective against: PerimeterX, modern DataDome
-- Requires: `pip install patchright && python -m patchright install chromium`
 
 ---
 
@@ -122,8 +121,7 @@ Retries using [Patchright](https://github.com/Kaliiiiiiiiii-Vinyzu/patchright) �
 Contacts a running [FlareSolverr](https://github.com/FlareSolverr/FlareSolverr) Docker sidecar to obtain a `cf_clearance` cookie, which is injected into the browser context for a subsequent reload.
 
 - Targeted specifically at Cloudflare IUAM ("I'm Under Attack Mode") and Turnstile challenges
-- Fully opt-in — no-op unless configured
-- Enable by setting `flaresolverr_url: "http://localhost:8191/v1"` in config.yaml, or `FLARESOLVERR_URL` env var
+- No-op unless configured — set `flaresolverr_url: "http://localhost:8191/v1"` in config.yaml or `FLARESOLVERR_URL` env var
 - Triggered by: Cloudflare detection
 
 ---
@@ -135,7 +133,6 @@ Retries using [Camoufox](https://github.com/daijro/camoufox) — a patched Firef
 - Uses a **completely different browser engine** (Firefox) — distinct from Chromium at every layer
 - `humanize=True` adds realistic mouse movement and timing for behavioral analysis bypass
 - Final browser-engine fallback — tried when all Chromium-based strategies fail
-- Requires: `pip install camoufox && python -m camoufox fetch`
 
 ---
 

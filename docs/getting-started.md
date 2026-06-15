@@ -74,26 +74,14 @@ archiveinator setup
 This will:
 
 1. Create the default config file at the platform-appropriate path
-2. Install Playwright's Chromium browser into the virtual environment
-3. Download the [monolith](https://github.com/Y2Z/monolith) binary for your platform
-4. Download EasyList and EasyPrivacy ad-blocking rule sets
+2. Install Playwright's Chromium browser
+3. Install Patchright's CDP-patched Chromium (for PerimeterX/DataDome bypass)
+4. Download Camoufox patched Firefox (for Cloudflare/fingerprint bypass)
+5. Download the [monolith](https://github.com/Y2Z/monolith) binary for your platform
+6. Download EasyList and EasyPrivacy ad-blocking rule sets
 
 {: .note }
 > **macOS users:** If you have `monolith` installed via Homebrew, setup will detect and use it automatically.
-
-### Optional: Enhanced Bypass Tools
-
-For tougher paywalled sites, install the optional bypass enhancers after setup:
-
-```bash
-# Patchright — CDP-patched Chromium (beats PerimeterX/DataDome)
-pip3 install patchright && python -m patchright install chromium
-
-# Camoufox — patched Firefox engine (different TLS/HTTP2 fingerprint)
-pip3 install camoufox && python -m camoufox fetch
-```
-
-These are not required for basic use — archiveinator works without them. They enable additional bypass strategies for sites that block standard Playwright. See [Paywall Bypass](paywall-bypass) for details on when each tool is used.
 
 ---
 

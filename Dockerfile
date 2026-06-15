@@ -5,22 +5,20 @@ ARG RELEASE_REF=main
 ENV XDG_CONFIG_HOME=/config
 ENV XDG_DATA_HOME=/data
 
-# Install archiveinator with web extras from GitHub
+# Install archiveinator with web extras from GitHub.
+# patchright and camoufox are core dependencies — installed automatically.
 RUN pip3 install "archiveinator[web] @ git+https://github.com/p0rkchop/archiveinator.git@${RELEASE_REF}"
-
-# Optional bypass enhancers (best-effort — packages may not exist on PyPI yet)
-RUN pip3 install patchright camoufox || true
 
 # Ensure Chromium matches the installed playwright pip package version.
 # The base image ships an older playwright/chromium pair; pip may pull a
 # newer playwright, so we re-install the matching browser.
 RUN python3 -m playwright install chromium
 
-# Install Patchright's CDP-patched Chromium (skip gracefully if not installed)
-RUN python3 -m patchright install chromium || true
+# Install Patchright's CDP-patched Chromium (bypasses PerimeterX/DataDome).
+RUN python3 -m patchright install chromium
 
-# Fetch Camoufox patched Firefox binary (skip gracefully if not installed)
-RUN python3 -m camoufox fetch || true
+# Fetch Camoufox patched Firefox binary (bypasses Chromium-aware bot detection).
+RUN python3 -m camoufox fetch
 
 # Install curl-impersonate (Linux x86_64 only; skip on arm64 — binary not distributed)
 RUN ARCH=$(uname -m) && \

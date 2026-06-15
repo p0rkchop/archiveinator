@@ -82,9 +82,7 @@ Retries using [Patchright](https://github.com/Kaliiiiiiiiii-Vinyzu/patchright) â
 
 Triggered by: bot challenge, PerimeterX, or DataDome detection.
 
-Requires: `pip install patchright && python -m patchright install chromium`
-
-Default: **enabled** (no-op if patchright is not installed)
+Default: **enabled**
 
 ---
 
@@ -114,9 +112,7 @@ Retries using [Camoufox](https://github.com/daijro/camoufox) â€” a patched Firef
 
 Triggered by: any paywall still present after the Chromium-based strategies above.
 
-Requires: `pip install camoufox && python -m camoufox fetch`
-
-Default: **enabled** (no-op if camoufox is not installed)
+Default: **enabled**
 
 ---
 

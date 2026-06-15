@@ -279,21 +279,17 @@ def _patchright_chromium_installed() -> bool:
 def _camoufox_installed() -> bool:
     """Return True if the Camoufox Firefox binary has been fetched."""
     try:
-        import camoufox
+        from pathlib import Path
 
-        return camoufox.DefaultAddons is not None  # basic import smoke-test
+        from camoufox.pkgman import launch_path
+
+        return Path(launch_path()).exists()
     except Exception:
         return False
 
 
 def _install_patchright_chromium() -> None:
     """Install Patchright's patched Chromium binary."""
-    try:
-        import patchright  # noqa: F401
-    except ImportError:
-        console.debug("patchright package not installed, skipping patchright browser install")
-        return
-
     console.info("Installing Patchright Chromium...")
     result = subprocess.run(
         [sys.executable, "-m", "patchright", "install", "chromium"],
@@ -303,17 +299,11 @@ def _install_patchright_chromium() -> None:
     if result.returncode == 0:
         console.success("Patchright Chromium installed")
     else:
-        console.warning(f"Patchright Chromium install failed (non-fatal): {result.stderr[:200]}")
+        console.warning(f"Patchright Chromium install failed: {result.stderr[:200]}")
 
 
 def _install_camoufox() -> None:
     """Download Camoufox patched Firefox binary (~80 MB)."""
-    try:
-        import camoufox  # noqa: F401
-    except ImportError:
-        console.debug("camoufox package not installed, skipping camoufox fetch")
-        return
-
     console.info("Fetching Camoufox (patched Firefox)...")
     result = subprocess.run(
         [sys.executable, "-m", "camoufox", "fetch"],
@@ -323,7 +313,7 @@ def _install_camoufox() -> None:
     if result.returncode == 0:
         console.success("Camoufox Firefox installed")
     else:
-        console.warning(f"Camoufox fetch failed (non-fatal): {result.stderr[:200]}")
+        console.warning(f"Camoufox fetch failed: {result.stderr[:200]}")
 
 
 def ensure_dependencies() -> None:
@@ -351,11 +341,11 @@ def ensure_dependencies() -> None:
         console.info("Adblock blocklists not found — downloading now...")
         _setup_blocklists()
 
-    # Optional enhancers — install only if the packages are present
     if not _patchright_chromium_installed():
         _install_patchright_chromium()
 
-    _install_camoufox()
+    if not _camoufox_installed():
+        _install_camoufox()
 
 
 def run(ignore_cert_errors: bool = False) -> None:
