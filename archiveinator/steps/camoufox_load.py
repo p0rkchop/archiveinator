@@ -34,6 +34,7 @@ class CamoufoxLoadError(Exception):
 async def run(ctx: ArchiveContext) -> None:
     """Load page via Camoufox (patched Firefox) for PerimeterX/Cloudflare bypass."""
     try:
+        from camoufox import DefaultAddons
         from camoufox.async_api import AsyncCamoufox
     except ImportError:
         console.debug("camoufox not installed, skipping")
@@ -45,7 +46,9 @@ async def run(ctx: ArchiveContext) -> None:
     console.step("Loading page via Camoufox (patched Firefox)")
 
     try:
-        async with AsyncCamoufox(headless=True, humanize=True) as browser:
+        async with AsyncCamoufox(
+            headless=True, humanize=True, exclude_addons=[DefaultAddons.UBO]
+        ) as browser:
             context = await browser.new_context(
                 user_agent=ua,
                 extra_http_headers=ctx.extra_headers or {},
