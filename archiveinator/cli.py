@@ -256,6 +256,41 @@ def _try_strategy(
         ctx.use_stealth = False
         return False
 
+    if strategy == "patchright_load":
+        from archiveinator.steps.patchright_load import PatchrightLoadError
+        from archiveinator.steps.patchright_load import run as patchright_run
+
+        try:
+            asyncio.run(patchright_run(ctx))
+            if not ctx.paywalled:
+                ctx.bypass_method = "patchright"
+                return True
+        except PatchrightLoadError:
+            pass
+        return False
+
+    if strategy == "flaresolverr":
+        from archiveinator.steps.flaresolverr import run as flaresolverr_run
+
+        asyncio.run(flaresolverr_run(ctx))
+        if _reload():
+            ctx.bypass_method = "flaresolverr"
+            return True
+        return False
+
+    if strategy == "camoufox_load":
+        from archiveinator.steps.camoufox_load import CamoufoxLoadError
+        from archiveinator.steps.camoufox_load import run as camoufox_run
+
+        try:
+            asyncio.run(camoufox_run(ctx))
+            if not ctx.paywalled:
+                ctx.bypass_method = "camoufox"
+                return True
+        except CamoufoxLoadError:
+            pass
+        return False
+
     if strategy == "js_disabled":
         ctx.js_enabled = False
         if _reload():
@@ -402,6 +437,64 @@ def _run_paywall_bypass(ctx: ArchiveContext, active_steps: list[str]) -> None:
             return
         ctx.use_stealth = False
         console.debug("Stealth browser did not clear the challenge")
+
+    # Strategy 0b: Patchright (CDP-patched Chromium) — targets PerimeterX/DataDome
+    # which detect Playwright's CDP socket signature that JS patches cannot hide.
+    _bot_trigger = ctx.paywall_reason and (
+        "bot challenge" in ctx.paywall_reason
+        or "perimeter" in ctx.paywall_reason.lower()
+        or "datadome" in ctx.paywall_reason.lower()
+        or "HTTP 403" in ctx.paywall_reason
+    )
+    if "patchright_load" in active_steps and ctx.paywalled and _bot_trigger:
+        console.step("Bypass: trying Patchright (CDP-patched Chromium)")
+        from archiveinator.steps.patchright_load import PatchrightLoadError
+        from archiveinator.steps.patchright_load import run as patchright_run
+
+        try:
+            asyncio.run(patchright_run(ctx))
+            if not ctx.paywalled:
+                ctx.bypass_method = "patchright"
+                _record_success("patchright_load")
+                console.step("Paywall bypassed via Patchright")
+                return
+        except PatchrightLoadError as e:
+            console.debug(f"Patchright load failed: {e}")
+        console.debug("Patchright did not clear the challenge")
+
+    # Strategy 0c: FlareSolverr — targeted Cloudflare IUAM/Turnstile solver.
+    # Obtains cf_clearance cookie, then reloads via normal page_load.
+    _cloudflare_trigger = ctx.paywall_reason and "cloudflare" in ctx.paywall_reason.lower()
+    if "flaresolverr" in active_steps and ctx.paywalled and _cloudflare_trigger:
+        console.step("Bypass: trying FlareSolverr (Cloudflare IUAM solver)")
+        from archiveinator.steps.flaresolverr import run as flaresolverr_run
+
+        asyncio.run(flaresolverr_run(ctx))
+        if _reload():
+            ctx.bypass_method = "flaresolverr"
+            _record_success("flaresolverr")
+            console.step("Paywall bypassed via FlareSolverr")
+            return
+        console.debug("FlareSolverr did not clear the challenge")
+
+    # Strategy 0d: Camoufox (patched Firefox) — final browser-engine fallback.
+    # Firefox has a distinct fingerprint from Chromium; sites tuned against
+    # Chromium automation often let Firefox through.
+    if "camoufox_load" in active_steps and ctx.paywalled:
+        console.step("Bypass: trying Camoufox (patched Firefox)")
+        from archiveinator.steps.camoufox_load import CamoufoxLoadError
+        from archiveinator.steps.camoufox_load import run as camoufox_run
+
+        try:
+            asyncio.run(camoufox_run(ctx))
+            if not ctx.paywalled:
+                ctx.bypass_method = "camoufox"
+                _record_success("camoufox_load")
+                console.step("Paywall bypassed via Camoufox")
+                return
+        except CamoufoxLoadError as e:
+            console.debug(f"Camoufox load failed: {e}")
+        console.debug("Camoufox did not clear the challenge")
 
     # Strategy 1: UA cycling
     if not is_hard_block and "ua_cycling" in active_steps:
@@ -835,20 +928,33 @@ def serve(
     workers: int = typer.Option(1, "--workers", "-w", help="Number of uvicorn workers"),
 ) -> None:
     """Start the web UI server."""
-    from archiveinator.web import create_app
+    from archiveinator.setup_cmd import ensure_dependencies
 
-    app_instance = create_app()
+    ensure_dependencies()
 
     import uvicorn
 
-    uvicorn.run(
-        app_instance,
-        host=host,
-        port=port,
-        reload=dev,
-        log_level="debug" if dev else "info",
-        workers=workers,
-    )
+    # reload=True requires an import string, not an app object
+    if dev:
+        uvicorn.run(
+            "archiveinator.web:create_app",
+            host=host,
+            port=port,
+            reload=True,
+            factory=True,
+            log_level="debug",
+            workers=1,
+        )
+    else:
+        from archiveinator.web import create_app
+
+        uvicorn.run(
+            create_app(),
+            host=host,
+            port=port,
+            log_level="info",
+            workers=workers,
+        )
 
 
 @app.command()

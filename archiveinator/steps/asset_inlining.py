@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import shutil
 import subprocess
 import tempfile
 from pathlib import Path
@@ -18,11 +19,16 @@ class AssetInliningError(Exception):
 def check_monolith() -> Path:
     """Return monolith binary path, raising a helpful error if not installed."""
     bin_path = monolith_bin()
-    if not bin_path.exists():
-        raise AssetInliningError(
-            f"monolith binary not found at {bin_path}. Run 'archiveinator setup' to install it."
-        )
-    return bin_path
+    if bin_path.exists():
+        return bin_path
+    # Fallback: monolith may be on PATH (e.g. /usr/local/bin/monolith in Docker)
+    found = shutil.which("monolith")
+    if found:
+        return Path(found)
+    raise AssetInliningError(
+        f"monolith binary not found at {bin_path} or in PATH. "
+        "Run 'archiveinator setup' to install it."
+    )
 
 
 async def run(ctx: ArchiveContext) -> None:

@@ -51,6 +51,10 @@ web = [
     "feedparser>=6.0.0",
 ]
 
+# Optional bypass enhancers — install individually as needed
+patchright = ["patchright>=1.0"]
+camoufox = ["camoufox>=0.4"]
+
 [tool.hatch.build.targets.wheel]
 packages = ["archiveinator"]
 
