@@ -40,7 +40,49 @@ Removes paywall modal elements from the live page DOM and restores body scroll b
 
 ---
 
-### 2. UA Cycling
+### 2. Stealth Browser
+
+Retries with [playwright-stealth](https://github.com/AtuboDad/playwright-stealth) anti-fingerprinting patches applied — patches `navigator.webdriver`, `navigator.plugins`, canvas fingerprint, and other automation-detectable JS properties.
+
+- Triggered by: bot challenge, HTTP 403, or timeout
+- Effective against: Cloudflare "Just a moment", basic DataDome
+
+---
+
+### 3. Patchright (CDP-safe Chromium)
+
+Retries using [Patchright](https://github.com/Kaliiiiiiiiii-Vinyzu/patchright) — a Playwright fork that patches the Chromium binary to remove Chrome DevTools Protocol (CDP) socket detection signatures.
+
+- Patches at the **binary level**, not the JS layer — bypasses detection that playwright-stealth cannot
+- Triggered by: PerimeterX or DataDome bot challenge
+- Effective against: PerimeterX, modern DataDome
+- Requires: `pip install patchright && python -m patchright install chromium`
+
+---
+
+### 4. FlareSolverr (Cloudflare IUAM solver)
+
+Contacts a running [FlareSolverr](https://github.com/FlareSolverr/FlareSolverr) Docker sidecar to obtain a `cf_clearance` cookie, which is injected into the browser context for a subsequent reload.
+
+- Targeted specifically at Cloudflare IUAM ("I'm Under Attack Mode") and Turnstile challenges
+- Fully opt-in — no-op unless configured
+- Enable by setting `flaresolverr_url: "http://localhost:8191/v1"` in config.yaml, or `FLARESOLVERR_URL` env var
+- Triggered by: Cloudflare detection
+
+---
+
+### 5. Camoufox (Firefox engine)
+
+Retries using [Camoufox](https://github.com/daijro/camoufox) — a patched Firefox binary with binary-level anti-fingerprinting across canvas, WebGL, fonts, TLS ClientHello, and HTTP/2 SETTINGS frames.
+
+- Uses a **completely different browser engine** (Firefox) — distinct from Chromium at every layer
+- `humanize=True` adds realistic mouse movement and timing for behavioral analysis bypass
+- Final browser-engine fallback — tried when all Chromium-based strategies fail
+- Requires: `pip install camoufox && python -m camoufox fetch`
+
+---
+
+### 6. UA Cycling
 
 Retries the page load with the next enabled user agent from your config.
 
@@ -50,7 +92,7 @@ Retries the page load with the next enabled user agent from your config.
 
 ---
 
-### 3. Header Tricks
+### 7. Header Tricks
 
 Retries the page load with:
 
@@ -62,7 +104,7 @@ Many publishers allow Googlebot through paywalls to stay indexed in search resul
 
 ---
 
-### 4. Google News Referral
+### 8. Google News Referral
 
 Retries the page load with:
 
@@ -73,11 +115,17 @@ Simulates a click-through from Google News. Works on publishers that whitelist G
 
 ---
 
-### 5. Content Extraction Fallback
+### 9. Content Extraction Fallback
 
 If the page is **still** paywalled after all retries, [trafilatura](https://trafilatura.readthedocs.io/) extracts the article body from whatever HTML was retrieved.
 
 The archive is saved as a clean, readable document containing the extracted article text — stripped of ads, navigation, and paywall elements.
+
+---
+
+### 10. Archive Service Fallback
+
+Queries the [Wayback Machine](https://web.archive.org/) and then [archive.today](https://archive.today/) for an archived copy of the URL. The most recent snapshot is used if found.
 
 ---
 
