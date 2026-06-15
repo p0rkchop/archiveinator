@@ -81,6 +81,20 @@ This will:
 {: .note }
 > **macOS users:** If you have `monolith` installed via Homebrew, setup will detect and use it automatically.
 
+### Optional: Enhanced Bypass Tools
+
+For tougher paywalled sites, install the optional bypass enhancers after setup:
+
+```bash
+# Patchright — CDP-patched Chromium (beats PerimeterX/DataDome)
+pip3 install patchright && python -m patchright install chromium
+
+# Camoufox — patched Firefox engine (different TLS/HTTP2 fingerprint)
+pip3 install camoufox && python -m camoufox fetch
+```
+
+These are not required for basic use — archiveinator works without them. They enable additional bypass strategies for sites that block standard Playwright. See [Paywall Bypass](paywall-bypass) for details on when each tool is used.
+
 ---
 
 ## Your First Archive

@@ -102,6 +102,42 @@ docker run --rm \
 | Variable | Default | Description |
 |:---------|:--------|:------------|
 | `RESEND_API_KEY` | _(none)_ | [Resend](https://resend.com) API key for email notifications. If unset, email sending is silently skipped |
+| `FLARESOLVERR_URL` | _(none)_ | URL of a running FlareSolverr instance for Cloudflare IUAM bypass (e.g. `http://flaresolverr:8191/v1`). Only needed for Cloudflare-protected sites |
+
+---
+
+## FlareSolverr for Cloudflare Sites
+
+[FlareSolverr](https://github.com/FlareSolverr/FlareSolverr) is an optional sidecar that solves Cloudflare IUAM and Turnstile challenges. Run it alongside archiveinator for better success on Cloudflare-protected sites:
+
+```yaml
+# docker-compose.yml
+services:
+  archiveinator:
+    image: ghcr.io/p0rkchop/archiveinator:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - archive-data:/data
+    environment:
+      - FLARESOLVERR_URL=http://flaresolverr:8191/v1
+    depends_on:
+      - flaresolverr
+
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    environment:
+      - LOG_LEVEL=info
+
+volumes:
+  archive-data:
+```
+
+```bash
+docker compose up -d
+```
+
+Without FlareSolverr, the `flaresolverr` pipeline step is a complete no-op — no errors, just skipped.
 
 ---
 

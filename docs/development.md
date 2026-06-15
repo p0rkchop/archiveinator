@@ -45,9 +45,13 @@ archiveinator/
     blocklist.py          # EasyList/EasyPrivacy loading
     steps/
       page_load.py        # Playwright page load + ad blocking + paywall detection
-      paywall.py          # Paywall/bot detection logic
+      paywall.py          # Paywall/bot detection logic (selectors, titles, word count)
       js_overlay.py       # JS overlay/modal removal (93 selectors)
-      stealth_browser.py  # playwright-stealth anti-fingerprinting
+      stealth_browser.py  # playwright-stealth anti-fingerprinting (JS layer)
+      patchright_load.py  # Patchright CDP-patched Chromium (PerimeterX/DataDome)
+      flaresolverr.py     # FlareSolverr Cloudflare cookie solver (opt-in sidecar)
+      camoufox_load.py    # Camoufox patched Firefox (binary-level fingerprinting)
+      curl_impersonate.py # curl-impersonate TLS fast path (Linux/Docker only)
       ad_blocking.py      # Network-level request interception
       dom_cleanup.py      # DOM ad node removal
       google_news.py      # Google News referrer bypass

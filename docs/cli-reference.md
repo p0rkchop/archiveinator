@@ -80,6 +80,8 @@ This installs:
 2. **monolith binary** — for asset inlining (self-contained HTML)
 3. **EasyList + EasyPrivacy** — ad-blocking rule sets for network filtering
 4. **Default config file** — at the platform-appropriate path
+5. **Patchright Chromium** (if `patchright` package is installed) — CDP-patched browser for PerimeterX/DataDome bypass
+6. **Camoufox Firefox** (if `camoufox` package is installed) — patched Firefox binary for bot-resistant bypass
 
 {: .note }
 Re-run `archiveinator setup` after upgrading to refresh the monolith binary and blocklists.
