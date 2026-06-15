@@ -46,10 +46,10 @@ async def run(ctx: ArchiveContext) -> None:
     console.step("Loading page via Camoufox (patched Firefox)")
 
     try:
-        async with AsyncCamoufox(
+        async with AsyncCamoufox(  # type: ignore[no-untyped-call]
             headless=True, humanize=True, exclude_addons=[DefaultAddons.UBO]
         ) as browser:
-            context = await browser.new_context(
+            context = await browser.new_context(  # type: ignore[union-attr]
                 user_agent=ua,
                 extra_http_headers=ctx.extra_headers or {},
                 ignore_https_errors=True,
@@ -76,10 +76,16 @@ async def run(ctx: ArchiveContext) -> None:
             ctx.page_html = await page.content()
             ctx.page_title = await page.title()
 
-            # Run paywall detection on the result
+            # Run paywall detection on the result and update context
             from archiveinator.steps.paywall import detect
 
-            await detect(ctx, page)
+            paywall_reason = await detect(page, ctx.response_status or 200)
+            if paywall_reason:
+                ctx.paywalled = True
+                ctx.paywall_reason = paywall_reason
+            else:
+                ctx.paywalled = False
+                ctx.paywall_reason = None
 
     except CamoufoxLoadError:
         raise
