@@ -147,7 +147,7 @@ class JobManager:
             # --- Paywall bypass suite ---
             if ctx.paywalled:
                 active = config.active_pipeline_steps()
-                _run_paywall_bypass(ctx, active)
+                await _run_paywall_bypass(ctx, active)
                 if ctx.paywalled:
                     ctx.is_partial = True
 
