@@ -634,6 +634,9 @@ def archive(
     no_dom_cleanup: bool = typer.Option(
         False, "--no-dom-cleanup", help="Disable DOM ad node removal for this run"
     ),
+    strip_js: bool = typer.Option(
+        False, "--strip-js", help="Strip all JavaScript from the archived HTML"
+    ),
 ) -> None:
     """Archive a web page as a self-contained HTML file."""
     from archiveinator.naming import build_filename
@@ -682,6 +685,14 @@ def archive(
     if no_dom_cleanup:
         ctx.disabled_steps.add("dom_ad_cleanup")
         console.debug("dom_ad_cleanup disabled via --no-dom-cleanup")
+    if strip_js:
+        # Force-enable js_strip even if disabled in config
+        ctx.disabled_steps.discard("js_strip")
+        if "js_strip" not in config.active_pipeline_steps():
+            for step in config.pipeline:
+                if step.step == "js_strip":
+                    step.enabled = True
+        console.debug("js_strip enabled via --strip-js flag")
     if cookies_file:
         try:
             cookies = _load_cookies(cookies_file)
@@ -787,6 +798,12 @@ def archive(
                 "  Tip: try --verbose to see each bypass attempt in detail."
             )
             ctx.is_partial = True
+
+    # --- JS stripping (optional) ---
+    if "js_strip" in active_steps:
+        from archiveinator.steps.js_strip import run as js_strip_run
+
+        asyncio.run(js_strip_run(ctx))
 
     # --- Image deduplication (optional) ---
     if "image_dedup" in active_steps:

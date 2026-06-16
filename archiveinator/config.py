@@ -85,6 +85,7 @@ DEFAULT_PIPELINE: list[PipelineStep] = [
     PipelineStep(step="header_tricks"),
     PipelineStep(step="google_news"),
     PipelineStep(step="dom_ad_cleanup"),
+    PipelineStep(step="js_strip", enabled=False),
     PipelineStep(step="image_dedup"),
     PipelineStep(step="content_extraction"),
     PipelineStep(step="archive_fallback"),
@@ -339,6 +340,11 @@ pipeline:
     enabled: true
   - step: dom_ad_cleanup
     enabled: true
+  # JS strip: removes all <script> tags, inline event handlers, and javascript: hrefs.
+  # Produces cleaner, more privacy-friendly archives. Disabled by default — some
+  # page layouts depend on JS for correct rendering.
+  - step: js_strip
+    enabled: false
   - step: image_dedup
     enabled: true
   # Last-resort content extraction via trafilatura (strips to article body)

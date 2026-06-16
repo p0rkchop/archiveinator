@@ -151,8 +151,16 @@ class JobManager:
                 if ctx.paywalled:
                     ctx.is_partial = True
 
-            # --- Image deduplication ---
+            # --- JS stripping / image dedup / asset inlining ---
             active_steps = config.active_pipeline_steps()
+
+            # --- JS stripping ---
+            if "js_strip" in active_steps:
+                from archiveinator.steps.js_strip import run as js_strip_run
+
+                await js_strip_run(ctx)
+
+            # --- Image deduplication ---
             if "image_dedup" in active_steps:
                 from archiveinator.steps.image_dedup import run as image_dedup_run
 
