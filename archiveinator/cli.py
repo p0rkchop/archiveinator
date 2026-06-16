@@ -4,7 +4,7 @@ import asyncio
 import json
 import sys
 import time
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from datetime import datetime
 from importlib import metadata
 from pathlib import Path
@@ -237,11 +237,11 @@ async def _capture_login(
             await browser.close()
 
 
-def _try_strategy(
+async def _try_strategy(
     ctx: ArchiveContext,
     strategy: str,
     active_steps: list[str],
-    _reload: Callable[[], bool],
+    _reload: Callable[[], Awaitable[bool]],
 ) -> bool:
     """Replay a single named bypass strategy.  Returns True if paywall cleared."""
     if strategy not in active_steps:
@@ -250,15 +250,50 @@ def _try_strategy(
     if strategy == "stealth_browser":
         ctx.use_stealth = True
         ctx.extra_headers = {}
-        if _reload():
+        if await _reload():
             ctx.bypass_method = "stealth_browser"
             return True
         ctx.use_stealth = False
         return False
 
+    if strategy == "patchright_load":
+        from archiveinator.steps.patchright_load import PatchrightLoadError
+        from archiveinator.steps.patchright_load import run as patchright_run
+
+        try:
+            await patchright_run(ctx)
+            if not ctx.paywalled:
+                ctx.bypass_method = "patchright"
+                return True
+        except PatchrightLoadError:
+            pass
+        return False
+
+    if strategy == "flaresolverr":
+        from archiveinator.steps.flaresolverr import run as flaresolverr_run
+
+        await flaresolverr_run(ctx)
+        if await _reload():
+            ctx.bypass_method = "flaresolverr"
+            return True
+        return False
+
+    if strategy == "camoufox_load":
+        from archiveinator.steps.camoufox_load import CamoufoxLoadError
+        from archiveinator.steps.camoufox_load import run as camoufox_run
+
+        try:
+            await camoufox_run(ctx)
+            if not ctx.paywalled:
+                ctx.bypass_method = "camoufox"
+                return True
+        except CamoufoxLoadError:
+            pass
+        return False
+
     if strategy == "js_disabled":
         ctx.js_enabled = False
-        if _reload():
+        if await _reload():
             ctx.bypass_method = "js_disabled"
             return True
         ctx.js_enabled = True
@@ -272,7 +307,7 @@ def _try_strategy(
         if next_ua:
             ctx.ua_override = next_ua
             ctx.extra_headers = {}
-            if _reload():
+            if await _reload():
                 ctx.bypass_method = "ua_cycling"
                 return True
         return False
@@ -288,7 +323,7 @@ def _try_strategy(
             "Referer": "https://www.google.com/",
             "X-Forwarded-For": "66.249.66.1",
         }
-        if _reload():
+        if await _reload():
             ctx.bypass_method = "header_tricks"
             return True
         return False
@@ -296,8 +331,8 @@ def _try_strategy(
     if strategy == "google_news":
         from archiveinator.steps.google_news import run as google_news_run
 
-        asyncio.run(google_news_run(ctx))
-        if _reload():
+        await google_news_run(ctx)
+        if await _reload():
             ctx.bypass_method = "google_news"
             return True
         return False
@@ -307,7 +342,7 @@ def _try_strategy(
         from archiveinator.steps.content_extraction import run as content_extract_run
 
         try:
-            asyncio.run(content_extract_run(ctx))
+            await content_extract_run(ctx)
             ctx.bypass_method = "content_extraction"
             return True
         except ContentExtractionError:
@@ -316,13 +351,13 @@ def _try_strategy(
     if strategy == "archive_fallback":
         from archiveinator.steps.archive_fallback import check_archive_today, check_wayback
 
-        snapshot_url = asyncio.run(check_wayback(ctx.url))
+        snapshot_url = await check_wayback(ctx.url)
         if snapshot_url is None:
-            snapshot_url = asyncio.run(check_archive_today(ctx.url))
+            snapshot_url = await check_archive_today(ctx.url)
         if snapshot_url:
             original_url = ctx.url
             ctx.url = snapshot_url
-            if _reload():
+            if await _reload():
                 ctx.bypass_method = "archive_fallback"
                 ctx.url = original_url  # Restore original for naming
                 return True
@@ -332,7 +367,7 @@ def _try_strategy(
     return False
 
 
-def _run_paywall_bypass(ctx: ArchiveContext, active_steps: list[str]) -> None:
+async def _run_paywall_bypass(ctx: ArchiveContext, active_steps: list[str]) -> None:
     """Try bypass strategies in order until the paywall clears or all are exhausted.
 
     Checks the per-domain bypass cache first.  If a cached strategy exists,
@@ -343,7 +378,7 @@ def _run_paywall_bypass(ctx: ArchiveContext, active_steps: list[str]) -> None:
     from archiveinator.steps.page_load import PageLoadError
     from archiveinator.steps.page_load import run as page_load_run
 
-    def _reload() -> bool:
+    async def _reload() -> bool:
         """Re-run page_load with shorter timeout for bypass retries, except for timeouts."""
         original_timeout = ctx.config.timeout_seconds
         try:
@@ -354,7 +389,7 @@ def _run_paywall_bypass(ctx: ArchiveContext, active_steps: list[str]) -> None:
                 ctx.config.timeout_seconds = max(original_timeout, 30)
             else:
                 ctx.config.timeout_seconds = min(15, original_timeout)
-            asyncio.run(page_load_run(ctx))
+            await page_load_run(ctx)
         except PageLoadError as e:
             console.warning(f"Bypass page load failed: {e}")
             return False
@@ -369,7 +404,7 @@ def _run_paywall_bypass(ctx: ArchiveContext, active_steps: list[str]) -> None:
     cached = bypass_cache.lookup(ctx.url)
     if cached is not None:
         console.step(f"Bypass cache hit: trying cached strategy '{cached.strategy}'")
-        if _try_strategy(ctx, cached.strategy, active_steps, _reload):
+        if await _try_strategy(ctx, cached.strategy, active_steps, _reload):
             _record_success(cached.strategy, ua_name=cached.ua_name)
             console.step(f"Paywall bypassed via cached strategy '{cached.strategy}'")
             ctx.bypass_cached = True
@@ -395,13 +430,71 @@ def _run_paywall_bypass(ctx: ArchiveContext, active_steps: list[str]) -> None:
         console.step("Bypass: trying stealth browser (anti-fingerprinting)")
         ctx.use_stealth = True
         ctx.extra_headers = {}
-        if _reload():
+        if await _reload():
             ctx.bypass_method = "stealth_browser"
             _record_success("stealth_browser")
             console.step("Paywall bypassed via stealth browser")
             return
         ctx.use_stealth = False
         console.debug("Stealth browser did not clear the challenge")
+
+    # Strategy 0b: Patchright (CDP-patched Chromium) — targets PerimeterX/DataDome
+    # which detect Playwright's CDP socket signature that JS patches cannot hide.
+    _bot_trigger = ctx.paywall_reason and (
+        "bot challenge" in ctx.paywall_reason
+        or "perimeter" in ctx.paywall_reason.lower()
+        or "datadome" in ctx.paywall_reason.lower()
+        or "HTTP 403" in ctx.paywall_reason
+    )
+    if "patchright_load" in active_steps and ctx.paywalled and _bot_trigger:
+        console.step("Bypass: trying Patchright (CDP-patched Chromium)")
+        from archiveinator.steps.patchright_load import PatchrightLoadError
+        from archiveinator.steps.patchright_load import run as patchright_run
+
+        try:
+            await patchright_run(ctx)
+            if not ctx.paywalled:
+                ctx.bypass_method = "patchright"
+                _record_success("patchright_load")
+                console.step("Paywall bypassed via Patchright")
+                return
+        except PatchrightLoadError as e:
+            console.debug(f"Patchright load failed: {e}")
+        console.debug("Patchright did not clear the challenge")
+
+    # Strategy 0c: FlareSolverr — targeted Cloudflare IUAM/Turnstile solver.
+    # Obtains cf_clearance cookie, then reloads via normal page_load.
+    _cloudflare_trigger = ctx.paywall_reason and "cloudflare" in ctx.paywall_reason.lower()
+    if "flaresolverr" in active_steps and ctx.paywalled and _cloudflare_trigger:
+        console.step("Bypass: trying FlareSolverr (Cloudflare IUAM solver)")
+        from archiveinator.steps.flaresolverr import run as flaresolverr_run
+
+        await flaresolverr_run(ctx)
+        if await _reload():
+            ctx.bypass_method = "flaresolverr"
+            _record_success("flaresolverr")
+            console.step("Paywall bypassed via FlareSolverr")
+            return
+        console.debug("FlareSolverr did not clear the challenge")
+
+    # Strategy 0d: Camoufox (patched Firefox) — final browser-engine fallback.
+    # Firefox has a distinct fingerprint from Chromium; sites tuned against
+    # Chromium automation often let Firefox through.
+    if "camoufox_load" in active_steps and ctx.paywalled:
+        console.step("Bypass: trying Camoufox (patched Firefox)")
+        from archiveinator.steps.camoufox_load import CamoufoxLoadError
+        from archiveinator.steps.camoufox_load import run as camoufox_run
+
+        try:
+            await camoufox_run(ctx)
+            if not ctx.paywalled:
+                ctx.bypass_method = "camoufox"
+                _record_success("camoufox_load")
+                console.step("Paywall bypassed via Camoufox")
+                return
+        except CamoufoxLoadError as e:
+            console.debug(f"Camoufox load failed: {e}")
+        console.debug("Camoufox did not clear the challenge")
 
     # Strategy 1: UA cycling
     if not is_hard_block and "ua_cycling" in active_steps:
@@ -413,7 +506,7 @@ def _run_paywall_bypass(ctx: ArchiveContext, active_steps: list[str]) -> None:
             console.step("Bypass: trying UA cycling")
             ctx.ua_override = next_ua
             ctx.extra_headers = {}
-            if _reload():
+            if await _reload():
                 ctx.bypass_method = "ua_cycling"
                 ua_name = None
                 for agent in ctx.config.user_agents.agents:
@@ -440,7 +533,7 @@ def _run_paywall_bypass(ctx: ArchiveContext, active_steps: list[str]) -> None:
             "Referer": "https://www.google.com/",
             "X-Forwarded-For": "66.249.66.1",
         }
-        if _reload():
+        if await _reload():
             ctx.bypass_method = "header_tricks"
             _record_success("header_tricks")
             console.step("Paywall bypassed via header tricks")
@@ -451,8 +544,8 @@ def _run_paywall_bypass(ctx: ArchiveContext, active_steps: list[str]) -> None:
         console.step("Bypass: trying Google News referral")
         from archiveinator.steps.google_news import run as google_news_run
 
-        asyncio.run(google_news_run(ctx))
-        if _reload():
+        await google_news_run(ctx)
+        if await _reload():
             ctx.bypass_method = "google_news"
             _record_success("google_news")
             console.step("Paywall bypassed via Google News referral")
@@ -467,7 +560,7 @@ def _run_paywall_bypass(ctx: ArchiveContext, active_steps: list[str]) -> None:
         from archiveinator.steps.content_extraction import run as content_extract_run
 
         try:
-            asyncio.run(content_extract_run(ctx))
+            await content_extract_run(ctx)
             ctx.bypass_method = "content_extraction"
             _record_success("content_extraction")
             console.step("Content extracted via trafilatura")
@@ -480,11 +573,11 @@ def _run_paywall_bypass(ctx: ArchiveContext, active_steps: list[str]) -> None:
         from archiveinator.steps.archive_fallback import check_archive_today, check_wayback
 
         console.step("Bypass: checking Wayback Machine for archived copy")
-        snapshot_url = asyncio.run(check_wayback(ctx.url))
+        snapshot_url = await check_wayback(ctx.url)
         if snapshot_url:
             original_url = ctx.url
             ctx.url = snapshot_url
-            if _reload():
+            if await _reload():
                 ctx.bypass_method = "archive_fallback"
                 ctx.url = original_url  # Restore original for file naming
                 _record_success("archive_fallback")
@@ -494,11 +587,11 @@ def _run_paywall_bypass(ctx: ArchiveContext, active_steps: list[str]) -> None:
 
         if ctx.paywalled:
             console.step("Bypass: checking archive.today for archived copy")
-            snapshot_url = asyncio.run(check_archive_today(ctx.url))
+            snapshot_url = await check_archive_today(ctx.url)
             if snapshot_url:
                 original_url = ctx.url
                 ctx.url = snapshot_url
-                if _reload():
+                if await _reload():
                     ctx.bypass_method = "archive_fallback"
                     ctx.url = original_url  # Restore original for file naming
                     _record_success("archive_fallback")
@@ -540,6 +633,9 @@ def archive(
     ),
     no_dom_cleanup: bool = typer.Option(
         False, "--no-dom-cleanup", help="Disable DOM ad node removal for this run"
+    ),
+    strip_js: bool = typer.Option(
+        False, "--strip-js", help="Strip all JavaScript from the archived HTML"
     ),
 ) -> None:
     """Archive a web page as a self-contained HTML file."""
@@ -589,6 +685,14 @@ def archive(
     if no_dom_cleanup:
         ctx.disabled_steps.add("dom_ad_cleanup")
         console.debug("dom_ad_cleanup disabled via --no-dom-cleanup")
+    if strip_js:
+        # Force-enable js_strip even if disabled in config
+        ctx.disabled_steps.discard("js_strip")
+        if "js_strip" not in config.active_pipeline_steps():
+            for step in config.pipeline:
+                if step.step == "js_strip":
+                    step.enabled = True
+        console.debug("js_strip enabled via --strip-js flag")
     if cookies_file:
         try:
             cookies = _load_cookies(cookies_file)
@@ -687,13 +791,19 @@ def archive(
     # --- Paywall bypass suite ---
     if ctx.paywalled:
         console.warning(f"Paywall/block detected ({ctx.paywall_reason}) — trying bypass strategies")
-        _run_paywall_bypass(ctx, active_steps)
+        asyncio.run(_run_paywall_bypass(ctx, active_steps))
         if ctx.paywalled:
             console.warning(
                 "All bypass strategies exhausted — saving partial archive.\n"
                 "  Tip: try --verbose to see each bypass attempt in detail."
             )
             ctx.is_partial = True
+
+    # --- JS stripping (optional) ---
+    if "js_strip" in active_steps:
+        from archiveinator.steps.js_strip import run as js_strip_run
+
+        asyncio.run(js_strip_run(ctx))
 
     # --- Image deduplication (optional) ---
     if "image_dedup" in active_steps:
@@ -835,20 +945,33 @@ def serve(
     workers: int = typer.Option(1, "--workers", "-w", help="Number of uvicorn workers"),
 ) -> None:
     """Start the web UI server."""
-    from archiveinator.web import create_app
+    from archiveinator.setup_cmd import ensure_dependencies
 
-    app_instance = create_app()
+    ensure_dependencies()
 
     import uvicorn
 
-    uvicorn.run(
-        app_instance,
-        host=host,
-        port=port,
-        reload=dev,
-        log_level="debug" if dev else "info",
-        workers=workers,
-    )
+    # reload=True requires an import string, not an app object
+    if dev:
+        uvicorn.run(
+            "archiveinator.web:create_app",
+            host=host,
+            port=port,
+            reload=True,
+            factory=True,
+            log_level="debug",
+            workers=1,
+        )
+    else:
+        from archiveinator.web import create_app
+
+        uvicorn.run(
+            create_app(),
+            host=host,
+            port=port,
+            log_level="info",
+            workers=workers,
+        )
 
 
 @app.command()

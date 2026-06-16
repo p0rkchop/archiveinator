@@ -78,10 +78,14 @@ DEFAULT_PIPELINE: list[PipelineStep] = [
     PipelineStep(step="js_overlay_removal"),
     PipelineStep(step="js_disabled"),
     PipelineStep(step="stealth_browser"),
+    PipelineStep(step="patchright_load"),
+    PipelineStep(step="flaresolverr"),
+    PipelineStep(step="camoufox_load"),
     PipelineStep(step="ua_cycling"),
     PipelineStep(step="header_tricks"),
     PipelineStep(step="google_news"),
     PipelineStep(step="dom_ad_cleanup"),
+    PipelineStep(step="js_strip", enabled=False),
     PipelineStep(step="image_dedup"),
     PipelineStep(step="content_extraction"),
     PipelineStep(step="archive_fallback"),
@@ -98,6 +102,9 @@ class Config:
     user_agents: UserAgentConfig = field(default_factory=UserAgentConfig)
     pipeline: list[PipelineStep] = field(default_factory=lambda: list(DEFAULT_PIPELINE))
     stealth: StealthConfig = field(default_factory=StealthConfig)
+    # Optional: URL of a running FlareSolverr instance for Cloudflare bypass.
+    # Also reads FLARESOLVERR_URL env var. Leave null to disable (default).
+    flaresolverr_url: str | None = None
 
     def active_user_agent(self) -> str:
         """Return the first enabled user agent string."""
@@ -308,6 +315,21 @@ pipeline:
   # Effective against Cloudflare "Just a moment" and DataDome challenges
   - step: stealth_browser
     enabled: true
+  # Patchright: CDP-patched Chromium that removes DevTools Protocol detection.
+  # Targets PerimeterX and DataDome which detect standard Playwright at binary level.
+  # Requires: pip install patchright && python -m patchright install chromium
+  - step: patchright_load
+    enabled: true
+  # FlareSolverr: opt-in Cloudflare IUAM/Turnstile cookie solver (Docker sidecar).
+  # Set flaresolverr_url below or FLARESOLVERR_URL env var to enable.
+  # Example: flaresolverr_url: "http://localhost:8191/v1"
+  - step: flaresolverr
+    enabled: true
+  # Camoufox: patched Firefox engine — different browser fingerprint from Chromium.
+  # Last-resort browser bypass for sites tuned against Chromium automation.
+  # Requires: pip install camoufox && python -m camoufox fetch
+  - step: camoufox_load
+    enabled: true
   # Bypass strategies — tried in order when paywall_detection fires
   # ua_cycling requires user_agents.cycle: true to take effect
   - step: ua_cycling
@@ -318,6 +340,11 @@ pipeline:
     enabled: true
   - step: dom_ad_cleanup
     enabled: true
+  # JS strip: removes all <script> tags, inline event handlers, and javascript: hrefs.
+  # Produces cleaner, more privacy-friendly archives. Disabled by default — some
+  # page layouts depend on JS for correct rendering.
+  - step: js_strip
+    enabled: false
   - step: image_dedup
     enabled: true
   # Last-resort content extraction via trafilatura (strips to article body)

@@ -74,9 +74,11 @@ archiveinator setup
 This will:
 
 1. Create the default config file at the platform-appropriate path
-2. Install Playwright's Chromium browser into the virtual environment
-3. Download the [monolith](https://github.com/Y2Z/monolith) binary for your platform
-4. Download EasyList and EasyPrivacy ad-blocking rule sets
+2. Install Playwright's Chromium browser
+3. Install Patchright's CDP-patched Chromium (for PerimeterX/DataDome bypass)
+4. Download Camoufox patched Firefox (for Cloudflare/fingerprint bypass)
+5. Download the [monolith](https://github.com/Y2Z/monolith) binary for your platform
+6. Download EasyList and EasyPrivacy ad-blocking rule sets
 
 {: .note }
 > **macOS users:** If you have `monolith` installed via Homebrew, setup will detect and use it automatically.

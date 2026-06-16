@@ -254,6 +254,100 @@ def _setup_blocklists(ignore_cert_errors: bool = False) -> None:
     )
 
 
+def _playwright_chromium_installed() -> bool:
+    """Return True if the Playwright Chromium browser binary exists on disk."""
+    try:
+        from playwright.sync_api import sync_playwright
+
+        with sync_playwright() as p:
+            return Path(p.chromium.executable_path).exists()
+    except Exception:
+        return False
+
+
+def _patchright_chromium_installed() -> bool:
+    """Return True if the Patchright Chromium binary exists on disk."""
+    try:
+        from patchright.sync_api import sync_playwright as sync_patchright
+
+        with sync_patchright() as p:
+            return Path(p.chromium.executable_path).exists()
+    except Exception:
+        return False
+
+
+def _camoufox_installed() -> bool:
+    """Return True if the Camoufox Firefox binary has been fetched."""
+    try:
+        from pathlib import Path
+
+        from camoufox.pkgman import launch_path
+
+        return Path(launch_path()).exists()
+    except Exception:
+        return False
+
+
+def _install_patchright_chromium() -> None:
+    """Install Patchright's patched Chromium binary."""
+    console.info("Installing Patchright Chromium...")
+    result = subprocess.run(
+        [sys.executable, "-m", "patchright", "install", "chromium"],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode == 0:
+        console.success("Patchright Chromium installed")
+    else:
+        console.warning(f"Patchright Chromium install failed: {result.stderr[:200]}")
+
+
+def _install_camoufox() -> None:
+    """Download Camoufox patched Firefox binary (~80 MB)."""
+    console.info("Fetching Camoufox (patched Firefox)...")
+    result = subprocess.run(
+        [sys.executable, "-m", "camoufox", "fetch"],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode == 0:
+        console.success("Camoufox Firefox installed")
+    else:
+        console.warning(f"Camoufox fetch failed: {result.stderr[:200]}")
+
+
+def ensure_dependencies() -> None:
+    """Install any missing runtime dependencies without touching already-installed ones.
+
+    Called automatically by `archiveinator serve` so a fresh venv or Docker
+    volume mount never results in a broken deployment. Each check is
+    idempotent — already-installed deps are skipped silently.
+    """
+    _ensure_dirs()
+
+    if not config_path().exists():
+        create_default(config_path())
+        console.success(f"Config created at {config_path()}")
+
+    if not _playwright_chromium_installed():
+        console.info("Playwright Chromium not found — installing now...")
+        _install_playwright_chromium()
+
+    _setup_monolith()
+
+    easylist = easylist_path()
+    easyprivacy = easyprivacy_path()
+    if not easylist.exists() or not easyprivacy.exists():
+        console.info("Adblock blocklists not found — downloading now...")
+        _setup_blocklists()
+
+    if not _patchright_chromium_installed():
+        _install_patchright_chromium()
+
+    if not _camoufox_installed():
+        _install_camoufox()
+
+
 def run(ignore_cert_errors: bool = False) -> None:
     """Run the full setup sequence."""
     console.info("Setting up archiveinator...")
@@ -269,5 +363,7 @@ def run(ignore_cert_errors: bool = False) -> None:
     _install_playwright_chromium(ignore_cert_errors)
     _setup_monolith(ignore_cert_errors)
     _setup_blocklists(ignore_cert_errors)
+    _install_patchright_chromium()
+    _install_camoufox()
 
     console.success("Setup complete. Run 'archiveinator archive <url>' to get started.")

@@ -77,9 +77,11 @@ archiveinator setup
 This installs:
 
 1. **Playwright Chromium** — headless browser for page loading
-2. **monolith binary** — for asset inlining (self-contained HTML)
-3. **EasyList + EasyPrivacy** — ad-blocking rule sets for network filtering
-4. **Default config file** — at the platform-appropriate path
+2. **Patchright Chromium** — CDP-patched Chromium for PerimeterX/DataDome bypass
+3. **Camoufox Firefox** — patched Firefox for Cloudflare/fingerprint bypass
+4. **monolith binary** — for asset inlining (self-contained HTML)
+5. **EasyList + EasyPrivacy** — ad-blocking rule sets for network filtering
+6. **Default config file** — at the platform-appropriate path
 
 {: .note }
 Re-run `archiveinator setup` after upgrading to refresh the monolith binary and blocklists.

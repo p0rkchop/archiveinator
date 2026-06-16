@@ -47,8 +47,8 @@ archiveinator saves web pages as self-contained single-file HTML documents you c
 | [Getting Started](getting-started) | Prerequisites, installation, first-time setup, and your first archive |
 | [CLI Reference](cli-reference) | All CLI commands with option tables and examples |
 | [Configuration](configuration) | Full `config.yaml` reference — pipeline, UAs, timeouts, and more |
-| [Pipeline](pipeline) | All 11 pipeline steps explained, with their order and default state |
-| [Paywall Bypass](paywall-bypass) | How detection works and the 5 bypass strategies tried in sequence |
+| [Pipeline](pipeline) | All 17 pipeline steps explained, with their order and default state |
+| [Paywall Bypass](paywall-bypass) | Detection logic, bypass trigger conditions, and the 10 bypass strategies |
 | [Web UI](web-ui/) | Browser-based interface for archiving, profiles, RSS feeds, schedules, and bulk imports |
 | [Docker](docker) | Running archiveinator in a container — pull, run, volumes, and scripting |
 | [Development](development) | Dev setup, project structure, testing, CI, and release process |

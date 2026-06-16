@@ -5,7 +5,8 @@ ARG RELEASE_REF=main
 ENV XDG_CONFIG_HOME=/config
 ENV XDG_DATA_HOME=/data
 
-# Install archiveinator with web extras from GitHub
+# Install archiveinator with web extras from GitHub.
+# patchright and camoufox are core dependencies — installed automatically.
 RUN pip3 install "archiveinator[web] @ git+https://github.com/p0rkchop/archiveinator.git@${RELEASE_REF}"
 
 # Ensure Chromium matches the installed playwright pip package version.
@@ -13,33 +14,56 @@ RUN pip3 install "archiveinator[web] @ git+https://github.com/p0rkchop/archivein
 # newer playwright, so we re-install the matching browser.
 RUN python3 -m playwright install chromium
 
-# Download monolith binary from latest GitHub release.
-# Install to the path monolith_bin() expects: $XDG_DATA_HOME/archiveinator/bin/monolith
-RUN mkdir -p /data/archiveinator/bin /data/archiveinator/output && \
-    ARCH=$(uname -m) && \
+# Install Patchright's CDP-patched Chromium (bypasses PerimeterX/DataDome).
+RUN python3 -m patchright install chromium
+
+# Fetch Camoufox patched Firefox binary (bypasses Chromium-aware bot detection).
+RUN python3 -m camoufox fetch
+
+# Install curl-impersonate (Linux x86_64 only; skip on arm64 — binary not distributed)
+RUN ARCH=$(uname -m) && \
+    if [ "$ARCH" = "x86_64" ]; then \
+      CURL_VER=0.6.1 && \
+      curl -fsSL -o /tmp/curl-impersonate.tar.gz \
+        "https://github.com/lwthiker/curl-impersonate/releases/download/v${CURL_VER}/curl-impersonate-v${CURL_VER}.x86_64-linux-gnu.tar.gz" && \
+      tar -xzf /tmp/curl-impersonate.tar.gz -C /usr/local/bin && \
+      chmod +x /usr/local/bin/curl_chrome* && \
+      rm /tmp/curl-impersonate.tar.gz; \
+    else \
+      echo "curl-impersonate: skipping on $ARCH (no pre-built binary available)"; \
+    fi
+
+# Download monolith binary to /usr/local/bin so it is never hidden by a
+# user-mounted /data volume.  The entrypoint copies it into the volume on
+# first start so monolith_bin() (DATA_DIR/bin/monolith) finds it too.
+RUN ARCH=$(uname -m) && \
     case "$ARCH" in \
       x86_64) ASSET="archiveinator-linux-x86_64" ;; \
       aarch64) ASSET="archiveinator-linux-aarch64" ;; \
       *) echo "Unsupported architecture: $ARCH"; exit 1 ;; \
     esac && \
-    curl -fsSL -o /data/archiveinator/bin/monolith \
+    curl -fsSL -o /usr/local/bin/monolith \
       "https://github.com/p0rkchop/archiveinator/releases/latest/download/${ASSET}" && \
-    chmod +x /data/archiveinator/bin/monolith
+    chmod +x /usr/local/bin/monolith
 
-# Pre-download adblock blocklists
+# Pre-download adblock blocklists to /opt/archiveinator so they are never
+# hidden by a user-mounted /data volume.  The entrypoint copies them into
+# the volume on first start.
 RUN python3 << 'PYEOF'
-from archiveinator.blocklist import easylist_path, easyprivacy_path
-import httpx
-for url, path in [
-    ("https://easylist.to/easylist/easylist.txt", easylist_path()),
-    ("https://easylist.to/easylist/easyprivacy.txt", easyprivacy_path()),
+import httpx, pathlib
+for url, dest in [
+    ("https://easylist.to/easylist/easylist.txt", "/opt/archiveinator/easylist.txt"),
+    ("https://easylist.to/easylist/easyprivacy.txt", "/opt/archiveinator/easyprivacy.txt"),
 ]:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_bytes(httpx.get(url, follow_redirects=True, timeout=60).content)
-print("Blocklists installed")
+    pathlib.Path(dest).parent.mkdir(parents=True, exist_ok=True)
+    pathlib.Path(dest).write_bytes(httpx.get(url, follow_redirects=True, timeout=60).content)
+print("Blocklists installed to /opt/archiveinator")
 PYEOF
+
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 WORKDIR /data/output
 EXPOSE 8080
-ENTRYPOINT ["archiveinator"]
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["serve"]
